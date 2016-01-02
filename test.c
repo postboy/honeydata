@@ -10,13 +10,15 @@ License: BSD 2-Clause
 
 #include "lib/hdata.h"	//honeydata library
 
-void error_handler(void)
+#define AES_BSIZE 128	//AES block size
+
+static void error_handler(void)
 {
 	ERR_print_errors_fp(stderr);
 	abort();
 }
 
-int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *iv,
+static int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *iv,
 	unsigned char *ciphertext)
 {
 	EVP_CIPHER_CTX *ctx;
@@ -52,7 +54,7 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, uns
 	return ciphertext_len;
 }
 
-int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv,
+static int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv,
 	unsigned char *plaintext)
 {
 	EVP_CIPHER_CTX *ctx;
@@ -88,7 +90,7 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, u
 	return plaintext_len;
 }
 
-int main (void)
+extern int main(void)
 {
 	//Set up the key and IV. Do I need to say to not hard code these in a real application? :-)
 
@@ -103,10 +105,10 @@ int main (void)
 
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode*/
-	unsigned char ciphertext[128];
+	unsigned char ciphertext[2*AES_BSIZE];
 
 	//buffer for the decrypted text
-	unsigned char decryptedtext[128];
+	unsigned char decryptedtext[AES_BSIZE];
 
 	int decryptedtext_len, ciphertext_len;
 
