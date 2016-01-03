@@ -3,10 +3,11 @@ test.c - test program for honeydata library
 License: BSD 2-Clause
 */
 
+#include <string.h>
+
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
-#include <string.h>
 
 #include "lib/hdata.h"	//honeydata library
 
