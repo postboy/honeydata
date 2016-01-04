@@ -3,8 +3,6 @@ test.c - test program for honeydata library
 License: BSD 2-Clause
 */
 
-#include <string.h>
-
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -138,6 +136,8 @@ extern int main(void)
 	//clean up
 	EVP_cleanup();
 	ERR_free_strings();
+	
+	printf("%i %i", 256 / 3, 254 % 3);
 
 	return 0;
 }
