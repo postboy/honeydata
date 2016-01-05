@@ -93,7 +93,7 @@ extern int main(void)
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode*/
 	const uint8_t AES_BSIZE = 16;				//AES block size in bytes
-	unsigned char ciphertext[2*AES_BSIZE];
+	unsigned char ciphertext[4*AES_BSIZE];
 	unsigned char decryptedtext[AES_BSIZE];		//buffer for the decrypted text
 	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
 
@@ -150,17 +150,15 @@ extern int main(void)
 	
 	//encrypt the plaintext
 	ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), key, iv, ciphertext);
-	/*
+	
 	//decrypt the ciphertext
-	//unexpected crash here if ecode_uint8_uniform() function was called before!
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, decryptedtext);
 	
 	//add a NULL terminator, because we are expecting printable text
 	decryptedtext[decryptedtext_len] = '\0';
 
 	//show the decrypted text
-	printf("%s\n", decryptedtext);
-	*/
+	//printf("%s\n", decryptedtext);
 
 	//clean up
 	RAND_cleanup();
