@@ -4,11 +4,8 @@ License: BSD 2-Clause
 */
 
 #include <openssl/conf.h>
-#include <openssl/evp.h>
 
 #include "lib/hd_int_uniform.h"
-
-#define AES_BSIZE 128	//AES block size
 
 static void error_handler(void)
 {
@@ -95,8 +92,9 @@ extern int main(void)
 
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode*/
+	const uint8_t AES_BSIZE = 16;				//AES block size in bytes
 	unsigned char ciphertext[2*AES_BSIZE];
-	unsigned char decryptedtext[AES_BSIZE];	//buffer for the decrypted text
+	unsigned char decryptedtext[AES_BSIZE];		//buffer for the decrypted text
 	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
 
 	//initialise the library
@@ -127,6 +125,6 @@ extern int main(void)
 	RAND_cleanup();
 	EVP_cleanup();
 	ERR_free_strings();
-
+	
 	return 0;
 }
