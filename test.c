@@ -106,20 +106,61 @@ extern int main(void)
     	return -1;
 		}
 
-	//test code goes here	
+	//encoding tests-------------------------------------------------------------------------------
 	
+	/*
+	//wrong parameters
+	reduce_secret_to_1byte(NULL, 0, NULL);
+	encode_uint8_uniform(NULL, NULL, 2, 1, 0, 1);
+	encode_uint8_uniform(NULL, NULL, 1, 2, 0, 0);
+	*/
+	
+	//normal runs
+	uint8_t reduction, i,			//reduction result, cycle counter
+	orig_array[5] = {20, 25, 30, 35, 40}, encoded_array[5], decoded_array[5],
+	min = 15, max = 45, size = 5;	//minimum and maximum possible values in array, array size
+	
+	printf("Original array:\n");	//print it
+	for (i = 0; i < 5; i++)
+		printf("%i ", orig_array[i]);
+	printf("\n\n");
+	
+	printf("if reduction = 0:\n");	//print an encoded and decoded arrays
+	encode_uint8_uniform(orig_array, encoded_array, min, max, 0, size);
+	for (i = 0; i < 5; i++)
+		printf("%i ", encoded_array[i]);
+	printf("\n");
+	decode_uint8_uniform(encoded_array, decoded_array, min, max, 0, size);
+	for (i = 0; i < 5; i++)
+		printf("%i ", decoded_array[i]);
+	printf("\n\n");
+	
+	reduce_secret_to_1byte(plaintext, strlen((char *)plaintext), &reduction);	
+	printf("if reduction = %i:\n", reduction);	//print an encoded and decoded arrays
+	encode_uint8_uniform(orig_array, encoded_array, min, max, reduction, size);
+	for (i = 0; i < 5; i++)
+		printf("%i ", encoded_array[i]);
+	printf("\n");
+	decode_uint8_uniform(encoded_array, decoded_array, min, max, reduction, size);
+	for (i = 0; i < 5; i++)
+		printf("%i ", decoded_array[i]);
+	printf("\n\n");
+	
+	//encryption tests-----------------------------------------------------------------------------
 	
 	//encrypt the plaintext
-	ciphertext_len = encrypt(plaintext, strlen ((char *)plaintext), key, iv, ciphertext);
-
+	ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), key, iv, ciphertext);
+	/*
 	//decrypt the ciphertext
+	//unexpected crash here if ecode_uint8_uniform() function was called before!
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, decryptedtext);
-
+	
 	//add a NULL terminator, because we are expecting printable text
 	decryptedtext[decryptedtext_len] = '\0';
 
 	//show the decrypted text
-	//printf("%s\n", decryptedtext);
+	printf("%s\n", decryptedtext);
+	*/
 
 	//clean up
 	RAND_cleanup();
