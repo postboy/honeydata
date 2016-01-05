@@ -5,16 +5,15 @@ License: BSD 2-Clause
 
 #include <openssl/conf.h>
 #include <openssl/evp.h>
-#include <openssl/err.h>
 
-#include "lib/hdata.h"	//honeydata library
+#include "lib/hd_int_uniform.h"
 
 #define AES_BSIZE 128	//AES block size
 
 static void error_handler(void)
 {
 	ERR_print_errors_fp(stderr);
-	abort();
+	exit(1);
 }
 
 static int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *iv,
@@ -22,9 +21,7 @@ static int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *k
 {
 	EVP_CIPHER_CTX *ctx;
 
-	int len;
-
-	int ciphertext_len;
+	int len, ciphertext_len;
 
 	//create and initialise the context
 	if (!(ctx = EVP_CIPHER_CTX_new()))
@@ -58,9 +55,7 @@ static int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 {
 	EVP_CIPHER_CTX *ctx;
 
-	int len;
-
-	int plaintext_len;
+	int len, plaintext_len;
 
 	//create and initialise the context
 	if (!(ctx = EVP_CIPHER_CTX_new()))
@@ -92,12 +87,8 @@ static int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 extern int main(void)
 {
 	//Set up the key and IV. Do I need to say to not hard code these in a real application? :-)
-
-	//a 256 bit key
-	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";
-
-	//a 128 bit IV
-	unsigned char *iv = (unsigned char *)"01234567890123456";
+	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";	//a 256 bit key
+	unsigned char *iv = (unsigned char *)"01234567890123456";					//a 128 bit IV
 
 	//message to be encrypted
 	unsigned char *plaintext = (unsigned char *)"The quick brown fox jumps over the lazy dog";
@@ -105,23 +96,23 @@ extern int main(void)
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode*/
 	unsigned char ciphertext[2*AES_BSIZE];
-
-	//buffer for the decrypted text
-	unsigned char decryptedtext[AES_BSIZE];
-
-	int decryptedtext_len, ciphertext_len;
+	unsigned char decryptedtext[AES_BSIZE];	//buffer for the decrypted text
+	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
 
 	//initialise the library
 	ERR_load_crypto_strings();
 	OpenSSL_add_all_algorithms();
 	OPENSSL_config(NULL);
+	if (!RAND_status()) {
+		fprintf(stderr, "test: RAND_status error: PRNG hasn't been seeded with enough data\n");
+    	return -1;
+		}
 
+	//test code goes here	
+	
+	
 	//encrypt the plaintext
 	ciphertext_len = encrypt(plaintext, strlen ((char *)plaintext), key, iv, ciphertext);
-
-	//do something useful with the ciphertext here
-	printf("Ciphertext is:\n");
-	BIO_dump_fp(stdout, (const char *)ciphertext, ciphertext_len);
 
 	//decrypt the ciphertext
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, decryptedtext);
@@ -130,14 +121,12 @@ extern int main(void)
 	decryptedtext[decryptedtext_len] = '\0';
 
 	//show the decrypted text
-	printf("Decrypted text is:\n");
-	printf("%s\n", decryptedtext);
+	//printf("%s\n", decryptedtext);
 
 	//clean up
+	RAND_cleanup();
 	EVP_cleanup();
 	ERR_free_strings();
-	
-	printf("%i %i", 256 / 3, 254 % 3);
 
 	return 0;
 }
