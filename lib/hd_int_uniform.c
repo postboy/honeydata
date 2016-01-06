@@ -84,15 +84,15 @@ extern int8_t reduce_secret_to_1byte(const unsigned char *secret, const uint32_t
 
 //DTE for unsigned 8 bit integers distributed uniformly; returns 0 on success or 1 on error
 extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char *out_array,
-	const uint8_t min, const uint8_t max, const uint8_t reduction, const uint64_t count)
+	const uint8_t min, const uint8_t max, const uint8_t reduction, const uint64_t size)
 {
 	//wrong input values
 	if (min > max) {
 		fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: min > max\n");
 		return 1;
 		}
-	if (count < 1){
-		fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: count < 1\n");
+	if (size < 1){
+		fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: size < 1\n");
 		return 1;
 		}
 
@@ -106,7 +106,7 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	
 	//if every value is possible
 	if (group_size == 256) {
-		for (i = 0; i < count; i++) {
+		for (i = 0; i < size; i++) {
 			//then read a current value and add a randomozing offset to it
 			elt = ( (uint8_t)in_array[i] + reduction) % 256;
 			
@@ -116,7 +116,7 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 		}
 
 	//write a random numbers to output array
-	if (!RAND_bytes(out_array, count)) {
+	if (!RAND_bytes(out_array, size)) {
     	ERR_print_errors_fp(stderr);
     	return 1;
     	}
@@ -127,7 +127,7 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 		return 0;
 	
 	//else encode each number using random numbers from out_array for group selection
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < size; i++) {
 		//read current value, normalize it, add a randomozing offset to it
 		elt = ( (uint8_t)in_array[i] - min + reduction) % group_size;
 		
@@ -146,15 +146,15 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 
 //DTD for unsigned 8 bit integers distributed uniformly; returns 0 on success or 1 on error
 extern int8_t decode_uint8_uniform(const unsigned char *in_array, unsigned char *out_array,
-	const uint8_t min, const uint8_t max, const uint8_t reduction, const uint64_t count)
+	const uint8_t min, const uint8_t max, const uint8_t reduction, const uint64_t size)
 {
 	//wrong input values
 	if (min > max) {
 		fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: min > max\n");
 		return 1;
 		}
-	if (count < 1){
-		fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: count < 1\n");
+	if (size < 1){
+		fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: size < 1\n");
 		return 1;
 		}
 
@@ -164,7 +164,7 @@ extern int8_t decode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	
 	//if every value is possible
 	if (group_size == 256) {
-		for (i = 0; i < count; i++) {
+		for (i = 0; i < size; i++) {
 			//then read a current value and substitute a randomozing offset from it
 			elt = (uint8_t)in_array[i];
 			if (elt >= reduction)
@@ -177,14 +177,14 @@ extern int8_t decode_uint8_uniform(const unsigned char *in_array, unsigned char 
 		return 0;
 		}
 
-	//if only one value is possible then write this value 'count' times
+	//if only one value is possible then write this value 'size' times
 	if (group_size == 1) {
-		memset(out_array, min, count);
+		memset(out_array, min, size);
 		return 0;
 		}
 	
 	//else decode each number
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < size; i++) {
 		//read current value, denormalize it, subtract a randomozing offset from it
 		elt = ( (uint8_t)in_array[i] + min) % group_size;
 		if (elt >= reduction)
