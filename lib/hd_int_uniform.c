@@ -104,9 +104,14 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	//number of elements in the last group or 0 if the last group is full, from 0 to 127
 	last_group_size = 256 % group_size;
 	
-	//if every value is possible then just copy input array to output array
+	//if every value is possible
 	if (group_size == 256) {
-		memcpy((void *)in_array, out_array, count);
+		for (i = 0; i < count; i++) {
+			//then read a current value and add a randomozing offset to it
+			elt = ( (uint8_t)in_array[i] + reduction) % 256;
+			
+			out_array[i] = elt;	//finally write it to buffer
+			}
 		return 0;
 		}
 
@@ -123,16 +128,17 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	
 	//else encode each number using random numbers from out_array for group selection
 	for (i = 0; i < count; i++) {
-		//read current value, normalize it, add a randomozing offset to every number
-		elt = ( (uint8_t)(*in_array+i) - min + reduction) % group_size;
+		//read current value, normalize it, add a randomozing offset to it
+		elt = ( (uint8_t)in_array[i] - min + reduction) % group_size;
 		
 		//if we can place a current element in any group including the last one then do it
 		if ( (elt < last_group_size) || (last_group_size == 0) )
-			elt += ( (uint8_t)(*out_array+i) % max_group ) * group_size;
+			elt += ( (uint8_t)out_array[i] % max_group ) * group_size;
 		//else place it in any group excluding the last one
 		else
-			elt += ( (uint8_t)(*out_array+i) % (max_group-1) ) * group_size;
-		memcpy(&elt, (out_array+i), 1);	//finally write it to buffer
+			elt += ( (uint8_t)out_array[i] % (max_group-1) ) * group_size;
+			
+		out_array[i] = elt;	//finally write it to buffer
 		}
 
 	return 0;
@@ -156,9 +162,18 @@ extern int8_t decode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	uint8_t elt;								//current processing element
 	const uint16_t group_size = max - min + 1;	//size of a full group in elements, from 1 to 256
 	
-	//if every value is possible then just copy input array to output array
+	//if every value is possible
 	if (group_size == 256) {
-		memcpy((void *)in_array, out_array, count);
+		for (i = 0; i < count; i++) {
+			//then read a current value and substitute a randomozing offset from it
+			elt = (uint8_t)in_array[i];
+			if (elt >= reduction)
+				elt = elt - reduction;
+			else
+				elt = 256 + elt - reduction;
+				
+			out_array[i] = elt;	//finally write it to buffer
+			}
 		return 0;
 		}
 
@@ -170,14 +185,14 @@ extern int8_t decode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	
 	//else decode each number
 	for (i = 0; i < count; i++) {
-		//read current value, normalize it, add a randomozing offset to every number
-		elt = ( (uint8_t)(*in_array+i) + min) % group_size;
-		if (elt <= reduction)
+		//read current value, denormalize it, subtract a randomozing offset from it
+		elt = ( (uint8_t)in_array[i] + min) % group_size;
+		if (elt >= reduction)
 			elt = elt - reduction;
 		else
-			elt = UINT8_MAX + elt - reduction;
+			elt = 256 + elt - reduction;
 		
-		memcpy(&elt, (out_array+i), 1);	//finally write it to buffer
+		out_array[i] = elt;	//finally write it to buffer
 		}
 
 	return 0;

@@ -93,11 +93,11 @@ extern int main(void)
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode*/
 	const uint8_t AES_BSIZE = 16;				//AES block size in bytes
-	unsigned char ciphertext[4*AES_BSIZE];
-	unsigned char decryptedtext[AES_BSIZE];		//buffer for the decrypted text
+	unsigned char ciphertext[3*AES_BSIZE];
+	unsigned char decryptedtext[2*AES_BSIZE];	//buffer for the decrypted text
 	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
 
-	//initialise the library
+	//initialise the crypto library
 	ERR_load_crypto_strings();
 	OpenSSL_add_all_algorithms();
 	OPENSSL_config(NULL);
@@ -113,36 +113,93 @@ extern int main(void)
 	reduce_secret_to_1byte(NULL, 0, NULL);
 	encode_uint8_uniform(NULL, NULL, 2, 1, 0, 1);
 	encode_uint8_uniform(NULL, NULL, 1, 2, 0, 0);
+	decode_uint8_uniform(NULL, NULL, 2, 1, 0, 1);
+	decode_uint8_uniform(NULL, NULL, 1, 2, 0, 0);
 	*/
 	
-	//normal runs
-	uint8_t reduction, i,			//reduction result, cycle counter
-	orig_array[5] = {20, 25, 30, 35, 40}, encoded_array[5], decoded_array[5],
-	min = 15, max = 45, size = 5;	//minimum and maximum possible values in array, array size
+	uint8_t reduction, i, size = 5,	//reduction result, cycle counter, array size
+	orig_array[5] = {20, 20, 20, 20, 20}, encoded_array[5], decoded_array[5];
+	
+	reduce_secret_to_1byte(plaintext, strlen((char *)plaintext), &reduction);
+	
+	/*
+	//special cases
 	
 	printf("Original array:\n");	//print it
-	for (i = 0; i < 5; i++)
+	for (i = 0; i < size; i++)
 		printf("%i ", orig_array[i]);
 	printf("\n\n");
 	
-	printf("if reduction = 0:\n");	//print an encoded and decoded arrays
-	encode_uint8_uniform(orig_array, encoded_array, min, max, 0, size);
-	for (i = 0; i < 5; i++)
+	printf("min = max = 20, reduction = 0:\n");	//print an encoded and decoded arrays
+	encode_uint8_uniform(orig_array, encoded_array, 20, 20, 0, size);
+	for (i = 0; i < size; i++)
 		printf("%i ", encoded_array[i]);
 	printf("\n");
-	decode_uint8_uniform(encoded_array, decoded_array, min, max, 0, size);
-	for (i = 0; i < 5; i++)
+	decode_uint8_uniform(encoded_array, decoded_array, 20, 20, 0, size);
+	for (i = 0; i < size; i++)
 		printf("%i ", decoded_array[i]);
 	printf("\n\n");
 	
-	reduce_secret_to_1byte(plaintext, strlen((char *)plaintext), &reduction);	
-	printf("if reduction = %i:\n", reduction);	//print an encoded and decoded arrays
-	encode_uint8_uniform(orig_array, encoded_array, min, max, reduction, size);
-	for (i = 0; i < 5; i++)
+	printf("reduction = %i:\n", reduction);	//print an encoded and decoded arrays
+	encode_uint8_uniform(orig_array, encoded_array, 20, 20, reduction, size);
+	for (i = 0; i < size; i++)
 		printf("%i ", encoded_array[i]);
 	printf("\n");
-	decode_uint8_uniform(encoded_array, decoded_array, min, max, reduction, size);
-	for (i = 0; i < 5; i++)
+	decode_uint8_uniform(encoded_array, decoded_array, 20, 20, reduction, size);
+	for (i = 0; i < size; i++)
+		printf("%i ", decoded_array[i]);
+	printf("\n\n");
+	
+	printf("min = 0, max = 255, reduction = 0:\n");	//print an encoded and decoded arrays
+	encode_uint8_uniform(orig_array, encoded_array, 0, 255, 0, size);
+	for (i = 0; i < size; i++)
+		printf("%i ", encoded_array[i]);
+	printf("\n");
+	decode_uint8_uniform(encoded_array, decoded_array, 0, 255, 0, size);
+	for (i = 0; i < size; i++)
+		printf("%i ", decoded_array[i]);
+	printf("\n\n");
+	
+	printf("reduction = %i:\n", reduction);	//print an encoded and decoded arrays
+	encode_uint8_uniform(orig_array, encoded_array, 0, 255, reduction, size);
+	for (i = 0; i < size; i++)
+		printf("%i ", encoded_array[i]);
+	printf("\n");
+	decode_uint8_uniform(encoded_array, decoded_array, 0, 255, reduction, size);
+	for (i = 0; i < size; i++)
+		printf("%i ", decoded_array[i]);
+	printf("\n\n");
+	*/
+	
+	//general cases
+	orig_array[0] = 20;
+	orig_array[1] = 25;
+	orig_array[2] = 30;
+	orig_array[3] = 35;
+	orig_array[4] = 40;
+	
+	printf("Original array:\n");	//print it
+	for (i = 0; i < size; i++)
+		printf("%i ", orig_array[i]);
+	printf("\n\n");
+	
+	printf("min = 15, max = 45, reduction = 0:\n");	//print an encoded and decoded arrays
+	encode_uint8_uniform(orig_array, encoded_array, 15, 45, 0, size);
+	for (i = 0; i < size; i++)
+		printf("%i ", encoded_array[i]);
+	printf("\n");
+	decode_uint8_uniform(encoded_array, decoded_array, 15, 45, 0, size);
+	for (i = 0; i < size; i++)
+		printf("%i ", decoded_array[i]);
+	printf("\n\n");
+	
+	printf("reduction = %i:\n", reduction);	//print an encoded and decoded arrays
+	encode_uint8_uniform(orig_array, encoded_array, 15, 45, reduction, size);
+	for (i = 0; i < size; i++)
+		printf("%i ", encoded_array[i]);
+	printf("\n");
+	decode_uint8_uniform(encoded_array, decoded_array, 15, 45, reduction, size);
+	for (i = 0; i < size; i++)
 		printf("%i ", decoded_array[i]);
 	printf("\n\n");
 	
@@ -164,6 +221,8 @@ extern int main(void)
 	RAND_cleanup();
 	EVP_cleanup();
 	ERR_free_strings();
+	
+	//getchar();	//for debugging purposes
 	
 	return 0;
 }
