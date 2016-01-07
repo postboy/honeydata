@@ -117,7 +117,8 @@ extern int main(void)
 	//encoding tests-------------------------------------------------------------------------------
 	
 	uint8_t reduction, size = 5, min, max,	//reduction result, array size, minimum and maximim
-	orig_array[5] = {20, 20, 20, 20, 20}, encoded_array[5], decoded_array[5];
+	orig_array[256] = {20, 20, 20, 20, 20}, encoded_array[256], decoded_array[256];
+	uint64_t i;								//cycle counter
 	
 	reduce_secret_to_1byte(plaintext, strlen((char *)plaintext), &reduction);
 	
@@ -135,7 +136,7 @@ extern int main(void)
 	*/
 	
 	/*
-	//special cases
+	//fixed special cases
 	
 	printf("Original array:\n");
 	print_uint8_array(orig_array, size);
@@ -172,7 +173,8 @@ extern int main(void)
 	printf("\n");
 	*/
 	
-	//general cases
+	/*
+	//fixed general cases
 	orig_array[0] = 20;
 	orig_array[1] = 25;
 	orig_array[2] = 30;
@@ -183,45 +185,36 @@ extern int main(void)
 	print_uint8_array(orig_array, size);
 	get_uint8_array_metadata(orig_array, size, &min, &max);
 	
-	//not passed section begin
-	
-	/*
 	printf("min = %i, max = %i, reduction = 0:\n", min, max);
 	encode_uint8_uniform(orig_array, encoded_array, min, max, 0, size);
 	print_uint8_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, min, max, 0, size);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
-	*/
+
 	
-	printf("min = %i, max = %i, reduction = %i:\n", min, max, 1);
-	encode_uint8_uniform(orig_array, encoded_array, min, max, 1, size);
+	printf("min = %i, max = %i, reduction = %i:\n", min, max, reduction);
+	encode_uint8_uniform(orig_array, encoded_array, min, max, reduction, size);
 	print_uint8_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, min, max, 1, size);
+	decode_uint8_uniform(encoded_array, decoded_array, min, max, reduction, size);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
-	/*
 	printf("min = 15, max = 45, reduction = 0:\n");
 	encode_uint8_uniform(orig_array, encoded_array, 15, 45, 0, size);
 	print_uint8_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, 15, 45, 0, size);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
-	*/
 	
 	//reduction < 6 causes right decoding
-	printf("min = 15, max = 45, reduction = %i:\n", 6);
-	encode_uint8_uniform(orig_array, encoded_array, 15, 45, 6, size);
+	printf("min = 15, max = 45, reduction = %i:\n", reduction);
+	encode_uint8_uniform(orig_array, encoded_array, 15, 45, reduction, size);
 	print_uint8_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, 15, 45, 6, size);
+	decode_uint8_uniform(encoded_array, decoded_array, 15, 45, reduction, size);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
-		
-	//not passed section end
-	
-	/*
 	printf("min = 0, max = 255, reduction = 0:\n");
 	encode_uint8_uniform(orig_array, encoded_array, 0, 255, 0, size);
 	print_uint8_array(encoded_array, size);
@@ -236,7 +229,25 @@ extern int main(void)
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	*/
-		
+	
+	/*
+	//random encoding and decoding
+	for (i = 1; i < 256; i++) {
+		//write a random numbers to original array
+		if (!RAND_bytes(orig_array, i)) {
+    		ERR_print_errors_fp(stderr);
+    		return 1;
+    		}
+    	get_uint8_array_metadata(orig_array, i, &min, &max);
+		encode_uint8_uniform(orig_array, encoded_array, min, max, i, i);
+    	decode_uint8_uniform(encoded_array, decoded_array, min, max, i, i);
+    	if (memcmp(orig_array, decoded_array, i)) {
+			print_uint8_array(orig_array, i);
+			print_uint8_array(decoded_array, i);
+			}
+		}
+	*/
+	
 	//encryption tests-----------------------------------------------------------------------------
 	
 	//encrypt the plaintext

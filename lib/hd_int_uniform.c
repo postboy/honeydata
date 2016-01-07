@@ -132,10 +132,11 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	uint64_t i;									//cycle counter
 	uint8_t elt;								//current processing element
 	const uint16_t group_size = max - min + 1;	//size of a full group in elements, from 1 to 256
-	//maximum number of a group, so they will have values in interval [0; max_group], from 0 to 255
-	const uint8_t max_group = ceil(256 / (group_size+0.0)) - 1,
+	//number of groups, so they will have values in interval [0; group_num-1], from 0 to 255
+	const uint8_t group_num = ceil(256 / (group_size+0.0)),
 	//number of elements in the last group or 0 if the last group is full, from 0 to 127
 	last_group_size = 256 % group_size;
+	
 	
 	//if every value is possible
 	if (group_size == 256) {
@@ -174,14 +175,15 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 			fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: wrong min or max value\n");
 			return 1;
 			}
-		elt = (elt - min + reduction) % group_size;	//normalize it, add a randomozing offset to it
-		
+		elt = elt - min;	//normalize it
+
 		//if we can place a current element in any group including the last one then do it
 		if ( (elt < last_group_size) || (last_group_size == 0) )
-			elt += ( (uint8_t)out_array[i] % max_group ) * group_size;
+			elt += ( (uint8_t)out_array[i] % group_num ) * group_size;
 		//else place it in any group excluding the last one
 		else
-			elt += ( (uint8_t)out_array[i] % (max_group-1) ) * group_size;
+			elt += ( (uint8_t)out_array[i] % (group_num-1) ) * group_size;
+		elt = (elt + reduction) % 256;	//add a randomozing offset to it
 			
 		out_array[i] = elt;	//finally write it to buffer
 		}
@@ -230,12 +232,19 @@ extern int8_t decode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	
 	//else decode each number
 	for (i = 0; i < size; i++) {
-		//read current value, denormalize it, subtract a randomozing offset from it
-		elt = ( (uint8_t)in_array[i] % group_size) + min;
+		//read current value, substitute a randomozing offset from it, denormalize it
+		elt = (uint8_t)in_array[i];
 		if (elt >= reduction)
 			elt = elt - reduction;
 		else
 			elt = 256 + elt - reduction;
+		elt = (elt % group_size) + min;
+		
+		//if algorithm works right, this error should never been thrown
+		if ( (elt < min) || (elt > max) ) {
+			fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: algorithm error\n");
+			return 1;
+			}
 		
 		out_array[i] = elt;	//finally write it to buffer
 		}
