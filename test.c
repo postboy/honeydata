@@ -161,8 +161,9 @@ extern int main(void)
 		print_uint8_array(orig_array, size);
 		print_uint8_array(decoded_array, size);
 		}
+	//three columns: ideal, pseudorandom and actual distribution for chi2test
 	for (i = 0; i < 256; i++)
-		printf("%llu %llu\n", in_stats[i], out_stats[i]);
+		printf("%llu\t%llu\t%llu\n", in_stats[i], out_stats[i], size/256);
 	
 	/*
 	//wrong parameters
