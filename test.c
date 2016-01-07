@@ -7,12 +7,20 @@ License: BSD 2-Clause
 
 #include "lib/hd_int_uniform.h"
 
-static void print_uint8_array(const uint8_t *array, const uint64_t size)
+static int8_t print_uint8_array(const uint8_t *array, const uint64_t size)
 {
-	uint64_t i;
+	uint64_t i;	//cycle counter
+	
+	//wrong input value
+	if (size < 1) {
+		fprintf(stderr, "test: print_uint8_array error: size < 1\n");
+		return 1;
+		}
+	
 	for (i = 0; i < size; i++)
 		printf("%i ", array[i]);
 	printf("\n");
+	return 0;
 }
 
 static void error_handler(void)
@@ -21,6 +29,7 @@ static void error_handler(void)
 	exit(1);
 }
 
+//encrypt a message
 static int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *iv,
 	unsigned char *ciphertext)
 {
@@ -55,6 +64,7 @@ static int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *k
 	return ciphertext_len;
 }
 
+//decrypt a message
 static int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv,
 	unsigned char *plaintext)
 {
@@ -89,21 +99,32 @@ static int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 	return plaintext_len;
 }
 
+//get a number of occurences of different bytes in array
+static int8_t array_statistics(const unsigned char *in_array, const uint64_t size, uint64_t *stats)
+{
+	uint64_t i;			//cycle counter
+	unsigned char elt;	//current processing element
+	
+	//wrong input value
+	if (size < 1) {
+		fprintf(stderr, "test: array_statistics error: size < 1\n");
+		return 1;
+		}
+	
+	memset(stats, 0, 8*256);	//initialize the output array
+	for (i = 0; i < size; i++) {
+		elt = in_array[i];		//read a current element
+		++stats[elt];			//increment the corresponding number in output array
+		}
+		
+	return 0;
+}
+
 extern int main(void)
 {
 	//Set up the key and IV. Do I need to say to not hard code these in a real application? :-)
 	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";	//a 256 bit key
 	unsigned char *iv = (unsigned char *)"01234567890123456";					//a 128 bit IV
-
-	//message to be encrypted
-	unsigned char *plaintext = (unsigned char *)"The quick brown fox jumps over the lazy dog";
-
-	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
-	longer than the plaintext, dependant on the algorithm and mode*/
-	const uint8_t AES_BSIZE = 16;				//AES block size in bytes
-	unsigned char ciphertext[3*AES_BSIZE];
-	unsigned char decryptedtext[2*AES_BSIZE];	//buffer for the decrypted text
-	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
 
 	//initialise the crypto library
 	ERR_load_crypto_strings();
@@ -116,11 +137,32 @@ extern int main(void)
 
 	//encoding tests-------------------------------------------------------------------------------
 	
-	uint8_t reduction, size = 5, min, max,	//reduction result, array size, minimum and maximim
-	orig_array[256] = {20, 20, 20, 20, 20}, encoded_array[256], decoded_array[256];
-	uint64_t i;								//cycle counter
+	uint8_t reduction, min, max,	//reduction result, minimum and maximim
+	orig_array[65536] = {20, 20, 20, 20, 20}, encoded_array[65536], decoded_array[65536];
+	//cycle counter, array size, statistics on pseudorandom and output arrays
+	uint64_t i, size = 65536, in_stats[256], out_stats[256];
 	
-	reduce_secret_to_1byte(plaintext, strlen((char *)plaintext), &reduction);
+	reduce_secret_to_1byte(key, 32, &reduction);
+	
+	//random encoding and decoding with statistics
+	if (!RAND_bytes(orig_array, size)) {	//write a random numbers to original array
+    	ERR_print_errors_fp(stderr);
+    	return 1;
+    	}
+    array_statistics(orig_array, size, in_stats);	//get a statistics on a pseudorandom numbers
+    
+    //let orig_array contain numbers from 120 to 239
+	for (i = 0; i < size; i++)
+		orig_array[i] = (orig_array[i] % 120) + 120;
+	encode_uint8_uniform(orig_array, encoded_array, 120, 239, i, size);
+	array_statistics(encoded_array, size, out_stats);	//get a statistics on an encoded array
+    decode_uint8_uniform(encoded_array, decoded_array, 120, 239, i, size);
+    if (memcmp(orig_array, decoded_array, size)) {
+		print_uint8_array(orig_array, size);
+		print_uint8_array(decoded_array, size);
+		}
+	for (i = 0; i < 256; i++)
+		printf("%llu %llu\n", in_stats[i], out_stats[i]);
 	
 	/*
 	//wrong parameters
@@ -132,10 +174,14 @@ extern int main(void)
 	encode_uint8_uniform(orig_array, encoded_array, 21, 100, 0, size);
 	decode_uint8_uniform(NULL, NULL, 2, 1, 0, 1);
 	decode_uint8_uniform(NULL, NULL, 1, 2, 0, 0);
+	print_uint8_array(NULL, 0);
+	array_statistics(NULL, 0, NULL);
 	printf("\n");
 	*/
 	
 	/*
+	size = 5;
+	
 	//fixed special cases
 	
 	printf("Original array:\n");
@@ -233,8 +279,7 @@ extern int main(void)
 	/*
 	//random encoding and decoding
 	for (i = 1; i < 256; i++) {
-		//write a random numbers to original array
-		if (!RAND_bytes(orig_array, i)) {
+		if (!RAND_bytes(orig_array, i)) {	//write a random numbers to original array
     		ERR_print_errors_fp(stderr);
     		return 1;
     		}
@@ -249,6 +294,16 @@ extern int main(void)
 	*/
 	
 	//encryption tests-----------------------------------------------------------------------------
+	
+	//message to be encrypted
+	unsigned char *plaintext = (unsigned char *)"The quick brown fox jumps over the lazy dog";
+	
+	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
+	longer than the plaintext, dependant on the algorithm and mode*/
+	const uint8_t AES_BSIZE = 16;				//AES block size in bytes
+	unsigned char ciphertext[3*AES_BSIZE];
+	unsigned char decryptedtext[2*AES_BSIZE];	//buffer for the decrypted text
+	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
 	
 	//encrypt the plaintext
 	ciphertext_len = encrypt(plaintext, strlen((char *)plaintext), key, iv, ciphertext);
