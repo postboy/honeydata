@@ -211,7 +211,7 @@ extern int main(void)
 	*/
 	
 	//reduction < 6 causes right decoding
-	printf("min = 15, max = 45, reduction = %i:\n", 10);
+	printf("min = 15, max = 45, reduction = %i:\n", 6);
 	encode_uint8_uniform(orig_array, encoded_array, 15, 45, 6, size);
 	print_uint8_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, 15, 45, 6, size);
