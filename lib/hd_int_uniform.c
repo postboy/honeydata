@@ -6,7 +6,7 @@ License: BSD 2-Clause
 #include "hd_int_uniform.h"
 
 //reduce a secret (e.g. a key or a password) to one-byte variable for encoding randomization
-extern int8_t reduce_secret_to_1byte(const unsigned char *secret, const uint32_t secret_len,
+extern int8_t reduce_secret_to_1byte(const unsigned char *secret, const uint32_t secret_size,
 	uint8_t *reduction)
 {
 	EVP_MD_CTX *mdctx;
@@ -16,8 +16,8 @@ extern int8_t reduce_secret_to_1byte(const unsigned char *secret, const uint32_t
 	unsigned int hash_len;				//it's length
 
 	//wrong input value
-	if (secret_len < 1) {
-		fprintf(stderr, "hd_int_uniform: reduce_secret error: secret_len < 1\n");
+	if (secret_size < 1) {
+		fprintf(stderr, "hd_int_uniform: reduce_secret error: secret_size < 1\n");
 		return 1;
 		}
 
@@ -32,7 +32,7 @@ extern int8_t reduce_secret_to_1byte(const unsigned char *secret, const uint32_t
 		return 1;
 		}
 
-	if (EVP_DigestUpdate(mdctx, secret, secret_len) != 1) {
+	if (EVP_DigestUpdate(mdctx, secret, secret_size) != 1) {
 		ERR_print_errors_fp(stderr);
 		return 1;
 		}
@@ -82,7 +82,40 @@ extern int8_t reduce_secret_to_1byte(const unsigned char *secret, const uint32_t
 	return 0;
 }
 
-//DTE for unsigned 8 bit integers distributed uniformly; returns 0 on success or 1 on error
+//get minimum and maximum of uint8 array
+extern int8_t get_uint8_array_metadata(const unsigned char *array, const uint64_t size,
+	uint8_t *min, uint8_t *max)
+{
+	uint8_t tmpmin, tmpmax;	//variables for storing temporary minimum and maximum values
+	uint64_t i;				//cycle counter
+
+	//wrong input value
+	if (size < 1) {
+		fprintf(stderr, "hd_int_uniform: get_uint8_array_metadata error: size < 1\n");
+		return 1;
+		}
+
+	//initialize minimum and maximum values
+	tmpmin = array[0];
+	tmpmax = array[0];
+	//let's try to find smaller minimum and bigger maximum
+	for (i = 1; i < size; i++) {
+		if (array[i] < tmpmin)					//then it's the new minimum
+			tmpmin = array[i];
+		if (array[i] > tmpmax)					//then it's the new maximum
+			tmpmax = array[i];
+		if ( (tmpmin == 0) && (tmpmax == 256) )	//we've already got minimum and maximum of array
+			break;
+		}
+	
+	//finally copy results to output buffers
+	memcpy(min, &tmpmin, 1);
+	memcpy(max, &tmpmax, 1);
+	
+	return 0;
+}
+
+//DTE for unsigned 8 bit integers distributed uniformly
 extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char *out_array,
 	const uint8_t min, const uint8_t max, const uint8_t reduction, const uint64_t size)
 {
@@ -91,7 +124,7 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 		fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: min > max\n");
 		return 1;
 		}
-	if (size < 1){
+	if (size < 1) {
 		fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: size < 1\n");
 		return 1;
 		}
@@ -107,7 +140,7 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	//if every value is possible
 	if (group_size == 256) {
 		for (i = 0; i < size; i++) {
-			//then read a current value and add a randomozing offset to it
+			//read current value, add a randomozing offset to it
 			elt = ( (uint8_t)in_array[i] + reduction) % 256;
 			
 			out_array[i] = elt;	//finally write it to buffer
@@ -121,15 +154,27 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
     	return 1;
     	}
 
-	/*if only one value is possible then use a random number for encoding each number, so we're
-	already done!*/
-	if (group_size == 1)
+	//if only one value is possible then use a random number for encoding each number
+	if (group_size == 1) {
+		//we're already done with random numbers, but we should check an input array
+		for (i = 0; i < size; i++) {
+			elt = (uint8_t)in_array[i];	//read current value
+			if (elt != min) {
+				fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: wrong min or max value\n");
+				return 1;
+				}
+			}
 		return 0;
+		}
 	
 	//else encode each number using random numbers from out_array for group selection
 	for (i = 0; i < size; i++) {
-		//read current value, normalize it, add a randomozing offset to it
-		elt = ( (uint8_t)in_array[i] - min + reduction) % group_size;
+		elt = (uint8_t)in_array[i];					//read current value
+		if ( (elt < min) || (elt > max) ) {
+			fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: wrong min or max value\n");
+			return 1;
+			}
+		elt = (elt - min + reduction) % group_size;	//normalize it, add a randomozing offset to it
 		
 		//if we can place a current element in any group including the last one then do it
 		if ( (elt < last_group_size) || (last_group_size == 0) )
@@ -144,7 +189,7 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	return 0;
 }
 
-//DTD for unsigned 8 bit integers distributed uniformly; returns 0 on success or 1 on error
+//DTD for unsigned 8 bit integers distributed uniformly
 extern int8_t decode_uint8_uniform(const unsigned char *in_array, unsigned char *out_array,
 	const uint8_t min, const uint8_t max, const uint8_t reduction, const uint64_t size)
 {
@@ -153,7 +198,7 @@ extern int8_t decode_uint8_uniform(const unsigned char *in_array, unsigned char 
 		fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: min > max\n");
 		return 1;
 		}
-	if (size < 1){
+	if (size < 1) {
 		fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: size < 1\n");
 		return 1;
 		}
@@ -165,7 +210,7 @@ extern int8_t decode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	//if every value is possible
 	if (group_size == 256) {
 		for (i = 0; i < size; i++) {
-			//then read a current value and substitute a randomozing offset from it
+			//read a current value and substitute a randomozing offset from it
 			elt = (uint8_t)in_array[i];
 			if (elt >= reduction)
 				elt = elt - reduction;
@@ -186,7 +231,7 @@ extern int8_t decode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	//else decode each number
 	for (i = 0; i < size; i++) {
 		//read current value, denormalize it, subtract a randomozing offset from it
-		elt = ( (uint8_t)in_array[i] + min) % group_size;
+		elt = ( (uint8_t)in_array[i] % group_size) + min;
 		if (elt >= reduction)
 			elt = elt - reduction;
 		else

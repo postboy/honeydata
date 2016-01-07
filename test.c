@@ -116,7 +116,7 @@ extern int main(void)
 
 	//encoding tests-------------------------------------------------------------------------------
 	
-	uint8_t reduction, size = 5,	//reduction result, array size
+	uint8_t reduction, size = 5, min, max,	//reduction result, array size, minimum and maximim
 	orig_array[5] = {20, 20, 20, 20, 20}, encoded_array[5], decoded_array[5];
 	
 	reduce_secret_to_1byte(plaintext, strlen((char *)plaintext), &reduction);
@@ -124,29 +124,35 @@ extern int main(void)
 	/*
 	//wrong parameters
 	reduce_secret_to_1byte(NULL, 0, NULL);
+	get_uint8_array_metadata(NULL, 0, NULL, NULL);
 	encode_uint8_uniform(NULL, NULL, 2, 1, 0, 1);
 	encode_uint8_uniform(NULL, NULL, 1, 2, 0, 0);
+	encode_uint8_uniform(orig_array, encoded_array, 100, 100, 0, size);
+	encode_uint8_uniform(orig_array, encoded_array, 21, 100, 0, size);
 	decode_uint8_uniform(NULL, NULL, 2, 1, 0, 1);
 	decode_uint8_uniform(NULL, NULL, 1, 2, 0, 0);
 	printf("\n");
+	*/
 	
+	/*
 	//special cases
 	
 	printf("Original array:\n");
 	print_uint8_array(orig_array, size);
+	get_uint8_array_metadata(orig_array, size, &min, &max);
 	
-	printf("min = max = 20, reduction = 0:\n");
-	encode_uint8_uniform(orig_array, encoded_array, 20, 20, 0, size);
+	printf("min = %i, max = %i, reduction = 0:\n", min, max);
+	encode_uint8_uniform(orig_array, encoded_array, min, max, 0, size);
 	print_uint8_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, 20, 20, 0, size);
+	decode_uint8_uniform(encoded_array, decoded_array, min, max, 0, size);
 	//if original and decoded arrays is not equal then print a decoded array too
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
-	printf("reduction = %i:\n", reduction);
-	encode_uint8_uniform(orig_array, encoded_array, 20, 20, reduction, size);
+	printf("min = %i, max = %i, reduction = %i:\n", min, max, reduction);
+	encode_uint8_uniform(orig_array, encoded_array, min, max, reduction, size);
 	print_uint8_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, 20, 20, reduction, size);
+	decode_uint8_uniform(encoded_array, decoded_array, min, max, reduction, size);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
@@ -157,7 +163,7 @@ extern int main(void)
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
-	printf("reduction = %i:\n", reduction);
+	printf("min = 0, max = 255, reduction = %i:\n", reduction);
 	encode_uint8_uniform(orig_array, encoded_array, 0, 255, reduction, size);
 	print_uint8_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, 0, 255, reduction, size);
@@ -175,21 +181,62 @@ extern int main(void)
 	
 	printf("Original array:\n");	//print it
 	print_uint8_array(orig_array, size);
+	get_uint8_array_metadata(orig_array, size, &min, &max);
 	
+	//not passed section begin
+	
+	/*
+	printf("min = %i, max = %i, reduction = 0:\n", min, max);
+	encode_uint8_uniform(orig_array, encoded_array, min, max, 0, size);
+	print_uint8_array(encoded_array, size);
+	decode_uint8_uniform(encoded_array, decoded_array, min, max, 0, size);
+	if (memcmp(orig_array, decoded_array, size))
+		print_uint8_array(decoded_array, size);
+	*/
+	
+	printf("min = %i, max = %i, reduction = %i:\n", min, max, 1);
+	encode_uint8_uniform(orig_array, encoded_array, min, max, 1, size);
+	print_uint8_array(encoded_array, size);
+	decode_uint8_uniform(encoded_array, decoded_array, min, max, 1, size);
+	if (memcmp(orig_array, decoded_array, size))
+		print_uint8_array(decoded_array, size);
+	
+	/*
 	printf("min = 15, max = 45, reduction = 0:\n");
 	encode_uint8_uniform(orig_array, encoded_array, 15, 45, 0, size);
 	print_uint8_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, 15, 45, 0, size);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
+	*/
 	
-	printf("reduction = %i:\n", reduction);
-	encode_uint8_uniform(orig_array, encoded_array, 15, 45, reduction, size);
+	//reduction < 6 causes right decoding
+	printf("min = 15, max = 45, reduction = %i:\n", 10);
+	encode_uint8_uniform(orig_array, encoded_array, 15, 45, 6, size);
 	print_uint8_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, 15, 45, reduction, size);
+	decode_uint8_uniform(encoded_array, decoded_array, 15, 45, 6, size);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
+		
+	//not passed section end
+	
+	/*
+	printf("min = 0, max = 255, reduction = 0:\n");
+	encode_uint8_uniform(orig_array, encoded_array, 0, 255, 0, size);
+	print_uint8_array(encoded_array, size);
+	decode_uint8_uniform(encoded_array, decoded_array, 0, 255, 0, size);
+	if (memcmp(orig_array, decoded_array, size))
+		print_uint8_array(decoded_array, size);
+	
+	printf("min = 0, max = 255, reduction = %i:\n", reduction);
+	encode_uint8_uniform(orig_array, encoded_array, 0, 255, reduction, size);
+	print_uint8_array(encoded_array, size);
+	decode_uint8_uniform(encoded_array, decoded_array, 0, 255, reduction, size);
+	if (memcmp(orig_array, decoded_array, size))
+		print_uint8_array(decoded_array, size);
+	*/
+		
 	//encryption tests-----------------------------------------------------------------------------
 	
 	//encrypt the plaintext
