@@ -137,12 +137,14 @@ extern int main(void)
 
 	//encoding tests-------------------------------------------------------------------------------
 	
-	uint8_t reduction, min, max,	//reduction result, minimum and maximim
-	orig_array[65536] = {20, 20, 20, 20, 20}, encoded_array[65536], decoded_array[65536];
 	//cycle counter, array size, statistics on pseudorandom and output arrays
-	uint64_t i, size = 65536, in_stats[256], out_stats[256];
+	uint64_t i, size = 2097152, in_stats[256], out_stats[256];
+	uint8_t reduction, min, max,	//reduction result, minimum and maximim
+	orig_array[size], encoded_array[size], decoded_array[size];
+	FILE *fp;						//file variable
 	
 	reduce_secret_to_1byte(key, 32, &reduction);
+	
 	
 	//random encoding and decoding with statistics
 	if (!RAND_bytes(orig_array, size)) {	//write a random numbers to original array
@@ -150,7 +152,7 @@ extern int main(void)
     	return 1;
     	}
     array_statistics(orig_array, size, in_stats);	//get a statistics on a pseudorandom numbers
-    
+      
     //let orig_array contain numbers from 120 to 239
 	for (i = 0; i < size; i++)
 		orig_array[i] = (orig_array[i] % 120) + 120;
@@ -158,12 +160,40 @@ extern int main(void)
 	array_statistics(encoded_array, size, out_stats);	//get a statistics on an encoded array
     decode_uint8_uniform(encoded_array, decoded_array, 120, 239, i, size);
     if (memcmp(orig_array, decoded_array, size)) {
-		print_uint8_array(orig_array, size);
-		print_uint8_array(decoded_array, size);
+		fprintf(stderr, "main: memcmp error: orig_array and decoded_array are not the same.\n");
 		}
-	//three columns: ideal, pseudorandom and actual distribution for chi2test
-	for (i = 0; i < 256; i++)
-		printf("%llu\t%llu\t%llu\n", in_stats[i], out_stats[i], size/256);
+
+	//write statistics to file
+	if ((fp = fopen("uint8.ods", "w")) == NULL) {	//try to open file 'uint8.ods' for writing
+		fprintf(stderr, "main: fopen error: can't open file 'uint8.ods' for writing.\n");
+	    return 1;
+		}
+	//write three columns to file: pseudorandom, actual and ideal distributions for CHITEST
+	//compare pseudorandom vs. ideal, actual vs. ideal distributions
+	for (i = 0; i < 256; i++) {
+		if (i == 0) {
+			if (fprintf(fp, "%llu\t%llu\t%llu\t=CHITEST(A1:A256;C1:C256)\t=CHITEST(B1:B256;C1:C256)\n",
+					in_stats[i], out_stats[i], size/256) < 0) {
+				fprintf(stderr, "main: fwrite error: cannot write to 'uint8.ods' file.\n");
+				if (fclose(fp) == EOF)
+					perror("main: fclose error");
+				return 1;
+				}
+			}
+		else
+			if (fprintf(fp, "%llu\t%llu\t%llu\n",
+					in_stats[i], out_stats[i], size/256) < 0) {
+				fprintf(stderr, "main: fwrite error: cannot write to 'uint8.ods' file.\n");
+				if (fclose(fp) == EOF)
+					perror("main: fclose error");
+				return 1;
+				}
+		}
+	//close file
+	if (fclose(fp) == EOF) {
+		perror("main: fclose error");
+		return 1;
+		}
 	
 	/*
 	//wrong parameters
@@ -181,6 +211,11 @@ extern int main(void)
 	*/
 	
 	/*
+	orig_array[0] = 20;
+	orig_array[1] = 20;
+	orig_array[2] = 20;
+	orig_array[3] = 20;
+	orig_array[4] = 20;
 	size = 5;
 	
 	//fixed special cases
@@ -277,7 +312,7 @@ extern int main(void)
 		print_uint8_array(decoded_array, size);
 	*/
 	
-	/*
+	
 	//random encoding and decoding
 	for (i = 1; i < 256; i++) {
 		if (!RAND_bytes(orig_array, i)) {	//write a random numbers to original array
@@ -292,7 +327,7 @@ extern int main(void)
 			print_uint8_array(decoded_array, i);
 			}
 		}
-	*/
+	
 	
 	//encryption tests-----------------------------------------------------------------------------
 	

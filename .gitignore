@@ -1,3 +1,4 @@
 #exclude a compiled program and temporary files
 htest
 *~
+*.ods
