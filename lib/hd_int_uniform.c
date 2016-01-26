@@ -60,17 +60,10 @@ extern int8_t reduce_secret_to_1byte(const unsigned char *secret, const uint32_t
 	for (i=0; i < SHA224_HSIZE; i++) {
 		snprintf(temp, 4, "%02x", hash[i]);	//output format of hash is HEX-code
 		printf("%s", temp);
-	
-		//place a space every 2 bytes
-		if ((i+1) % 4 == 0) {
-			snprintf(temp, 2, " ");
-			printf("%s", temp);
-			}
-		
+		if ( (i+1) % 4 == 0 ) printf(" ");	//place a space every 2 bytes
     	}	//for
-
-    printf("\n");
-    */
+	printf("\n");
+	*/
 
 	//rediction function is a XOR of all bytes of SHA-224 hash
 	tmp = hash[0];

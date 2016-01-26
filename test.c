@@ -40,7 +40,8 @@ static int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *k
 	//create and initialise the context
 	if (!(ctx = EVP_CIPHER_CTX_new()))
 		error_handler();
-
+	//EVP_CIPHER_CTX_set_padding(ctx, 0);
+	
 	/*Initialise the encryption operation. IMPORTANT - ensure you use a key and IV size
 	appropriate for your cipher. In this example we are using 256 bit AES (i.e. a 256 bit key). The
 	IV size for *most* modes is the same as the block size. For AES this is 128 bits.*/
@@ -75,7 +76,7 @@ static int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 	//create and initialise the context
 	if (!(ctx = EVP_CIPHER_CTX_new()))
 		error_handler();
-
+	
 	/*Initialise the decryption operation. IMPORTANT - ensure you use a key and IV size appropriate
 	for your cipher. In this example we are using 256 bit AES (i.e. a 256 bit key). The IV size for
 	*most* modes is the same as the block size. For AES this is 128 bits.*/
@@ -111,7 +112,6 @@ static int8_t array_statistics(const unsigned char *in_array, const uint64_t siz
 		return 1;
 		}
 	
-	memset(stats, 0, 8*256);	//initialize the output array
 	for (i = 0; i < size; i++) {
 		elt = in_array[i];		//read a current element
 		++stats[elt];			//increment the corresponding number in output array
@@ -130,11 +130,12 @@ extern int main(void)
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC mode we need
 	one extra block)*/
-	unsigned char ciphertext[512];
+	unsigned char ciphertext[512], ciphertext_save[512];
 	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
 	
-	uint32_t i, size, maxsize = 2097152;	//cycle counter, current and maximum array sizes (2MB)
-	uint64_t in_stats[256], out_stats[256];	//statistics on pseudorandom and output arrays
+	uint32_t i, j, size, maxsize = 2097152;	//cycle counters, current and maximum array sizes (2MB)
+	//statistics on pseudorandom and output arrays
+	uint64_t in_stats[256] = {0}, out_stats[256] = {0};
 	uint8_t reduction, min, max,	//reduction result, minimum and maximim
 	orig_array[maxsize], encoded_array[maxsize], decoded_array[maxsize];
 	FILE *fp;						//file variable
@@ -145,7 +146,7 @@ extern int main(void)
 	OPENSSL_config(NULL);
 	if (!RAND_status()) {
 		fprintf(stderr, "test: RAND_status error: PRNG hasn't been seeded with enough data\n");
-    	return -1;
+    	return 1;
 		}
 	
 	reduce_secret_to_1byte(key, 32, &reduction);	//get a reduction for honey encryption
@@ -163,6 +164,7 @@ extern int main(void)
 
 	encode_uint8_uniform(orig_array, encoded_array, 100, 250, reduction, size);    
 	ciphertext_len = encrypt(encoded_array, size, key, iv, ciphertext);
+	memcpy(ciphertext_save, ciphertext, sizeof(ciphertext));
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, encoded_array);
 	decode_uint8_uniform(encoded_array, decoded_array, 100, 250, reduction, decryptedtext_len);
 	
@@ -172,9 +174,70 @@ extern int main(void)
 		printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
 		print_uint8_array(orig_array, size);
 		print_uint8_array(decoded_array, decryptedtext_len);
+		return 1;
 		}
 		
-	//bruteforce test with complexity 2^16, statistics collection
+	//bruteforce test (complexity equals 2^16) with statistics collection--------------------------
+	uint16_t bfkey;
+	unsigned char big_key[32];
+	char temp[4];	//buffer for temporary output
+	
+	//let's try to bruteforce last 2 bytes of a key
+	memcpy(big_key, key, 30);		//suppose that we know 30 first bytes of key
+	memset(out_stats, 0, 8*256);	//initialize statistics array
+	for (i = 0; i < 65536; i++) {
+		memcpy((void *)(big_key+30), &bfkey, sizeof(bfkey));	//get current key for decryption
+		bfkey++;									//try next key on next iteration
+		memcpy(ciphertext, ciphertext_save, sizeof(ciphertext_save));
+		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv, encoded_array);
+		decode_uint8_uniform(encoded_array, decoded_array, 100, 250, reduction, decryptedtext_len);
+		if (decryptedtext_len != size) {
+			fprintf(stderr, "test: error: size and decryptedtext_len are not the equal.\n");
+			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
+			return 1;
+			}
+		//get a statistics on current bruteforce iteration
+	    array_statistics(decoded_array, decryptedtext_len, out_stats);
+		/*
+		for (j=0; j < 32; j++) {					//print current key
+			snprintf(temp, 4, "%02x", big_key[j]);	//output format is HEX-code
+			printf("%s", temp);
+			if ( (j+1) % 4 == 0) printf(" ");		//place a space every 2 bytes
+			}
+	    printf("\n");
+	    */
+		}
+		
+	//write overall bruteforce statistics to file
+	//try to open file 'uint8_bruteforce.ods' for writing
+	if ((fp = fopen("uint8_bruteforce.ods", "w")) == NULL) {
+		fprintf(stderr, "test: fopen error: can't open file 'uint8_bruteforce.ods' for writing.\n");
+	    return 1;
+		}
+	//write two columns to file: actual and ideal distributions for CHITEST
+	//compare actual vs. ideal distributions
+	for (i = 0; i < 256; i++) {
+		if (i == 0) {
+			if (fprintf(fp, "%llu\t%i\t=CHITEST(A1:A256;C1:C256)\n", out_stats[i], size) < 0) {
+				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce.ods' file.\n");
+				if (fclose(fp) == EOF)
+					perror("test: fclose error");
+				return 1;
+				}
+			}
+		else
+			if (fprintf(fp, "%llu\t%i\n", out_stats[i], size) < 0) {
+				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce.ods' file.\n");
+				if (fclose(fp) == EOF)
+					perror("test: fclose error");
+				return 1;
+				}
+		}
+	//close file
+	if (fclose(fp) == EOF) {
+		perror("test: fclose error");
+		return 1;
+		}
 	
 	/*
 	//random data encoding and decoding with statistics collection---------------------------------
@@ -183,21 +246,24 @@ extern int main(void)
     	ERR_print_errors_fp(stderr);
     	return 1;
     	}
+    memset(in_stats, 0, 8*256);						//initialize statistics array
     array_statistics(orig_array, size, in_stats);	//get a statistics on a pseudorandom numbers
       
     //let orig_array contain numbers from 120 to 239
 	for (i = 0; i < size; i++)
 		orig_array[i] = (orig_array[i] % 120) + 120;
 	encode_uint8_uniform(orig_array, encoded_array, 120, 239, reduction, size);
+	memset(out_stats, 0, 8*256);						//initialize statistics array
 	array_statistics(encoded_array, size, out_stats);	//get a statistics on an encoded array
-    decode_uint8_uniform(encoded_array, decoded_array, 120, 239, reduction, size);
-    if (memcmp(orig_array, decoded_array, size)) {
+	decode_uint8_uniform(encoded_array, decoded_array, 120, 239, reduction, size);
+	if (memcmp(orig_array, decoded_array, size)) {
 		fprintf(stderr, "test: memcmp error: orig_array and decoded_array are not the same.\n");
+		return 1;
 		}
 
 	//write statistics to file
-	if ((fp = fopen("uint8.ods", "w")) == NULL) {	//try to open file 'uint8.ods' for writing
-		fprintf(stderr, "test: fopen error: can't open file 'uint8.ods' for writing.\n");
+	if ((fp = fopen("uint8_encoding.ods", "w")) == NULL) {	//try to open file 'uint8_encoding.ods' for writing
+		fprintf(stderr, "test: fopen error: can't open file 'uint8_encoding.ods' for writing.\n");
 	    return 1;
 		}
 	//write three columns to file: pseudorandom, actual and ideal distributions for CHITEST
@@ -206,16 +272,15 @@ extern int main(void)
 		if (i == 0) {
 			if (fprintf(fp, "%llu\t%llu\t%i\t=CHITEST(A1:A256;C1:C256)\t=CHITEST(B1:B256;C1:C256)\n",
 					in_stats[i], out_stats[i], size/256) < 0) {
-				fprintf(stderr, "test: fwrite error: cannot write to 'uint8.ods' file.\n");
+				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_encoding.ods' file.\n");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
 				return 1;
 				}
 			}
 		else
-			if (fprintf(fp, "%llu\t%llu\t%i\n",
-					in_stats[i], out_stats[i], size/256) < 0) {
-				fprintf(stderr, "test: fwrite error: cannot write to 'uint8.ods' file.\n");
+			if (fprintf(fp, "%llu\t%llu\t%i\n", in_stats[i], out_stats[i], size/256) < 0) {
+				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_encoding.ods' file.\n");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
 				return 1;
@@ -242,6 +307,7 @@ extern int main(void)
     		fprintf(stderr, "test: memcmp error: orig_array and decoded_array are not the same.\n");
 			print_uint8_array(orig_array, i);
 			print_uint8_array(decoded_array, i);
+			return 1;
 			}
 		}
 	*/
