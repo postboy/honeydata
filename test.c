@@ -47,6 +47,10 @@ static int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *k
 	IV size for *most* modes is the same as the block size. For AES this is 128 bits.*/
 	if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv) != 1)
 		error_handler();
+	EVP_CIPHER_CTX_set_padding(ctx, 0);
+	/*We should disable the padding for plausible decryption with any decryption key. The total
+	amount of data encrypted or decrypted must then be a multiple of the block size or an error
+	will occur.*/
 
 	/*Provide the message to be encrypted, and obtain the encrypted output. EVP_EncryptUpdate can
 	be called multiple times if necessary.*/
@@ -82,6 +86,7 @@ static int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 	*most* modes is the same as the block size. For AES this is 128 bits.*/
 	if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv) != 1)
 		error_handler();
+	EVP_CIPHER_CTX_set_padding(ctx, 0);	//disable padding
 
 	/*Provide the message to be decrypted, and obtain the plaintext output. EVP_DecryptUpdate can
 	be called multiple times if necessary.*/
@@ -130,7 +135,7 @@ extern int main(void)
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC mode we need
 	one extra block)*/
-	unsigned char ciphertext[512], ciphertext_save[512];
+	unsigned char ciphertext[512];
 	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
 	
 	uint32_t i, j, size, maxsize = 2097152;	//cycle counters, current and maximum array sizes (2MB)
@@ -164,7 +169,6 @@ extern int main(void)
 
 	encode_uint8_uniform(orig_array, encoded_array, 100, 250, reduction, size);    
 	ciphertext_len = encrypt(encoded_array, size, key, iv, ciphertext);
-	memcpy(ciphertext_save, ciphertext, sizeof(ciphertext));
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, encoded_array);
 	decode_uint8_uniform(encoded_array, decoded_array, 100, 250, reduction, decryptedtext_len);
 	
@@ -184,11 +188,13 @@ extern int main(void)
 	
 	//let's try to bruteforce last 2 bytes of a key
 	memcpy(big_key, key, 30);		//suppose that we know 30 first bytes of key
-	memset(out_stats, 0, 8*256);	//initialize statistics array
+	memset(in_stats, 0, 8*256);		//initialize statistics arrays
+	memset(out_stats, 0, 8*256);
 	for (i = 0; i < 65536; i++) {
 		memcpy((void *)(big_key+30), &bfkey, sizeof(bfkey));	//get current key for decryption
-		bfkey++;									//try next key on next iteration
-		memcpy(ciphertext, ciphertext_save, sizeof(ciphertext_save));
+		bfkey++;												//try next key on next iteration
+		reduce_secret_to_1byte(big_key, 32, &reduction);		//get a reduction for honey encryption
+		++in_stats[reduction];									//collect a statistics on reductions
 		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv, encoded_array);
 		decode_uint8_uniform(encoded_array, decoded_array, 100, 250, reduction, decryptedtext_len);
 		if (decryptedtext_len != size) {
@@ -204,7 +210,7 @@ extern int main(void)
 			printf("%s", temp);
 			if ( (j+1) % 4 == 0) printf(" ");		//place a space every 2 bytes
 			}
-	    printf("\n");
+	    printf(" %i\n", reduction);
 	    */
 		}
 		
@@ -215,10 +221,18 @@ extern int main(void)
 	    return 1;
 		}
 	//write two columns to file: actual and ideal distributions for CHITEST
-	//compare actual vs. ideal distributions
+	//compare actual vs. ideal distributions of output arrays and reductions
+	if (fprintf(fp, "=CHITEST(A102:A252;B102:B252)\t\t=CHITEST(C2:C257;D2:D257)\n") < 0) {
+		fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce.ods' file.\n");
+		if (fclose(fp) == EOF)
+			perror("test: fclose error");
+		return 1;
+		}
 	for (i = 0; i < 256; i++) {
-		if (i == 0) {
-			if (fprintf(fp, "%llu\t%i\t=CHITEST(A1:A256;C1:C256)\n", out_stats[i], size) < 0) {
+		if ( (i < 100) || (i > 250) ) {
+			/*256 = 65 536 (number of keys in brutforce) / 256 (number of possible reduction values
+			from 0 to 255) - expected result in in_stats */
+			if (fprintf(fp, "%llu\t%i\t%llu\t%i\n", out_stats[i], 0, in_stats[i], 256) < 0) {
 				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce.ods' file.\n");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -226,7 +240,10 @@ extern int main(void)
 				}
 			}
 		else
-			if (fprintf(fp, "%llu\t%i\n", out_stats[i], size) < 0) {
+			/*111 107 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
+			elements) / 151 (number of possible array values from 100 to 250) = 16 777 216 (total
+			amount of numbers) / 151 (their possible values) - expected result in out_stats*/
+			if (fprintf(fp,  "%llu\t%i\t%llu\t%i\n", out_stats[i], 111107, in_stats[i], 256) < 0) {
 				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce.ods' file.\n");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -242,6 +259,7 @@ extern int main(void)
 	/*
 	//random data encoding and decoding with statistics collection---------------------------------
 	size = maxsize;
+	reduce_secret_to_1byte(key, 32, &reduction);	//get a reduction for honey encryption
 	if (!RAND_bytes(orig_array, size)) {			//write a random numbers to original array
     	ERR_print_errors_fp(stderr);
     	return 1;
