@@ -1,129 +1,11 @@
 /*
-test.c - test program for honeydata library
+test_uint8.c - test program for honeydata library
 License: BSD 2-Clause
 */
 
 #include <openssl/conf.h>
 
-#include "lib/hd_int_uniform.h"
-
-static int8_t print_uint8_array(const uint8_t *array, const uint64_t size)
-{
-	uint64_t i;	//cycle counter
-	
-	//wrong input value
-	if (size < 1) {
-		fprintf(stderr, "test: print_uint8_array error: size < 1\n");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++)
-		printf("%i ", array[i]);
-	printf("\n");
-	return 0;
-}
-
-static void error_handler(void)
-{
-	ERR_print_errors_fp(stderr);
-	exit(1);
-}
-
-//encrypt a message
-static int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *iv,
-	unsigned char *ciphertext)
-{
-	EVP_CIPHER_CTX *ctx;
-
-	int len, ciphertext_len;
-
-	//create and initialise the context
-	if (!(ctx = EVP_CIPHER_CTX_new()))
-		error_handler();
-	//EVP_CIPHER_CTX_set_padding(ctx, 0);
-	
-	/*Initialise the encryption operation. IMPORTANT - ensure you use a key and IV size
-	appropriate for your cipher. In this example we are using 256 bit AES (i.e. a 256 bit key). The
-	IV size for *most* modes is the same as the block size. For AES this is 128 bits.*/
-	if (EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv) != 1)
-		error_handler();
-	EVP_CIPHER_CTX_set_padding(ctx, 0);
-	/*We should disable the padding for plausible decryption with any decryption key. The total
-	amount of data encrypted or decrypted must then be a multiple of the block size or an error
-	will occur.*/
-
-	/*Provide the message to be encrypted, and obtain the encrypted output. EVP_EncryptUpdate can
-	be called multiple times if necessary.*/
-	if (EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len) != 1)
-		error_handler();
-	ciphertext_len = len;
-
-	//Finalise the encryption. Further ciphertext bytes may be written at this stage.
-	if (EVP_EncryptFinal_ex(ctx, ciphertext + len, &len) != 1)
-		error_handler();
-  	ciphertext_len += len;
-
-	//clean up
-	EVP_CIPHER_CTX_free(ctx);
-
-	return ciphertext_len;
-}
-
-//decrypt a message
-static int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv,
-	unsigned char *plaintext)
-{
-	EVP_CIPHER_CTX *ctx;
-
-	int len, plaintext_len;
-
-	//create and initialise the context
-	if (!(ctx = EVP_CIPHER_CTX_new()))
-		error_handler();
-	
-	/*Initialise the decryption operation. IMPORTANT - ensure you use a key and IV size appropriate
-	for your cipher. In this example we are using 256 bit AES (i.e. a 256 bit key). The IV size for
-	*most* modes is the same as the block size. For AES this is 128 bits.*/
-	if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv) != 1)
-		error_handler();
-	EVP_CIPHER_CTX_set_padding(ctx, 0);	//disable padding
-
-	/*Provide the message to be decrypted, and obtain the plaintext output. EVP_DecryptUpdate can
-	be called multiple times if necessary.*/
-	if (EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len) != 1)
-		error_handler();
-	plaintext_len = len;
-
-	//Finalise the decryption. Further plaintext bytes may be written at this stage.
-	if (EVP_DecryptFinal_ex(ctx, plaintext + len, &len) != 1)
-		error_handler();
-	plaintext_len += len;
-
-	//clean up
-	EVP_CIPHER_CTX_free(ctx);
-
-	return plaintext_len;
-}
-
-//get a number of occurences of different bytes in array
-static int8_t array_statistics(const unsigned char *in_array, const uint64_t size, uint64_t *stats)
-{
-	uint64_t i;			//cycle counter
-	unsigned char elt;	//current processing element
-	
-	//wrong input value
-	if (size < 1) {
-		fprintf(stderr, "test: array_statistics error: size < 1\n");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++) {
-		elt = in_array[i];		//read a current element
-		++stats[elt];			//increment the corresponding number in output array
-		}
-		
-	return 0;
-}
+#include "test_common.h"
 
 extern int main(void)
 {
@@ -167,7 +49,7 @@ extern int main(void)
 	for (i = 0; i < size; i++)
 		orig_array[i] = (orig_array[i] % 151) + 100;
 
-	encode_uint8_uniform(orig_array, encoded_array, 100, 250, reduction, size);    
+	encode_uint8_uniform(orig_array, encoded_array, 100, 250, reduction, size);
 	ciphertext_len = encrypt(encoded_array, size, key, iv, ciphertext);
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, encoded_array);
 	decode_uint8_uniform(encoded_array, decoded_array, 100, 250, reduction, decryptedtext_len);
@@ -181,12 +63,13 @@ extern int main(void)
 		return 1;
 		}
 		
-	//bruteforce test (complexity equals 2^16) with statistics collection--------------------------
+	//bruteforce test (complexity equals 2^16) with statistics collection and reduction------------
 	uint16_t bfkey;
 	unsigned char big_key[32];
 	char temp[4];	//buffer for temporary output
 	
 	//let's try to bruteforce last 2 bytes of a key
+	bfkey = 0;
 	memcpy(big_key, key, 30);		//suppose that we know 30 first bytes of key
 	memset(in_stats, 0, 8*256);		//initialize statistics arrays
 	memset(out_stats, 0, 8*256);
@@ -210,7 +93,7 @@ extern int main(void)
 			printf("%s", temp);
 			if ( (j+1) % 4 == 0) printf(" ");		//place a space every 2 bytes
 			}
-	    printf(" %i\n", reduction);
+		printf(" %i\n", reduction);
 	    */
 		}
 		
@@ -220,7 +103,7 @@ extern int main(void)
 		fprintf(stderr, "test: fopen error: can't open file 'uint8_bruteforce.ods' for writing.\n");
 	    return 1;
 		}
-	//write two columns to file: actual and ideal distributions for CHITEST
+	
 	//compare actual vs. ideal distributions of output arrays and reductions
 	if (fprintf(fp, "=CHITEST(A102:A252;B102:B252)\t\t=CHITEST(C2:C257;D2:D257)\n") < 0) {
 		fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce.ods' file.\n");
@@ -228,6 +111,7 @@ extern int main(void)
 			perror("test: fclose error");
 		return 1;
 		}
+	//write four columns to file: actual and ideal distributions for CHITEST
 	for (i = 0; i < 256; i++) {
 		if ( (i < 100) || (i > 250) ) {
 			/*256 = 65 536 (number of keys in brutforce) / 256 (number of possible reduction values
@@ -256,7 +140,83 @@ extern int main(void)
 		return 1;
 		}
 	
-	/*
+	
+	
+	//bruteforce test (complexity equals 2^16) with statistics collection and without reduction----
+
+	//encode and encrypt data without reduction
+	encode_uint8_uniform(orig_array, encoded_array, 100, 250, 0, size);    
+	ciphertext_len = encrypt(encoded_array, size, key, iv, ciphertext);
+	
+	//let's try to bruteforce last 2 bytes of a key
+	bfkey = 0;
+	memcpy(big_key, key, 30);		//suppose that we know 30 first bytes of key
+	memset(out_stats, 0, 8*256);	//initialize statistics array
+	for (i = 0; i < 65536; i++) {
+		memcpy((void *)(big_key+30), &bfkey, sizeof(bfkey));	//get current key for decryption
+		bfkey++;												//try next key on next iteration
+		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv, encoded_array);
+		decode_uint8_uniform(encoded_array, decoded_array, 100, 250, 0, decryptedtext_len);
+		if (decryptedtext_len != size) {
+			fprintf(stderr, "test: error: size and decryptedtext_len are not the equal.\n");
+			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
+			return 1;
+			}
+		//get a statistics on current bruteforce iteration
+	    array_statistics(decoded_array, decryptedtext_len, out_stats);
+		/*
+		for (j=0; j < 32; j++) {					//print current key
+			snprintf(temp, 4, "%02x", big_key[j]);	//output format is HEX-code
+			printf("%s", temp);
+			if ( (j+1) % 4 == 0) printf(" ");		//place a space every 2 bytes
+			}
+		printf("\n");
+	    */
+		}
+		
+	//write overall bruteforce statistics to file
+	//try to open file 'uint8_bruteforce_no_reduction.ods' for writing
+	if ((fp = fopen("uint8_bruteforce_no_reduction.ods", "w")) == NULL) {
+		fprintf(stderr, "test: fopen error: can't open file 'uint8_bruteforce_no_reduction.ods' for writing.\n");
+	    return 1;
+		}
+		
+	//compare actual vs. ideal distributions of output array
+	if (fprintf(fp, "=CHITEST(A102:A252;B102:B252)\n") < 0) {
+		fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce_no_reduction.ods' file.\n");
+		if (fclose(fp) == EOF)
+			perror("test: fclose error");
+		return 1;
+		}
+	//write two columns to file: actual and ideal distribution for CHITEST
+	for (i = 0; i < 256; i++) {
+		if ( (i < 100) || (i > 250) ) {
+			if (fprintf(fp, "%llu\t%i\n", out_stats[i], 0) < 0) {
+				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce_no_reduction.ods' file.\n");
+				if (fclose(fp) == EOF)
+					perror("test: fclose error");
+				return 1;
+				}
+			}
+		else
+			/*111 107 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
+			elements) / 151 (number of possible array values from 100 to 250) = 16 777 216 (total
+			amount of numbers) / 151 (their possible values) - expected result in out_stats*/
+			if (fprintf(fp,  "%llu\t%i\n", out_stats[i], 111107) < 0) {
+				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce_no_reduction.ods' file.\n");
+				if (fclose(fp) == EOF)
+					perror("test: fclose error");
+				return 1;
+				}
+		}
+	//close file
+	if (fclose(fp) == EOF) {
+		perror("test: fclose error");
+		return 1;
+		}
+	
+	
+	
 	//random data encoding and decoding with statistics collection---------------------------------
 	size = maxsize;
 	reduce_secret_to_1byte(key, 32, &reduction);	//get a reduction for honey encryption
@@ -284,34 +244,31 @@ extern int main(void)
 		fprintf(stderr, "test: fopen error: can't open file 'uint8_encoding.ods' for writing.\n");
 	    return 1;
 		}
-	//write three columns to file: pseudorandom, actual and ideal distributions for CHITEST
+
 	//compare pseudorandom vs. ideal, actual vs. ideal distributions
+	if (fprintf(fp, "=CHITEST(A2:A257;C2:C257)\t=CHITEST(B2:B257;C2:C257)\n") < 0) {
+		fprintf(stderr, "test: fwrite error: cannot write to 'uint8_encoding.ods' file.\n");
+		if (fclose(fp) == EOF)
+			perror("test: fclose error");
+		return 1;
+		}
+	//write three columns to file: pseudorandom, actual and ideal distributions for CHITEST
 	for (i = 0; i < 256; i++) {
-		if (i == 0) {
-			if (fprintf(fp, "%llu\t%llu\t%i\t=CHITEST(A1:A256;C1:C256)\t=CHITEST(B1:B256;C1:C256)\n",
-					in_stats[i], out_stats[i], size/256) < 0) {
-				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_encoding.ods' file.\n");
-				if (fclose(fp) == EOF)
-					perror("test: fclose error");
-				return 1;
-				}
+		if (fprintf(fp, "%llu\t%llu\t%i\n",	in_stats[i], out_stats[i], size/256) < 0) {
+			fprintf(stderr, "test: fwrite error: cannot write to 'uint8_encoding.ods' file.\n");
+			if (fclose(fp) == EOF)
+				perror("test: fclose error");
+			return 1;
 			}
-		else
-			if (fprintf(fp, "%llu\t%llu\t%i\n", in_stats[i], out_stats[i], size/256) < 0) {
-				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_encoding.ods' file.\n");
-				if (fclose(fp) == EOF)
-					perror("test: fclose error");
-				return 1;
-				}
 		}
 	//close file
 	if (fclose(fp) == EOF) {
 		perror("test: fclose error");
 		return 1;
 		}
-	*/	
+	
 		
-	/*
+	
 	//random encoding and decoding-----------------------------------------------------------------
 	for (i = 1; i < 256; i++) {
 		if (!RAND_bytes(orig_array, i)) {	//write a random numbers to original array
@@ -328,9 +285,9 @@ extern int main(void)
 			return 1;
 			}
 		}
-	*/
 	
-	/*
+	
+	
 	//fixed general cases--------------------------------------------------------------------------
 	orig_array[0] = 20;
 	orig_array[1] = 25;
@@ -386,9 +343,9 @@ extern int main(void)
 	decode_uint8_uniform(encoded_array, decoded_array, 0, 255, reduction, size);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
-	*/
 	
-	/*
+	
+	
 	//fixed special cases--------------------------------------------------------------------------
 	orig_array[0] = 20;
 	orig_array[1] = 20;
@@ -430,9 +387,9 @@ extern int main(void)
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	printf("\n");
-	*/
 	
-	/*
+	
+	
 	//wrong parameters-----------------------------------------------------------------------------
 	reduce_secret_to_1byte(NULL, 0, NULL);
 	get_uint8_array_metadata(NULL, 0, NULL, NULL);
@@ -444,7 +401,7 @@ extern int main(void)
 	decode_uint8_uniform(NULL, NULL, 1, 2, 0, 0);
 	print_uint8_array(NULL, 0);
 	array_statistics(NULL, 0, NULL);
-	*/
+	
 	
 	//clean up
 	RAND_cleanup();
