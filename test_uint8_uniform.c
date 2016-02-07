@@ -1,5 +1,5 @@
 /*
-test_uint8.c - test program for honeydata library
+test_uint8_uniform.c - test program for honeydata library
 License: BSD 2-Clause
 */
 
