@@ -1,4 +1,4 @@
 #exclude a compiled program and temporary files
-htest
+uint8_test
 *~
-*.ods
+*.o

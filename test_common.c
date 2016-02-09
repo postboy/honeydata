@@ -5,22 +5,6 @@ License: BSD 2-Clause
 
 #include "test_common.h"
 
-extern int8_t print_uint8_array(const uint8_t *array, const uint64_t size)
-{
-	uint64_t i;	//cycle counter
-	
-	//wrong input value
-	if (size < 1) {
-		fprintf(stderr, "test: print_uint8_array error: size < 1\n");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++)
-		printf("%i ", array[i]);
-	printf("\n");
-	return 0;
-}
-
 extern void error_handler(void)
 {
 	ERR_print_errors_fp(stderr);
@@ -101,24 +85,4 @@ extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 	EVP_CIPHER_CTX_free(ctx);
 
 	return plaintext_len;
-}
-
-//get a number of occurences of different bytes in array
-extern int8_t array_statistics(const unsigned char *in_array, const uint64_t size, uint64_t *stats)
-{
-	uint64_t i;			//cycle counter
-	unsigned char elt;	//current processing element
-	
-	//wrong input value
-	if (size < 1) {
-		fprintf(stderr, "test: array_statistics error: size < 1\n");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++) {
-		elt = in_array[i];		//read a current element
-		++stats[elt];			//increment the corresponding number in output array
-		}
-		
-	return 0;
 }

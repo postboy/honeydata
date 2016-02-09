@@ -7,6 +7,42 @@ License: BSD 2-Clause
 
 #include "test_common.h"
 
+static int8_t print_uint8_array(const uint8_t *array, const uint64_t size)
+{
+	uint64_t i;	//cycle counter
+	
+	//wrong input value
+	if (size < 1) {
+		fprintf(stderr, "test: print_uint8_array error: size < 1\n");
+		return 1;
+		}
+	
+	for (i = 0; i < size; i++)
+		printf("%i ", array[i]);
+	printf("\n");
+	return 0;
+}
+
+//get a number of occurences of different bytes in array
+static int8_t stats_uint8_array(const unsigned char *in_array, const uint64_t size, uint64_t *stats)
+{
+	uint64_t i;			//cycle counter
+	unsigned char elt;	//current processing element
+	
+	//wrong input value
+	if (size < 1) {
+		fprintf(stderr, "test: stats_uint8_array error: size < 1\n");
+		return 1;
+		}
+	
+	for (i = 0; i < size; i++) {
+		elt = in_array[i];		//read a current element
+		++stats[elt];			//increment the corresponding number in output array
+		}
+		
+	return 0;
+}
+
 extern int main(void)
 {
 	
@@ -86,7 +122,7 @@ extern int main(void)
 			return 1;
 			}
 		//get a statistics on current bruteforce iteration
-	    array_statistics(decoded_array, decryptedtext_len, out_stats);
+	    stats_uint8_array(decoded_array, decryptedtext_len, out_stats);
 		/*
 		for (j=0; j < 32; j++) {					//print current key
 			snprintf(temp, 4, "%02x", big_key[j]);	//output format is HEX-code
@@ -163,7 +199,7 @@ extern int main(void)
 			return 1;
 			}
 		//get a statistics on current bruteforce iteration
-	    array_statistics(decoded_array, decryptedtext_len, out_stats);
+	    stats_uint8_array(decoded_array, decryptedtext_len, out_stats);
 		/*
 		for (j=0; j < 32; j++) {					//print current key
 			snprintf(temp, 4, "%02x", big_key[j]);	//output format is HEX-code
@@ -225,14 +261,14 @@ extern int main(void)
     	return 1;
     	}
     memset(in_stats, 0, 8*256);						//initialize statistics array
-    array_statistics(orig_array, size, in_stats);	//get a statistics on a pseudorandom numbers
+    stats_uint8_array(orig_array, size, in_stats);	//get a statistics on a pseudorandom numbers
       
     //let orig_array contain numbers from 120 to 239
 	for (i = 0; i < size; i++)
 		orig_array[i] = (orig_array[i] % 120) + 120;
 	encode_uint8_uniform(orig_array, encoded_array, 120, 239, reduction, size);
 	memset(out_stats, 0, 8*256);						//initialize statistics array
-	array_statistics(encoded_array, size, out_stats);	//get a statistics on an encoded array
+	stats_uint8_array(encoded_array, size, out_stats);	//get a statistics on an encoded array
 	decode_uint8_uniform(encoded_array, decoded_array, 120, 239, reduction, size);
 	if (memcmp(orig_array, decoded_array, size)) {
 		fprintf(stderr, "test: memcmp error: orig_array and decoded_array are not the same.\n");
@@ -400,7 +436,7 @@ extern int main(void)
 	decode_uint8_uniform(NULL, NULL, 2, 1, 0, 1);
 	decode_uint8_uniform(NULL, NULL, 1, 2, 0, 0);
 	print_uint8_array(NULL, 0);
-	array_statistics(NULL, 0, NULL);
+	stats_uint8_array(NULL, 0, NULL);
 	
 	
 	//clean up
