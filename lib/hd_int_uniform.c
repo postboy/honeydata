@@ -125,7 +125,8 @@ extern int8_t encode_uint8_uniform(const unsigned char *in_array, unsigned char 
 	uint64_t i;									//cycle counter
 	uint8_t elt;								//current processing element
 	const uint16_t group_size = max - min + 1;	//size of a full group in elements, from 1 to 256
-	//number of groups, so they will have values in interval [0; group_num-1], from 0 to 255
+	/*number of groups (from 0 to 255), so they will have values in interval [0; group_num-1]; note
+	'0.0' here, we add it to get float result instead of integer!*/
 	const uint8_t group_num = ceil(256 / (group_size+0.0)),
 	//number of elements in the last group or 0 if the last group is full, from 0 to 127
 	last_group_size = 256 % group_size;

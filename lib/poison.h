@@ -48,7 +48,7 @@ by default]" after including some system header*/
 #	pragma GCC poison system exec execl execlp execle execv execvp execvpe execve fexecve
 
 /* deprecated functions */
-#	pragma GCC poison gethostbyname gethostbyaddr inet_ntoa inet_aton bcmp
+#	pragma GCC poison gethostbyname gethostbyaddr inet_ntoa inet_aton inet_addr bcmp
 
 #endif
 #endif
