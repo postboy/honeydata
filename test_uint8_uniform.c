@@ -81,14 +81,14 @@ extern int main(void)
     	return 1;
     	}
 
-    //let orig_array contain numbers from 100 to 250
+    //let orig_array contain numbers from 100 to 200
 	for (i = 0; i < size; i++)
-		orig_array[i] = (orig_array[i] % 151) + 100;
+		orig_array[i] = (orig_array[i] % 101) + 100;
 
-	encode_uint8_uniform(orig_array, encoded_array, 100, 250, reduction, size);
+	encode_uint8_uniform(orig_array, encoded_array, 100, 200, reduction, size);
 	ciphertext_len = encrypt(encoded_array, size, key, iv, ciphertext);
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, encoded_array);
-	decode_uint8_uniform(encoded_array, decoded_array, 100, 250, reduction, decryptedtext_len);
+	decode_uint8_uniform(encoded_array, decoded_array, 100, 200, reduction, decryptedtext_len);
 	
 	//compare result of decryption and original array
 	if ( memcmp(orig_array, decoded_array, size) || (decryptedtext_len != size) ) {
@@ -115,7 +115,7 @@ extern int main(void)
 		reduce_secret_to_1byte(big_key, 32, &reduction);		//get a reduction for honey encryption
 		++in_stats[reduction];									//collect a statistics on reductions
 		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv, encoded_array);
-		decode_uint8_uniform(encoded_array, decoded_array, 100, 250, reduction, decryptedtext_len);
+		decode_uint8_uniform(encoded_array, decoded_array, 100, 200, reduction, decryptedtext_len);
 		if (decryptedtext_len != size) {
 			fprintf(stderr, "test: error: size and decryptedtext_len are not the equal.\n");
 			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
@@ -141,7 +141,7 @@ extern int main(void)
 		}
 	
 	//compare actual vs. ideal distributions of output arrays and reductions
-	if (fprintf(fp, "=CHITEST(A102:A252;B102:B252)\t\t=CHITEST(C2:C257;D2:D257)\n") < 0) {
+	if (fprintf(fp, "=CHITEST(A102:A202;B102:B202)\t\t=CHITEST(C2:C257;D2:D257)\n") < 0) {
 		fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce.ods' file.\n");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
@@ -149,7 +149,7 @@ extern int main(void)
 		}
 	//write four columns to file: actual and ideal distributions for CHITEST
 	for (i = 0; i < 256; i++) {
-		if ( (i < 100) || (i > 250) ) {
+		if ( (i < 100) || (i > 200) ) {
 			/*256 = 65 536 (number of keys in brutforce) / 256 (number of possible reduction values
 			from 0 to 255) - expected result in in_stats */
 			if (fprintf(fp, "%llu\t%i\t%llu\t%i\n", out_stats[i], 0, in_stats[i], 256) < 0) {
@@ -161,9 +161,9 @@ extern int main(void)
 			}
 		else
 			/*111 107 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
-			elements) / 151 (number of possible array values from 100 to 250) = 16 777 216 (total
-			amount of numbers) / 151 (their possible values) - expected result in out_stats*/
-			if (fprintf(fp,  "%llu\t%i\t%llu\t%i\n", out_stats[i], 111107, in_stats[i], 256) < 0) {
+			elements) / 101 (number of possible array values from 100 to 200) = 16 777 216 (total
+			amount of numbers) / 101 (their possible values) - expected result in out_stats*/
+			if (fprintf(fp,  "%llu\t%i\t%llu\t%i\n", out_stats[i], 166111, in_stats[i], 256) < 0) {
 				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce.ods' file.\n");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -181,7 +181,7 @@ extern int main(void)
 	//bruteforce test (complexity equals 2^16) with statistics collection and without reduction----
 
 	//encode and encrypt data without reduction
-	encode_uint8_uniform(orig_array, encoded_array, 100, 250, 0, size);    
+	encode_uint8_uniform(orig_array, encoded_array, 100, 200, 0, size);    
 	ciphertext_len = encrypt(encoded_array, size, key, iv, ciphertext);
 	
 	//let's try to bruteforce last 2 bytes of a key
@@ -192,7 +192,7 @@ extern int main(void)
 		memcpy((void *)(big_key+30), &bfkey, sizeof(bfkey));	//get current key for decryption
 		bfkey++;												//try next key on next iteration
 		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv, encoded_array);
-		decode_uint8_uniform(encoded_array, decoded_array, 100, 250, 0, decryptedtext_len);
+		decode_uint8_uniform(encoded_array, decoded_array, 100, 200, 0, decryptedtext_len);
 		if (decryptedtext_len != size) {
 			fprintf(stderr, "test: error: size and decryptedtext_len are not the equal.\n");
 			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
@@ -218,7 +218,7 @@ extern int main(void)
 		}
 		
 	//compare actual vs. ideal distributions of output array
-	if (fprintf(fp, "=CHITEST(A102:A252;B102:B252)\n") < 0) {
+	if (fprintf(fp, "=CHITEST(A102:A202;B102:B202)\n") < 0) {
 		fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce_no_reduction.ods' file.\n");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
@@ -226,7 +226,7 @@ extern int main(void)
 		}
 	//write two columns to file: actual and ideal distribution for CHITEST
 	for (i = 0; i < 256; i++) {
-		if ( (i < 100) || (i > 250) ) {
+		if ( (i < 100) || (i > 200) ) {
 			if (fprintf(fp, "%llu\t%i\n", out_stats[i], 0) < 0) {
 				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce_no_reduction.ods' file.\n");
 				if (fclose(fp) == EOF)
@@ -236,9 +236,9 @@ extern int main(void)
 			}
 		else
 			/*111 107 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
-			elements) / 151 (number of possible array values from 100 to 250) = 16 777 216 (total
-			amount of numbers) / 151 (their possible values) - expected result in out_stats*/
-			if (fprintf(fp,  "%llu\t%i\n", out_stats[i], 111107) < 0) {
+			elements) / 101 (number of possible array values from 100 to 200) = 16 777 216 (total
+			amount of numbers) / 101 (their possible values) - expected result in out_stats*/
+			if (fprintf(fp,  "%llu\t%i\n", out_stats[i], 166111) < 0) {
 				fprintf(stderr, "test: fwrite error: cannot write to 'uint8_bruteforce_no_reduction.ods' file.\n");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
