@@ -8,7 +8,7 @@
 ## Warnings
 * no backward compatibility at the moment
 * library is not aware of little/big endian number encoding, so you should remember it before sending encoded data to another computer
-* *improper* use of other cryptographic primitives (padding, signatures, HMACs, authenticated encryption, encryption modes) can kill honey effect, because attacker will be able to distinguish decoy data and real data
+* *improper* use of other cryptographic primitives (padding, signatures, HMACs, authenticated encryption, encryption modes) can kill honey effect if an attacker will be able to distinguish decoy data and real data
 
 ## Platform
 * GNU/Linux (tested)
