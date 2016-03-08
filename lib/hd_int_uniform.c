@@ -10,7 +10,7 @@ extern int8_t get_uint8_array_metadata(const uint8_t *array, const uint64_t size
 	uint8_t *min, uint8_t *max)
 {
 	uint8_t tmpmin, tmpmax;	//variables for storing temporary minimum and maximum values
-	uint64_t i;				//cycle counter
+	uint64_t i;
 
 	//wrong input value
 	if (size < 1) {
@@ -52,7 +52,7 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 		return 1;
 		}
 
-	uint64_t i;									//cycle counter
+	uint64_t i;
 	uint16_t elt;								//current processing element
 	const uint16_t group_size = max - min + 1;	//size of a full group in elements, from 1 to 256
 	/*number of groups (from 256 to 65536), so they will have values in interval [0; group_num-1];
@@ -127,7 +127,7 @@ extern int8_t decode_uint8_uniform(const uint16_t *in_array, uint8_t *out_array,
 		return 1;
 		}
 
-	uint64_t i;									//cycle counter
+	uint64_t i;
 	uint16_t elt;								//current processing element
 	const uint16_t group_size = max - min + 1;	//size of a full group in elements, from 1 to 256
 	
@@ -146,9 +146,8 @@ extern int8_t decode_uint8_uniform(const uint16_t *in_array, uint8_t *out_array,
 	
 	//else decode each number
 	for (i = 0; i < size; i++) {
-		elt = in_array[i];			//read current value
-		elt = elt % group_size;		//get a value in first group
-		elt = elt + min; 			//denormalize it
+		//read current element, get it's value in first group, denormalize it
+		elt = (in_array[i] % group_size) + min;
 		
 		//if algorithm works right, this error should never been thrown
 		if ( (elt < min) || (elt > max) ) {
