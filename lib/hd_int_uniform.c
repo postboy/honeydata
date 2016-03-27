@@ -6,7 +6,7 @@ License: BSD 2-Clause
 #include "hd_int_uniform.h"
 
 //get minimum and maximum of uint8 array
-extern int8_t get_uint8_array_metadata(const uint8_t *array, const uint64_t size,
+extern int8_t get_uint8_array_minmax(const uint8_t *array, const uint64_t size,
 	uint8_t *min, uint8_t *max)
 {
 	uint8_t tmpmin, tmpmax;	//variables for storing temporary minimum and maximum values
@@ -14,7 +14,7 @@ extern int8_t get_uint8_array_metadata(const uint8_t *array, const uint64_t size
 
 	//wrong input value
 	if (size < 1) {
-		fprintf(stderr, "hd_int_uniform: get_uint8_array_metadata error: size < 1\n");
+		fprintf(stderr, "hd_int_uniform: get_uint8_array_minmax error: size < 1\n");
 		return 1;
 		}
 

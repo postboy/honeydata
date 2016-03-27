@@ -15,7 +15,7 @@ License: BSD 2-Clause
 #include "poison.h"
 
 //functions for unsigned 8 bit integers: get minimum and maximum array values, DTE and DTD
-extern int8_t get_uint8_array_metadata(const uint8_t *array, const uint64_t size,
+extern int8_t get_uint8_array_minmax(const uint8_t *array, const uint64_t size,
 	uint8_t *min, uint8_t *max);
 extern int8_t encode_uint8_uniform(const uint8_t *in_array,uint16_t *out_array,
 	const uint8_t min, const uint8_t max, const uint64_t size);

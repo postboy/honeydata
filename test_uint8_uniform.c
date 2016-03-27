@@ -118,10 +118,8 @@ extern int main(void)
 	//random data encoding, encryption, decryption, decoding---------------------------------------
 	
 	size = 256;
-	if (!RAND_bytes(orig_array, size)) {			//write a random numbers to original array
-    	ERR_print_errors_fp(stderr);
-    	return 1;
-    	}
+	if (!RAND_bytes(orig_array, size))	//write a random numbers to original array
+    	error_handler();
 
     //let orig_array contain numbers from 100 to 200
 	for (i = 0; i < size; i++)
@@ -224,10 +222,8 @@ extern int main(void)
 	//random data encoding and decoding with statistics collection---------------------------------
 
 	size = maxsize;
-	if (!RAND_bytes(orig_array, size)) {			//write a random numbers to original array
-    	ERR_print_errors_fp(stderr);
-    	return 1;
-    	}
+	if (!RAND_bytes(orig_array, size))				//write a random numbers to original array
+    	error_handler();
     memset(in_stats, 0, sizeof(in_stats));			//initialize statistics arrays
     memset(out_stats, 0, sizeof(out_stats));
     stats_uint8_array(orig_array, size, in_stats);	//get a statistics on a pseudorandom numbers
@@ -236,10 +232,8 @@ extern int main(void)
 	for (j = 0; j < size; j++) {
 		//write a fresh random byte to this position until it will be between 0 and 239
 		while (orig_array[j] > 239) {
-			if (!RAND_bytes((unsigned char *)(orig_array+j), 1)) {
-	    		ERR_print_errors_fp(stderr);
-   				return 1;
-   				}
+			if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
+	    		error_handler();
 			}
 				
 		orig_array[j] = (orig_array[j] % 120) + 100;
@@ -289,19 +283,15 @@ extern int main(void)
 	size = 256;
 	memset(long_stats, 0, sizeof(long_stats));	//initialize statistics array
 	for (i = 0; i < 65536; i++) {
-		if (!RAND_bytes(orig_array, size)) {	//write a random numbers to original array
-    		ERR_print_errors_fp(stderr);
-    		return 1;
-    		}
+		if (!RAND_bytes(orig_array, size))		//write a random numbers to original array
+    		error_handler();
     	
    		//let orig_array contain numbers from 100 to 199 distributed uniformly
 		for (j = 0; j < size; j++) {
 			//write a fresh random byte to this position until it will be between 0 and 199
 			while (orig_array[j] > 199) {
-				if (!RAND_bytes((unsigned char *)(orig_array+j), 1)) {
-		    		ERR_print_errors_fp(stderr);
-    				return 1;
-    				}
+				if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
+		    		error_handler();
 				}
 				
 			orig_array[j] = (orig_array[j] % 100) + 100;
@@ -347,11 +337,9 @@ extern int main(void)
 	
 	//random encoding and decoding-----------------------------------------------------------------
 	for (i = 1; i < 256; i++) {
-		if (!RAND_bytes(orig_array, i)) {	//write a random numbers to original array
-    		ERR_print_errors_fp(stderr);
-    		return 1;
-    		}
-    	get_uint8_array_metadata(orig_array, i, &min, &max);
+		if (!RAND_bytes(orig_array, i))	//write a random numbers to original array
+    		error_handler();
+    	get_uint8_array_minmax(orig_array, i, &min, &max);
 		encode_uint8_uniform(orig_array, encoded_array, min, max, i);
     	decode_uint8_uniform(encoded_array, decoded_array, min, max, i);
     	if (memcmp(orig_array, decoded_array, i)) {
@@ -375,7 +363,7 @@ extern int main(void)
 	
 	printf("Original array:\n");	//print it
 	print_uint8_array(orig_array, size);
-	get_uint8_array_metadata(orig_array, size, &min, &max);
+	get_uint8_array_minmax(orig_array, size, &min, &max);
 	
 	printf("min = %i, max = %i:\n", min, max);
 	encode_uint8_uniform(orig_array, encoded_array, min, max, size);
@@ -411,7 +399,7 @@ extern int main(void)
 	
 	printf("Original array:\n");
 	print_uint8_array(orig_array, size);
-	get_uint8_array_metadata(orig_array, size, &min, &max);
+	get_uint8_array_minmax(orig_array, size, &min, &max);
 	
 	printf("min = %i, max = %i:\n", min, max);
 	encode_uint8_uniform(orig_array, encoded_array, min, max, size);
@@ -432,7 +420,7 @@ extern int main(void)
 	
 	
 	//wrong parameters-----------------------------------------------------------------------------
-	get_uint8_array_metadata(NULL, 0, NULL, NULL);
+	get_uint8_array_minmax(NULL, 0, NULL, NULL);
 	encode_uint8_uniform(NULL, NULL, 2, 1, 1);
 	encode_uint8_uniform(NULL, NULL, 1, 2, 0);
 	encode_uint8_uniform(orig_array, encoded_array, 100, 100, size);
