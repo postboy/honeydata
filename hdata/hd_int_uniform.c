@@ -14,7 +14,7 @@ extern int8_t get_uint8_array_minmax(const uint8_t *array, const uint64_t size,
 
 	//wrong input value
 	if (size < 1) {
-		fprintf(stderr, "hd_int_uniform: get_uint8_array_minmax error: size < 1\n");
+		fprintf(stderr, "error: %s: %i: size < 1\n", __func__, __LINE__);
 		return 1;
 		}
 
@@ -44,11 +44,11 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 {
 	//wrong input values
 	if (size < 1) {
-		fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: size < 1\n");
+		fprintf(stderr, "error: %s: %i: size < 1\n", __func__, __LINE__);
 		return 1;
 		}
 	if (min > max) {
-		fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: min > max\n");
+		fprintf(stderr, "error: %s: %i: min > max\n", __func__, __LINE__);
 		return 1;
 		}
 
@@ -84,7 +84,7 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 		//we're already done with random numbers, but we should check an input array
 		for (i = 0; i < size; i++) {
 			if (in_array[i] != min) {
-				fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: wrong min or max value\n");
+				fprintf(stderr, "error: %s: %i: wrong min or max value\n", __func__, __LINE__);
 				return 1;
 				}
 			}
@@ -95,7 +95,7 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 	for (i = 0; i < size; i++) {
 		elt = in_array[i];	//read current value
 		if ( (elt < min) || (elt > max) ) {
-			fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: wrong min or max value\n");
+			fprintf(stderr, "error: %s: %i: wrong min or max value\n", __func__, __LINE__);
 			return 1;
 			}
 		elt = elt - min;	//normalize it
@@ -119,11 +119,11 @@ extern int8_t decode_uint8_uniform(const uint16_t *in_array, uint8_t *out_array,
 {
 	//wrong input values
 	if (size < 1) {
-		fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: size < 1\n");
+		fprintf(stderr, "error: %s: %i: size < 1\n", __func__, __LINE__);
 		return 1;
 		}
 	if (min > max) {
-		fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: min > max\n");
+		fprintf(stderr, "error: %s: %i: min > max\n", __func__, __LINE__);
 		return 1;
 		}
 
@@ -151,7 +151,7 @@ extern int8_t decode_uint8_uniform(const uint16_t *in_array, uint8_t *out_array,
 		
 		//if algorithm works right, this error should never been thrown
 		if ( (elt < min) || (elt > max) ) {
-			fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: algorithm error\n");
+			fprintf(stderr, "error: %s: %i: algorithm error\n", __func__, __LINE__);
 			return 1;
 			}
 		

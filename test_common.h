@@ -3,7 +3,7 @@ test_common.h - common code for all test programs for honeydata library
 License: BSD 2-Clause
 */
 
-#include "lib/hd_int_uniform.h"
+#include "hdata/hd_int_uniform.h"
 
 extern void error_handler(void);
 //encrypt a message
