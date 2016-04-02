@@ -32,8 +32,8 @@ extern int8_t get_uint8_array_minmax(const uint8_t *array, const uint64_t size,
 		}
 	
 	//finally copy results to output buffers
-	memcpy(min, &tmpmin, 1);
-	memcpy(max, &tmpmax, 1);
+	*min = tmpmin;
+	*max = tmpmax;
 	
 	return 0;
 }
@@ -43,12 +43,12 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 	const uint8_t min, const uint8_t max, const uint64_t size)
 {
 	//wrong input values
-	if (min > max) {
-		fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: min > max\n");
-		return 1;
-		}
 	if (size < 1) {
 		fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: size < 1\n");
+		return 1;
+		}
+	if (min > max) {
+		fprintf(stderr, "hd_int_uniform: encode_uint8_uniform error: min > max\n");
 		return 1;
 		}
 
@@ -64,9 +64,9 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 	//if every value is possible
 	if (group_size == 256) {
 		//then just copy input array to output array to create a first half
-		memcpy(out_array, in_array, size);
+		memcpy(out_array, in_array, size*sizeof(uint8_t));
 		//follow it by random numbers to create a second half
-		if (!RAND_bytes((unsigned char *)(out_array+size), size)) {
+		if (!RAND_bytes( (unsigned char *)out_array + size*sizeof(uint8_t), size*sizeof(uint8_t) )) {
     		ERR_print_errors_fp(stderr);
     		return 1;
     		}
@@ -74,7 +74,7 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 		}
 
 	//write a random numbers to output array
-	if (!RAND_bytes((unsigned char *)out_array, 2*size)) {
+	if (!RAND_bytes( (unsigned char *)out_array, 2*size*sizeof(uint8_t) )) {
     	ERR_print_errors_fp(stderr);
     	return 1;
     	}
@@ -118,12 +118,12 @@ extern int8_t decode_uint8_uniform(const uint16_t *in_array, uint8_t *out_array,
 	const uint8_t min, const uint8_t max, const uint64_t size)
 {
 	//wrong input values
-	if (min > max) {
-		fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: min > max\n");
-		return 1;
-		}
 	if (size < 1) {
 		fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: size < 1\n");
+		return 1;
+		}
+	if (min > max) {
+		fprintf(stderr, "hd_int_uniform: decode_uint8_uniform error: min > max\n");
 		return 1;
 		}
 
@@ -134,13 +134,13 @@ extern int8_t decode_uint8_uniform(const uint16_t *in_array, uint8_t *out_array,
 	//if every value is possible
 	if (group_size == 256) {
 		//then just copy first half of input array to output array
-		memcpy(out_array, in_array, size);
+		memcpy(out_array, in_array, size*sizeof(uint8_t));
 		return 0;
 		}
 
 	//if only one value is possible then write this value 'size' times
 	if (group_size == 1) {
-		memset(out_array, min, size);
+		memset(out_array, min, size*sizeof(uint8_t));
 		return 0;
 		}
 	

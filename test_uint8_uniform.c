@@ -369,6 +369,7 @@ extern int main(void)
 	encode_uint8_uniform(orig_array, encoded_array, min, max, size);
 	print_uint16_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, min, max, size);
+	//if original and decoded arrays is not equal then print a decoded array too
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
@@ -385,6 +386,7 @@ extern int main(void)
 	decode_uint8_uniform(encoded_array, decoded_array, 0, 255, size);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
+	printf("\n");
 	
 	
 	
@@ -405,7 +407,6 @@ extern int main(void)
 	encode_uint8_uniform(orig_array, encoded_array, min, max, size);
 	print_uint16_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, min, max, size);
-	//if original and decoded arrays is not equal then print a decoded array too
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
