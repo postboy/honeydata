@@ -7,78 +7,6 @@ License: BSD 2-Clause
 
 #include "test_common.h"
 
-static int8_t print_uint8_array(const uint8_t *array, const uint64_t size)
-{
-	uint64_t i;
-	
-	//wrong input value
-	if (size < 1) {
-		error("size < 1");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++)
-		printf("%i ", array[i]);
-	printf("\n");
-	return 0;
-}
-
-static int8_t print_uint16_array(const uint16_t *array, const uint64_t size)
-{
-	uint64_t i;
-	
-	//wrong input value
-	if (size < 1) {
-		error("size < 1");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++)
-		printf("%i ", array[i]);
-	printf("\n");
-	return 0;
-}
-
-//get a number of occurences of different elements in array
-static int8_t stats_uint8_array(const uint8_t *in_array, const uint64_t size, uint64_t *stats)
-{
-	uint64_t i;
-	uint8_t elt;	//current processing element
-	
-	//wrong input value
-	if (size < 1) {
-		error("size < 1");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++) {
-		elt = in_array[i];		//read a current element
-		++stats[elt];			//increment the corresponding number in output array
-		}
-		
-	return 0;
-}
-
-//get a number of occurences of different elements in array
-static int8_t stats_uint16_array(const uint16_t *in_array, const uint64_t size, uint64_t *stats)
-{
-	uint64_t i;
-	uint16_t elt;	//current processing element
-	
-	//wrong input value
-	if (size < 1) {
-		error("size < 1");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++) {
-		elt = in_array[i];		//read a current element
-		++stats[elt];			//increment the corresponding number in output array
-		}
-		
-	return 0;
-}
-
 extern int main(void)
 {
 	
@@ -124,10 +52,10 @@ extern int main(void)
 	for (i = 0; i < size; i++)
 		orig_array[i] = (orig_array[i] % 101) + 100;
 
-	encode_uint8_uniform(orig_array, encoded_array, 100, 200, size);
+	encode_uint8_uniform(orig_array, encoded_array, size, 100, 200);
 	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*size, key, iv, ciphertext);
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, (unsigned char *)encoded_array);
-	decode_uint8_uniform(encoded_array, decoded_array, 100, 200, decryptedtext_len);
+	decode_uint8_uniform(encoded_array, decoded_array, decryptedtext_len, 100, 200);
 	
 	//compare result of decryption and original array
 	if ( memcmp(orig_array, decoded_array, size) || (decryptedtext_len != 2*size) ) {
@@ -145,7 +73,7 @@ extern int main(void)
 	size = 256;
 	
 	//encode and encrypt data
-	encode_uint8_uniform(orig_array, encoded_array, 100, 200, size);    
+	encode_uint8_uniform(orig_array, encoded_array, size, 100, 200);    
 	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*size, key, iv, ciphertext);
 	
 	//let's try to bruteforce last 2 bytes of a key
@@ -157,7 +85,7 @@ extern int main(void)
 		memcpy((void *)(big_key+30), &bfkey, sizeof(bfkey));	//get current key for decryption
 		bfkey++;												//try next key on next iteration
 		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv, (unsigned char *)encoded_array);
-		decode_uint8_uniform(encoded_array, decoded_array, 100, 200, decryptedtext_len);
+		decode_uint8_uniform(encoded_array, decoded_array, decryptedtext_len, 100, 200);
 		if (decryptedtext_len != 2*size) {
 			error("size and decryptedtext_len are not the equal");
 			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
@@ -239,9 +167,9 @@ extern int main(void)
 		orig_array[j] = (orig_array[j] % 120) + 100;
 		}
 	
-	encode_uint8_uniform(orig_array, encoded_array, 100, 219, size);
+	encode_uint8_uniform(orig_array, encoded_array, size, 100, 219);
 	stats_uint8_array((uint8_t *)encoded_array, 2*size, out_stats);	//get a statistics on an encoded array
-	decode_uint8_uniform(encoded_array, decoded_array, 100, 219, size);
+	decode_uint8_uniform(encoded_array, decoded_array, size, 100, 219);
 	if (memcmp(orig_array, decoded_array, size)) {
 		error("orig_array and decoded_array are not the same");
 		return 1;
@@ -297,7 +225,7 @@ extern int main(void)
 			orig_array[j] = (orig_array[j] % 100) + 100;
 			}
 
-		encode_uint8_uniform(orig_array, encoded_array, 100, 199, size);
+		encode_uint8_uniform(orig_array, encoded_array, size, 100, 199);
 		stats_uint16_array(encoded_array, size, long_stats);
 		}
 	
@@ -339,9 +267,9 @@ extern int main(void)
 	for (i = 1; i < 256; i++) {
 		if (!RAND_bytes(orig_array, i))	//write a random numbers to original array
     		error_handler();
-    	get_uint8_array_minmax(orig_array, i, &min, &max);
-		encode_uint8_uniform(orig_array, encoded_array, min, max, i);
-    	decode_uint8_uniform(encoded_array, decoded_array, min, max, i);
+    	get_uint8_minmax(orig_array, i, &min, &max);
+		encode_uint8_uniform(orig_array, encoded_array, i, min, max);
+    	decode_uint8_uniform(encoded_array, decoded_array, i, min, max);
     	if (memcmp(orig_array, decoded_array, i)) {
     		error("orig_array and decoded_array are not the same");
 			print_uint8_array(orig_array, i);
@@ -363,27 +291,27 @@ extern int main(void)
 	
 	printf("Original array:\n");	//print it
 	print_uint8_array(orig_array, size);
-	get_uint8_array_minmax(orig_array, size, &min, &max);
+	get_uint8_minmax(orig_array, size, &min, &max);
 	
 	printf("min = %i, max = %i:\n", min, max);
-	encode_uint8_uniform(orig_array, encoded_array, min, max, size);
+	encode_uint8_uniform(orig_array, encoded_array, size, min, max);
 	print_uint16_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, min, max, size);
+	decode_uint8_uniform(encoded_array, decoded_array, size, min, max);
 	//if original and decoded arrays is not equal then print a decoded array too
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
 	printf("min = 15, max = 45:\n");
-	encode_uint8_uniform(orig_array, encoded_array, 15, 45, size);
+	encode_uint8_uniform(orig_array, encoded_array, size, 15, 45);
 	print_uint16_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, 15, 45, size);
+	decode_uint8_uniform(encoded_array, decoded_array, size, 15, 45);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
 	printf("min = 0, max = 255:\n");
-	encode_uint8_uniform(orig_array, encoded_array, 0, 255, size);
+	encode_uint8_uniform(orig_array, encoded_array, size, 0, 255);
 	print_uint16_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, 0, 255, size);
+	decode_uint8_uniform(encoded_array, decoded_array, size, 0, 255);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	printf("\n");
@@ -401,19 +329,19 @@ extern int main(void)
 	
 	printf("Original array:\n");
 	print_uint8_array(orig_array, size);
-	get_uint8_array_minmax(orig_array, size, &min, &max);
+	get_uint8_minmax(orig_array, size, &min, &max);
 	
 	printf("min = %i, max = %i:\n", min, max);
-	encode_uint8_uniform(orig_array, encoded_array, min, max, size);
+	encode_uint8_uniform(orig_array, encoded_array, size, min, max);
 	print_uint16_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, min, max, size);
+	decode_uint8_uniform(encoded_array, decoded_array, size, min, max);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
 	printf("min = 0, max = 255:\n");
-	encode_uint8_uniform(orig_array, encoded_array, 0, 255, size);
+	encode_uint8_uniform(orig_array, encoded_array, size, 0, 255);
 	print_uint16_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, 0, 255, size);
+	decode_uint8_uniform(encoded_array, decoded_array, size, 0, 255);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	printf("\n");
@@ -421,13 +349,13 @@ extern int main(void)
 	
 	
 	//wrong parameters-----------------------------------------------------------------------------
-	get_uint8_array_minmax(NULL, 0, NULL, NULL);
-	encode_uint8_uniform(NULL, NULL, 2, 1, 1);
-	encode_uint8_uniform(NULL, NULL, 1, 2, 0);
-	encode_uint8_uniform(orig_array, encoded_array, 100, 100, size);
-	encode_uint8_uniform(orig_array, encoded_array, 21, 100, size);
-	decode_uint8_uniform(NULL, NULL, 2, 1, 1);
-	decode_uint8_uniform(NULL, NULL, 1, 2, 0);
+	get_uint8_minmax(NULL, 0, NULL, NULL);
+	encode_uint8_uniform(NULL, NULL, 1, 2, 1);
+	encode_uint8_uniform(NULL, NULL, 0, 1, 2);
+	encode_uint8_uniform(orig_array, encoded_array, size, 0, 19);
+	encode_uint8_uniform(orig_array, encoded_array, size, 21, 100);
+	decode_uint8_uniform(NULL, NULL, 1, 2, 1);
+	decode_uint8_uniform(NULL, NULL, 0, 1, 2);
 	print_uint8_array(NULL, 0);
 	print_uint16_array(NULL, 0);
 	stats_uint8_array(NULL, 0, NULL);

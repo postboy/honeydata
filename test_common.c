@@ -1,5 +1,5 @@
 /*
-test_common.c - common code for all test programs for honeydata library
+test_common.c - common code for test programs for honeydata library
 License: BSD 2-Clause
 */
 
@@ -12,8 +12,8 @@ extern void error_handler(void)
 }
 
 //encrypt a message
-extern int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *iv,
-	unsigned char *ciphertext)
+extern int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
+	unsigned char *iv, unsigned char *ciphertext)
 {
 	EVP_CIPHER_CTX *ctx;
 
@@ -52,8 +52,8 @@ extern int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *k
 }
 
 //decrypt a message
-extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv,
-	unsigned char *plaintext)
+extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+	unsigned char *iv, unsigned char *plaintext)
 {
 	EVP_CIPHER_CTX *ctx;
 
@@ -85,4 +85,76 @@ extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 	EVP_CIPHER_CTX_free(ctx);
 
 	return plaintext_len;
+}
+
+extern int8_t print_uint8_array(const uint8_t *array, const uint64_t size)
+{
+	uint64_t i;
+	
+	//wrong input value
+	if (size < 1) {
+		error("size < 1");
+		return 1;
+		}
+	
+	for (i = 0; i < size; i++)
+		printf("%i ", array[i]);
+	printf("\n");
+	return 0;
+}
+
+extern int8_t print_uint16_array(const uint16_t *array, const uint64_t size)
+{
+	uint64_t i;
+	
+	//wrong input value
+	if (size < 1) {
+		error("size < 1");
+		return 1;
+		}
+	
+	for (i = 0; i < size; i++)
+		printf("%i ", array[i]);
+	printf("\n");
+	return 0;
+}
+
+//get a number of occurences of different elements in array
+extern int8_t stats_uint8_array(const uint8_t *in_array, const uint64_t size, uint64_t *stats)
+{
+	uint64_t i;
+	uint8_t elt;	//current processing element
+	
+	//wrong input value
+	if (size < 1) {
+		error("size < 1");
+		return 1;
+		}
+	
+	for (i = 0; i < size; i++) {
+		elt = in_array[i];		//read a current element
+		++stats[elt];			//increment the corresponding number in output array
+		}
+		
+	return 0;
+}
+
+//get a number of occurences of different elements in array
+extern int8_t stats_uint16_array(const uint16_t *in_array, const uint64_t size, uint64_t *stats)
+{
+	uint64_t i;
+	uint16_t elt;	//current processing element
+	
+	//wrong input value
+	if (size < 1) {
+		error("size < 1");
+		return 1;
+		}
+	
+	for (i = 0; i < size; i++) {
+		elt = in_array[i];		//read a current element
+		++stats[elt];			//increment the corresponding number in output array
+		}
+		
+	return 0;
 }
