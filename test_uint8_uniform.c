@@ -13,7 +13,7 @@ static int8_t print_uint8_array(const uint8_t *array, const uint64_t size)
 	
 	//wrong input value
 	if (size < 1) {
-		fprintf(stderr, "error: %s: %i: size < 1\n", __func__, __LINE__);
+		error("size < 1");
 		return 1;
 		}
 	
@@ -29,7 +29,7 @@ static int8_t print_uint16_array(const uint16_t *array, const uint64_t size)
 	
 	//wrong input value
 	if (size < 1) {
-		fprintf(stderr, "error: %s: %i: size < 1\n", __func__, __LINE__);
+		error("size < 1");
 		return 1;
 		}
 	
@@ -47,7 +47,7 @@ static int8_t stats_uint8_array(const uint8_t *in_array, const uint64_t size, ui
 	
 	//wrong input value
 	if (size < 1) {
-		fprintf(stderr, "error: %s: %i: size < 1\n", __func__, __LINE__);
+		error("size < 1");
 		return 1;
 		}
 	
@@ -67,7 +67,7 @@ static int8_t stats_uint16_array(const uint16_t *in_array, const uint64_t size, 
 	
 	//wrong input value
 	if (size < 1) {
-		fprintf(stderr, "error: %s: %i: size < 1\n", __func__, __LINE__);
+		error("size < 1");
 		return 1;
 		}
 	
@@ -108,7 +108,7 @@ extern int main(void)
 	OpenSSL_add_all_algorithms();
 	OPENSSL_config(NULL);
 	if (!RAND_status()) {
-		fprintf(stderr, "error: %s: %i: PRNG hasn't been seeded with enough data\n", __func__, __LINE__);
+		error("PRNG hasn't been seeded with enough data");
     	return 1;
 		}
 	
@@ -131,7 +131,7 @@ extern int main(void)
 	
 	//compare result of decryption and original array
 	if ( memcmp(orig_array, decoded_array, size) || (decryptedtext_len != 2*size) ) {
-		fprintf(stderr, "error: %s: %i: orig_array and decoded_array are not the same.\n", __func__, __LINE__);
+		error("orig_array and decoded_array are not the same");
 		printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
 		print_uint8_array(orig_array, size);
 		print_uint8_array(decoded_array, decryptedtext_len);
@@ -159,7 +159,7 @@ extern int main(void)
 		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv, (unsigned char *)encoded_array);
 		decode_uint8_uniform(encoded_array, decoded_array, 100, 200, decryptedtext_len);
 		if (decryptedtext_len != 2*size) {
-			fprintf(stderr, "error: %s: %i: size and decryptedtext_len are not the equal.\n", __func__, __LINE__);
+			error("size and decryptedtext_len are not the equal");
 			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
 			return 1;
 			}
@@ -179,13 +179,13 @@ extern int main(void)
 	//write overall bruteforce statistics to file
 	//try to open file for writing
 	if ((fp = fopen("uint8_bruteforce.ods", "w")) == NULL) {
-		fprintf(stderr, "error: %s: %i: can't open file 'uint8_bruteforce.ods' for writing.\n", __func__, __LINE__);
+		error("can't open file 'uint8_bruteforce.ods' for writing");
 	    return 1;
 		}
 		
 	//compare actual vs. ideal distributions of output array
 	if (fprintf(fp, "=CHITEST(A102:A202;B102:B202)\n") < 0) {
-		fprintf(stderr, "error: %s: %i: cannot write to 'uint8_bruteforce.ods' file.\n", __func__, __LINE__);
+		error("cannot write to 'uint8_bruteforce.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
 		return 1;
@@ -194,7 +194,7 @@ extern int main(void)
 	for (i = 0; i < 256; i++) {
 		if ( (i < 100) || (i > 200) ) {
 			if (fprintf(fp, "%llu\t%i\n", out_stats[i], 0) < 0) {
-				fprintf(stderr, "error: %s: %i: cannot write to 'uint8_bruteforce.ods' file.\n", __func__, __LINE__);
+				error("cannot write to 'uint8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
 				return 1;
@@ -205,7 +205,7 @@ extern int main(void)
 			elements) / 101 (number of possible array values from 100 to 200) = 16 777 216 (total
 			amount of numbers) / 101 (their possible values) - expected result in out_stats*/
 			if (fprintf(fp,  "%llu\t%i\n", out_stats[i], 166111) < 0) {
-				fprintf(stderr, "error: %s: %i: cannot write to 'uint8_bruteforce.ods' file.\n", __func__, __LINE__);
+				error("cannot write to 'uint8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
 				return 1;
@@ -243,20 +243,20 @@ extern int main(void)
 	stats_uint8_array((uint8_t *)encoded_array, 2*size, out_stats);	//get a statistics on an encoded array
 	decode_uint8_uniform(encoded_array, decoded_array, 100, 219, size);
 	if (memcmp(orig_array, decoded_array, size)) {
-		fprintf(stderr, "error: %s: %i: orig_array and decoded_array are not the same.\n", __func__, __LINE__);
+		error("orig_array and decoded_array are not the same");
 		return 1;
 		}
 
 	//write statistics to file
 	//try to open file for writing
 	if ((fp = fopen("uint8_encoding.ods", "w")) == NULL) {	
-		fprintf(stderr, "error: %s: %i: can't open file 'uint8_encoding.ods' for writing.\n", __func__, __LINE__);
+		error("can't open file 'uint8_encoding.ods' for writing");
 	    return 1;
 		}
 
 	//compare pseudorandom vs. ideal, actual vs. ideal distributions
 	if (fprintf(fp, "=CHITEST(A2:A257;B2:B257)\t\t=CHITEST(C2:C257;D2:D257)\n") < 0) {
-		fprintf(stderr, "error: %s: %i: cannot write to 'uint8_encoding.ods' file.\n", __func__, __LINE__);
+		error("cannot write to 'uint8_encoding.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
 		return 1;
@@ -264,7 +264,7 @@ extern int main(void)
 	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
 	for (i = 0; i < 256; i++) {
 		if (fprintf(fp, "%llu\t%i\t%llu\t%i\n",	in_stats[i], size/256, out_stats[i], size/128) < 0) {
-			fprintf(stderr, "error: %s: %i: cannot write to 'uint8_encoding.ods' file.\n", __func__, __LINE__);
+			error("cannot write to 'uint8_encoding.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
 			return 1;
@@ -304,13 +304,13 @@ extern int main(void)
 	//write overall statistics to file
 	//try to open file for writing
 	if ((fp = fopen("uint8_encoding2.ods", "w")) == NULL) {
-		fprintf(stderr, "error: %s: %i: can't open file 'uint8_encoding2.ods' for writing.\n", __func__, __LINE__);
+		error("can't open file 'uint8_encoding2.ods' for writing");
 	    return 1;
 		}
 		
 	//compare actual vs. ideal distributions of output array
 	if (fprintf(fp, "=CHITEST(A2:A65537;B2:B65537)\n") < 0) {
-		fprintf(stderr, "error: %s: %i: cannot write to 'uint8_encoding2.ods' file.\n", __func__, __LINE__);
+		error("cannot write to 'uint8_encoding2.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
 		return 1;
@@ -321,7 +321,7 @@ extern int main(void)
 		(number of possible array values from 0 to 65 535) = 16 777 216 (total amount of
 		numbers) / 65536 (their possible values) - expected result in long_stats*/
 		if (fprintf(fp,  "%llu\t%i\n", long_stats[i], 256) < 0) {
-			fprintf(stderr, "error: %s: %i: cannot write to 'uint8_encoding2.ods' file.\n", __func__, __LINE__);
+			error("cannot write to 'uint8_encoding2.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
 			return 1;
@@ -343,7 +343,7 @@ extern int main(void)
 		encode_uint8_uniform(orig_array, encoded_array, min, max, i);
     	decode_uint8_uniform(encoded_array, decoded_array, min, max, i);
     	if (memcmp(orig_array, decoded_array, i)) {
-    		fprintf(stderr, "error: %s: %i: orig_array and decoded_array are not the same.\n", __func__, __LINE__);
+    		error("orig_array and decoded_array are not the same");
 			print_uint8_array(orig_array, i);
 			print_uint8_array(decoded_array, i);
 			return 1;

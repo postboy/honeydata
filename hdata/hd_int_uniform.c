@@ -5,16 +5,25 @@ License: BSD 2-Clause
 
 #include "hd_int_uniform.h"
 
+//uint8_t functions--------------------------------------------------------------------------------
+
+#define itype uint8_t	//type of input elements
+#define utype uint8_t	//unsigned type of same size as input type
+//type of output elements (always unsigned, size is twice larger than size of itype)
+#define otype uint16_t
+#define ISPACE (UINT8_MAX+1)	//size of utype code space
+#define OSPACE (UINT16_MAX+1)	//size of otype code space
+
 //get minimum and maximum of uint8 array
-extern int8_t get_uint8_array_minmax(const uint8_t *array, const uint64_t size,
-	uint8_t *min, uint8_t *max)
+extern int8_t get_uint8_array_minmax(const itype *array, const uint64_t size,
+	itype *min, itype *max)
 {
-	uint8_t tmpmin, tmpmax;	//variables for storing temporary minimum and maximum values
+	itype tmpmin, tmpmax;	//variables for storing temporary minimum and maximum values
 	uint64_t i;
 
 	//wrong input value
 	if (size < 1) {
-		fprintf(stderr, "error: %s: %i: size < 1\n", __func__, __LINE__);
+		error("size < 1");
 		return 1;
 		}
 
@@ -27,8 +36,8 @@ extern int8_t get_uint8_array_minmax(const uint8_t *array, const uint64_t size,
 			tmpmin = array[i];
 		if (array[i] > tmpmax)					//then it's the new maximum
 			tmpmax = array[i];
-		/*we don't break a cycle if ((tmpmin == 0) && (tmpmax == 256)) because it can be used for
-		timing attack*/
+		/*we don't break a cycle if ((tmpmin == itype_MIN) && (tmpmax == itype_MAX)) because it can
+		be used for timing attack*/
 		}
 	
 	//finally copy results to output buffers
@@ -39,34 +48,35 @@ extern int8_t get_uint8_array_minmax(const uint8_t *array, const uint64_t size,
 }
 
 //DTE for unsigned 8 bit integers distributed uniformly
-extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
-	const uint8_t min, const uint8_t max, const uint64_t size)
+extern int8_t encode_uint8_uniform(const itype *in_array, otype *out_array,
+	const itype min, const itype max, const uint64_t size)
 {
 	//wrong input values
 	if (size < 1) {
-		fprintf(stderr, "error: %s: %i: size < 1\n", __func__, __LINE__);
+		error("size < 1");
 		return 1;
 		}
 	if (min > max) {
-		fprintf(stderr, "error: %s: %i: min > max\n", __func__, __LINE__);
+		error("min > max");
 		return 1;
 		}
 
 	uint64_t i;
-	uint16_t elt;								//current processing element
-	const uint16_t group_size = max - min + 1;	//size of a full group in elements, from 1 to 256
+	otype elt;								//current processing element
+	const otype group_size = max - min + 1;
+	//size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)
 	/*number of groups (from 256 to 65536), so they will have values in interval [0; group_num-1];
 	notice type conversion here - we want float result of division instead of integer!*/
-	const uint32_t group_num = ceil(65536 / (float)group_size);
+	const uint32_t group_num = ceil(OSPACE / (float)group_size);
 	//number of elements in the last group or 0 if the last group is full, from 0 to 255
-	const uint8_t last_group_size = 65536 % group_size;
+	const utype last_group_size = OSPACE % group_size;
 	
 	//if every value is possible
-	if (group_size == 256) {
+	if (group_size == ISPACE) {
 		//then just copy input array to output array to create a first half
-		memcpy(out_array, in_array, size*sizeof(uint8_t));
+		memcpy(out_array, in_array, size*sizeof(itype));
 		//follow it by random numbers to create a second half
-		if (!RAND_bytes( (unsigned char *)out_array + size*sizeof(uint8_t), size*sizeof(uint8_t) )) {
+		if (!RAND_bytes( (unsigned char *)out_array + size*sizeof(itype), size*sizeof(itype) )) {
     		ERR_print_errors_fp(stderr);
     		return 1;
     		}
@@ -74,7 +84,7 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 		}
 
 	//write a random numbers to output array
-	if (!RAND_bytes( (unsigned char *)out_array, 2*size*sizeof(uint8_t) )) {
+	if (!RAND_bytes( (unsigned char *)out_array, 2*size*sizeof(itype) )) {
     	ERR_print_errors_fp(stderr);
     	return 1;
     	}
@@ -84,7 +94,7 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 		//we're already done with random numbers, but we should check an input array
 		for (i = 0; i < size; i++) {
 			if (in_array[i] != min) {
-				fprintf(stderr, "error: %s: %i: wrong min or max value\n", __func__, __LINE__);
+				error("wrong min or max value");
 				return 1;
 				}
 			}
@@ -95,7 +105,7 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 	for (i = 0; i < size; i++) {
 		elt = in_array[i];	//read current value
 		if ( (elt < min) || (elt > max) ) {
-			fprintf(stderr, "error: %s: %i: wrong min or max value\n", __func__, __LINE__);
+			error("wrong min or max value");
 			return 1;
 			}
 		elt = elt - min;	//normalize it
@@ -114,33 +124,34 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 }
 
 //DTD for unsigned 8 bit integers distributed uniformly
-extern int8_t decode_uint8_uniform(const uint16_t *in_array, uint8_t *out_array,
-	const uint8_t min, const uint8_t max, const uint64_t size)
+extern int8_t decode_uint8_uniform(const otype *in_array, itype *out_array,
+	const itype min, const itype max, const uint64_t size)
 {
 	//wrong input values
 	if (size < 1) {
-		fprintf(stderr, "error: %s: %i: size < 1\n", __func__, __LINE__);
+		error("size < 1");
 		return 1;
 		}
 	if (min > max) {
-		fprintf(stderr, "error: %s: %i: min > max\n", __func__, __LINE__);
+		error("min > max");
 		return 1;
 		}
 
 	uint64_t i;
-	uint16_t elt;								//current processing element
-	const uint16_t group_size = max - min + 1;	//size of a full group in elements, from 1 to 256
+	otype elt;								//current processing element
+	//size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)
+	const otype group_size = max - min + 1;
 	
-	//if every value is possible
-	if (group_size == 256) {
-		//then just copy first half of input array to output array
-		memcpy(out_array, in_array, size*sizeof(uint8_t));
+	//if every value is possible then just copy first half of input array to output array
+	if (group_size == ISPACE) {
+		memcpy(out_array, in_array, size*sizeof(itype));
 		return 0;
 		}
 
-	//if only one value is possible then write this value 'size' times
+	//if only one value is possible then fill output array with this value
 	if (group_size == 1) {
-		memset(out_array, min, size*sizeof(uint8_t));
+		for (i = 0; i < size; i++)
+			out_array[i] = min;
 		return 0;
 		}
 	
@@ -151,12 +162,18 @@ extern int8_t decode_uint8_uniform(const uint16_t *in_array, uint8_t *out_array,
 		
 		//if algorithm works right, this error should never been thrown
 		if ( (elt < min) || (elt > max) ) {
-			fprintf(stderr, "error: %s: %i: algorithm error\n", __func__, __LINE__);
+			error("algorithm error");
 			return 1;
 			}
 		
-		out_array[i] = (uint8_t)elt;	//finally write it to buffer
+		out_array[i] = (itype)elt;	//finally write it to buffer
 		}
 
 	return 0;
 }
+
+#undef itype
+#undef utype
+#undef otype
+#undef ISPACE
+#undef OSPACE
