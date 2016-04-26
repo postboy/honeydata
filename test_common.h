@@ -3,6 +3,9 @@ test_common.h - common code for test programs for honeydata library
 License: BSD 2-Clause
 */
 
+#ifndef TEST_COMMON_H
+#define TEST_COMMON_H
+
 #include "hdata/hd_int_uniform.h"
 
 extern void error_handler(void);
@@ -17,3 +20,5 @@ extern int8_t print_uint16_array(const uint16_t *array, const uint64_t size);
 //get a number of occurences of different elements in array
 extern int8_t stats_uint8_array(const uint8_t *in_array, const uint64_t size, uint64_t *stats);
 extern int8_t stats_uint16_array(const uint16_t *in_array, const uint64_t size, uint64_t *stats);
+
+#endif
