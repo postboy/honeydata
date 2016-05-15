@@ -87,74 +87,60 @@ extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 	return plaintext_len;
 }
 
-extern int8_t print_uint8_array(const uint8_t *array, const uint64_t size)
-{
-	uint64_t i;
-	
-	//wrong input value
-	if (size < 1) {
-		error("size < 1");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++)
-		printf("%i ", array[i]);
-	printf("\n");
-	return 0;
+//parameters in following generalized functions:
+//itype - type of input elements
+
+//generalized function for printing an integer array
+#define PRINT_INT_ARRAY(itype) \
+(const itype *array, const uint64_t size) \
+{ \
+	uint64_t i; \
+	\
+	/*wrong input value*/ \
+	if (size < 1) { \
+		error("size < 1"); \
+		return 1; \
+		} \
+	\
+	for (i = 0; i < size; i++) \
+		printf("%i ", array[i]); \
+	printf("\n"); \
+	return 0; \
 }
 
-extern int8_t print_uint16_array(const uint16_t *array, const uint64_t size)
-{
-	uint64_t i;
-	
-	//wrong input value
-	if (size < 1) {
-		error("size < 1");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++)
-		printf("%i ", array[i]);
-	printf("\n");
-	return 0;
+extern int8_t print_uint8_array
+	PRINT_INT_ARRAY(uint8_t)
+
+extern int8_t print_uint16_array
+	PRINT_INT_ARRAY(uint16_t)
+
+#undef PRINT_INT_ARRAY
+
+//generalized function for getting a number of occurences of different elements in integer array
+#define STATS_INT_ARRAY(itype) \
+(const itype *in_array, const uint64_t size, uint64_t *stats) \
+{ \
+	uint64_t i; \
+	itype elt;	/*current processing element*/ \
+	\
+	/*wrong input value*/ \
+	if (size < 1) { \
+		error("size < 1"); \
+		return 1; \
+		} \
+	\
+	for (i = 0; i < size; i++) { \
+		elt = in_array[i];		/*read a current element*/ \
+		++stats[elt];			/*increment the corresponding number in output array*/ \
+		} \
+	\
+	return 0; \
 }
 
-//get a number of occurences of different elements in array
-extern int8_t stats_uint8_array(const uint8_t *in_array, const uint64_t size, uint64_t *stats)
-{
-	uint64_t i;
-	uint8_t elt;	//current processing element
-	
-	//wrong input value
-	if (size < 1) {
-		error("size < 1");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++) {
-		elt = in_array[i];		//read a current element
-		++stats[elt];			//increment the corresponding number in output array
-		}
-		
-	return 0;
-}
+extern int8_t stats_uint8_array
+	STATS_INT_ARRAY(uint8_t)
 
-//get a number of occurences of different elements in array
-extern int8_t stats_uint16_array(const uint16_t *in_array, const uint64_t size, uint64_t *stats)
-{
-	uint64_t i;
-	uint16_t elt;	//current processing element
-	
-	//wrong input value
-	if (size < 1) {
-		error("size < 1");
-		return 1;
-		}
-	
-	for (i = 0; i < size; i++) {
-		elt = in_array[i];		//read a current element
-		++stats[elt];			//increment the corresponding number in output array
-		}
-		
-	return 0;
-}
+extern int8_t stats_uint16_array
+	STATS_INT_ARRAY(uint16_t)
+
+#undef STATS_INT_ARRAY

@@ -5,8 +5,15 @@ License: BSD 2-Clause
 
 #include "hd_int_uniform.h"
 
+//parameters in following generalized functions:
+//itype - type of input elements
+//utype - unsigned type of same size as input type
+//otype - type of output elements (always unsigned, size is twice larger than size of itype)
+//ISPACE - size of utype code space
+//OSPACE - size of otype code space
+
 //generalized function for finding minimum and maximum in array------------------------------------
-#define GET_ARRAY_MINMAX \
+#define GET_ARRAY_MINMAX(itype) \
 (const itype *array, const uint64_t size, itype *min, itype *max) \
 { \
 	itype tmpmin, tmpmax;	/*variables for storing temporary minimum and maximum values*/ \
@@ -39,7 +46,7 @@ License: BSD 2-Clause
 }
 
 //generalized function for encoding an integer array-----------------------------------------------
-#define ENCODE_INT_UNIFORM \
+#define ENCODE_INT_UNIFORM(itype, utype, otype, ISPACE, OSPACE) \
 (const itype *in_array, otype *out_array, const uint64_t size, const itype min, const itype max) \
 { \
 	/*wrong input values*/ \
@@ -117,7 +124,7 @@ License: BSD 2-Clause
 }
 
 //generalized function for decoding an integer array-----------------------------------------------
-#define DECODE_INT_UNIFORM \
+#define DECODE_INT_UNIFORM(itype, otype, ISPACE) \
 (const otype *in_array, itype *out_array, const uint64_t size, const itype min, const itype max) \
 { \
 	/*wrong input values*/ \
@@ -168,117 +175,62 @@ License: BSD 2-Clause
 
 //uint8_t functions--------------------------------------------------------------------------------
 
-#define itype uint8_t			//type of input elements
-#define utype uint8_t			//unsigned type of same size as input type
-//type of output elements (always unsigned, size is twice larger than size of itype)
-#define otype uint16_t
-#define ISPACE (UINT8_MAX+1)	//size of utype code space
-#define OSPACE (UINT16_MAX+1)	//size of otype code space
-
 //get minimum and maximum of uint8 array
-extern int8_t get_uint8_minmax GET_ARRAY_MINMAX
+extern int8_t get_uint8_minmax
+	GET_ARRAY_MINMAX(uint8_t)
 
 //DTE for unsigned 8 bit integers distributed uniformly
-extern int8_t encode_uint8_uniform ENCODE_INT_UNIFORM
+extern int8_t encode_uint8_uniform
+	ENCODE_INT_UNIFORM(uint8_t, uint8_t, uint16_t, (UINT8_MAX+1), (UINT16_MAX+1) )
 
 //DTD for unsigned 8 bit integers distributed uniformly
-extern int8_t decode_uint8_uniform DECODE_INT_UNIFORM
-
-#undef itype
-#undef utype
-#undef otype
-#undef ISPACE
-#undef OSPACE
+extern int8_t decode_uint8_uniform
+	DECODE_INT_UNIFORM(uint8_t, uint16_t, (UINT8_MAX+1) )
 
 //sint8_t functions--------------------------------------------------------------------------------
 
-#define itype int8_t
-#define utype uint8_t
-#define otype uint16_t
-#define ISPACE (UINT8_MAX+1)
-#define OSPACE (UINT16_MAX+1)
-
-extern int8_t get_sint8_minmax GET_ARRAY_MINMAX
-extern int8_t encode_sint8_uniform ENCODE_INT_UNIFORM
-extern int8_t decode_sint8_uniform DECODE_INT_UNIFORM
-
-#undef itype
-#undef utype
-#undef otype
-#undef ISPACE
-#undef OSPACE
+extern int8_t get_sint8_minmax
+	GET_ARRAY_MINMAX(int8_t)
+extern int8_t encode_sint8_uniform
+	ENCODE_INT_UNIFORM(int8_t, uint8_t, uint16_t, (UINT8_MAX+1), (UINT16_MAX+1) )
+extern int8_t decode_sint8_uniform
+	DECODE_INT_UNIFORM(int8_t, uint16_t, (UINT8_MAX+1) )
 
 //uint16_t functions---------------------------------------------------------------------------------
 
-#define itype uint16_t
-#define utype uint16_t
-#define otype uint32_t
-#define ISPACE (UINT16_MAX+1)
-#define OSPACE (UINT32_MAX+1)
-
-extern int8_t get_uint16_minmax GET_ARRAY_MINMAX
-extern int8_t encode_uint16_uniform ENCODE_INT_UNIFORM
-extern int8_t decode_uint16_uniform DECODE_INT_UNIFORM
-
-#undef itype
-#undef utype
-#undef otype
-#undef ISPACE
-#undef OSPACE
+extern int8_t get_uint16_minmax
+	GET_ARRAY_MINMAX(uint16_t)
+extern int8_t encode_uint16_uniform
+	ENCODE_INT_UNIFORM(uint16_t, uint16_t, uint32_t, (UINT16_MAX+1), (UINT32_MAX+1) )
+extern int8_t decode_uint16_uniform
+	DECODE_INT_UNIFORM(uint16_t, uint32_t, (UINT16_MAX+1) )
 
 //sint16_t functions---------------------------------------------------------------------------------
 
-#define itype int16_t
-#define utype uint16_t
-#define otype uint32_t
-#define ISPACE (UINT16_MAX+1)
-#define OSPACE (UINT32_MAX+1)
-
-extern int8_t get_sint16_minmax GET_ARRAY_MINMAX
-extern int8_t encode_sint16_uniform ENCODE_INT_UNIFORM
-extern int8_t decode_sint16_uniform DECODE_INT_UNIFORM
-
-#undef itype
-#undef utype
-#undef otype
-#undef ISPACE
-#undef OSPACE
+extern int8_t get_sint16_minmax
+	GET_ARRAY_MINMAX(int16_t)
+extern int8_t encode_sint16_uniform
+	ENCODE_INT_UNIFORM(int16_t, uint16_t, uint32_t, (UINT16_MAX+1), (UINT32_MAX+1) )
+extern int8_t decode_sint16_uniform
+	DECODE_INT_UNIFORM(int16_t, uint32_t, (UINT16_MAX+1) )
 
 //uint32_t functions---------------------------------------------------------------------------------
 
-#define itype uint32_t
-#define utype uint32_t
-#define otype uint64_t
-#define ISPACE (UINT32_MAX+1)
-#define OSPACE (UINT64_MAX+1)
-
-extern int8_t get_uint32_minmax GET_ARRAY_MINMAX
-extern int8_t encode_uint32_uniform ENCODE_INT_UNIFORM
-extern int8_t decode_uint32_uniform DECODE_INT_UNIFORM
-
-#undef itype
-#undef utype
-#undef otype
-#undef ISPACE
-#undef OSPACE
+extern int8_t get_uint32_minmax
+	GET_ARRAY_MINMAX(uint32_t)
+extern int8_t encode_uint32_uniform
+	ENCODE_INT_UNIFORM(uint32_t, uint32_t, uint64_t, (UINT32_MAX+1), (UINT64_MAX+1) )
+extern int8_t decode_uint32_uniform
+	DECODE_INT_UNIFORM(uint32_t, uint64_t, (UINT32_MAX+1) )
 
 //sint32_t functions---------------------------------------------------------------------------------
 
-#define itype int32_t
-#define utype uint32_t
-#define otype uint64_t
-#define ISPACE (UINT32_MAX+1)
-#define OSPACE (UINT64_MAX+1)
-
-extern int8_t get_sint32_minmax GET_ARRAY_MINMAX
-extern int8_t encode_sint32_uniform ENCODE_INT_UNIFORM
-extern int8_t decode_sint32_uniform DECODE_INT_UNIFORM
-
-#undef itype
-#undef utype
-#undef otype
-#undef ISPACE
-#undef OSPACE
+extern int8_t get_sint32_minmax
+	GET_ARRAY_MINMAX(int32_t)
+extern int8_t encode_sint32_uniform
+	ENCODE_INT_UNIFORM(int32_t, uint32_t, uint64_t, (UINT32_MAX+1), (UINT64_MAX+1) )
+extern int8_t decode_sint32_uniform
+	DECODE_INT_UNIFORM(int32_t, uint64_t, (UINT32_MAX+1) )
 
 //finally undef our generalized fucntions
 #undef GET_ARRAY_MINMAX
