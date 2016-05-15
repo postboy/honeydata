@@ -232,7 +232,7 @@ extern int8_t encode_sint32_uniform
 extern int8_t decode_sint32_uniform
 	DECODE_INT_UNIFORM(int32_t, uint64_t, (UINT32_MAX+1) )
 
-//finally undef our generalized fucntions
+//finally undef our generalized functions
 #undef GET_ARRAY_MINMAX
 #undef ENCODE_INT_UNIFORM
 #undef DECODE_INT_UNIFORM
