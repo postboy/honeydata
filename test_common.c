@@ -90,8 +90,8 @@ extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 //parameters in following generalized functions:
 //itype - type of input elements
 
-//generalized function for printing an integer array
-#define PRINT_INT_ARRAY(itype) \
+//generalized function for printing a numeric array
+#define PRINT_ARRAY(itype, format) \
 (const itype *array, const uint64_t size) \
 { \
 	uint64_t i; \
@@ -103,18 +103,18 @@ extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 		} \
 	\
 	for (i = 0; i < size; i++) \
-		printf("%i ", array[i]); \
+		printf(format, array[i]); \
 	printf("\n"); \
 	return 0; \
 }
 
 extern int8_t print_uint8_array
-	PRINT_INT_ARRAY(uint8_t)
+	PRINT_ARRAY(uint8_t, "%u ")
 
 extern int8_t print_uint16_array
-	PRINT_INT_ARRAY(uint16_t)
+	PRINT_ARRAY(uint16_t, "%u ")
 
-#undef PRINT_INT_ARRAY
+#undef PRINT_ARRAY
 
 //generalized function for getting a number of occurences of different elements in integer array
 #define STATS_INT_ARRAY(itype) \

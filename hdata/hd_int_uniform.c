@@ -172,7 +172,6 @@ License: BSD 2-Clause
 	return 0; \
 }
 
-
 //uint8_t functions--------------------------------------------------------------------------------
 
 //get minimum and maximum of uint8 array
@@ -187,16 +186,16 @@ extern int8_t encode_uint8_uniform
 extern int8_t decode_uint8_uniform
 	DECODE_INT_UNIFORM(uint8_t, uint16_t, (UINT8_MAX+1) )
 
-//sint8_t functions--------------------------------------------------------------------------------
+//int8_t functions---------------------------------------------------------------------------------
 
-extern int8_t get_sint8_minmax
+extern int8_t get_int8_minmax
 	GET_ARRAY_MINMAX(int8_t)
-extern int8_t encode_sint8_uniform
+extern int8_t encode_int8_uniform
 	ENCODE_INT_UNIFORM(int8_t, uint8_t, uint16_t, (UINT8_MAX+1), (UINT16_MAX+1) )
-extern int8_t decode_sint8_uniform
+extern int8_t decode_int8_uniform
 	DECODE_INT_UNIFORM(int8_t, uint16_t, (UINT8_MAX+1) )
 
-//uint16_t functions---------------------------------------------------------------------------------
+//uint16_t functions-------------------------------------------------------------------------------
 
 extern int8_t get_uint16_minmax
 	GET_ARRAY_MINMAX(uint16_t)
@@ -205,16 +204,16 @@ extern int8_t encode_uint16_uniform
 extern int8_t decode_uint16_uniform
 	DECODE_INT_UNIFORM(uint16_t, uint32_t, (UINT16_MAX+1) )
 
-//sint16_t functions---------------------------------------------------------------------------------
+//int16_t functions--------------------------------------------------------------------------------
 
-extern int8_t get_sint16_minmax
+extern int8_t get_int16_minmax
 	GET_ARRAY_MINMAX(int16_t)
-extern int8_t encode_sint16_uniform
+extern int8_t encode_int16_uniform
 	ENCODE_INT_UNIFORM(int16_t, uint16_t, uint32_t, (UINT16_MAX+1), (UINT32_MAX+1) )
-extern int8_t decode_sint16_uniform
+extern int8_t decode_int16_uniform
 	DECODE_INT_UNIFORM(int16_t, uint32_t, (UINT16_MAX+1) )
 
-//uint32_t functions---------------------------------------------------------------------------------
+//uint32_t functions-------------------------------------------------------------------------------
 
 extern int8_t get_uint32_minmax
 	GET_ARRAY_MINMAX(uint32_t)
@@ -223,13 +222,13 @@ extern int8_t encode_uint32_uniform
 extern int8_t decode_uint32_uniform
 	DECODE_INT_UNIFORM(uint32_t, uint64_t, (UINT32_MAX+1) )
 
-//sint32_t functions---------------------------------------------------------------------------------
+//int32_t functions--------------------------------------------------------------------------------
 
-extern int8_t get_sint32_minmax
+extern int8_t get_int32_minmax
 	GET_ARRAY_MINMAX(int32_t)
-extern int8_t encode_sint32_uniform
+extern int8_t encode_int32_uniform
 	ENCODE_INT_UNIFORM(int32_t, uint32_t, uint64_t, (UINT32_MAX+1), (UINT64_MAX+1) )
-extern int8_t decode_sint32_uniform
+extern int8_t decode_int32_uniform
 	DECODE_INT_UNIFORM(int32_t, uint64_t, (UINT32_MAX+1) )
 
 //finally undef our generalized functions
