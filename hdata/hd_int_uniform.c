@@ -14,10 +14,10 @@ License: BSD 2-Clause
 
 //generalized function for finding minimum and maximum in array------------------------------------
 #define GET_ARRAY_MINMAX(itype) \
-(const itype *array, const uint64_t size, itype *min, itype *max) \
+(const itype *array, const size_t size, itype *min, itype *max) \
 { \
 	itype tmpmin, tmpmax;	/*variables for storing temporary minimum and maximum values*/ \
-	uint64_t i; \
+	size_t i; \
 	\
 	/*wrong input value*/ \
 	if (size < 1) { \
@@ -47,7 +47,7 @@ License: BSD 2-Clause
 
 //generalized function for encoding an integer array-----------------------------------------------
 #define ENCODE_INT_UNIFORM(itype, utype, otype, ISPACE, OSPACE) \
-(const itype *in_array, otype *out_array, const uint64_t size, const itype min, const itype max) \
+(const itype *in_array, otype *out_array, const size_t size, const itype min, const itype max) \
 { \
 	/*wrong input values*/ \
 	if (size < 1) { \
@@ -59,7 +59,7 @@ License: BSD 2-Clause
 		return 1; \
 		} \
 	\
-	uint64_t i; \
+	size_t i; \
 	otype elt;	/*current processing element*/ \
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	const otype group_size = max - min + 1; \
@@ -125,7 +125,7 @@ License: BSD 2-Clause
 
 //generalized function for decoding an integer array-----------------------------------------------
 #define DECODE_INT_UNIFORM(itype, otype, ISPACE) \
-(const otype *in_array, itype *out_array, const uint64_t size, const itype min, const itype max) \
+(const otype *in_array, itype *out_array, const size_t size, const itype min, const itype max) \
 { \
 	/*wrong input values*/ \
 	if (size < 1) { \
@@ -137,7 +137,7 @@ License: BSD 2-Clause
 		return 1; \
 		} \
 	\
-	uint64_t i; \
+	size_t i; \
 	otype elt;	/*current processing element*/ \
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	const otype group_size = max - min + 1; \

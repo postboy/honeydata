@@ -20,7 +20,7 @@ extern int main(void)
 	unsigned char ciphertext[1024];
 	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
 	
-	uint32_t i, j, size, maxsize = 1048576;	//cycle counters, current and maximum array sizes (1MB)
+	size_t i, j, size, maxsize = 1048576;	//cycle counters, current and maximum array sizes (1MB)
 	//statistics on pseudorandom and output arrays
 	uint64_t in_stats[256] = {0}, out_stats[256] = {0}, long_stats[65536] = {0};
 	uint8_t min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
@@ -360,6 +360,7 @@ extern int main(void)
 	print_uint16_array(NULL, 0);
 	stats_uint8_array(NULL, 0, NULL);
 	stats_uint16_array(NULL, 0, NULL);
+	
 	
 	
 	//clean up

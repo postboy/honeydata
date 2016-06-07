@@ -92,7 +92,7 @@ extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 
 //generalized function for printing a numeric array
 #define PRINT_ARRAY(itype, format) \
-(const itype *array, const uint64_t size) \
+(const itype *array, const size_t size) \
 { \
 	uint64_t i; \
 	\
@@ -118,7 +118,7 @@ extern int8_t print_uint16_array
 
 //generalized function for getting a number of occurences of different elements in integer array
 #define STATS_INT_ARRAY(itype) \
-(const itype *in_array, const uint64_t size, uint64_t *stats) \
+(const itype *in_array, const size_t size, uint64_t *stats) \
 { \
 	uint64_t i; \
 	itype elt;	/*current processing element*/ \
