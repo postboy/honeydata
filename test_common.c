@@ -12,8 +12,8 @@ extern void error_handler(void)
 }
 
 //encrypt a message
-extern int encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char *key,
-	unsigned char *iv, unsigned char *ciphertext)
+extern int encrypt(const unsigned char *plaintext, const size_t plaintext_len,
+	const unsigned char *key, const unsigned char *iv, unsigned char *ciphertext)
 {
 	EVP_CIPHER_CTX *ctx;
 
@@ -52,8 +52,8 @@ extern int encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char
 }
 
 //decrypt a message
-extern int decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key,
-	unsigned char *iv, unsigned char *plaintext)
+extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
+	const unsigned char *key, const unsigned char *iv, unsigned char *plaintext)
 {
 	EVP_CIPHER_CTX *ctx;
 
