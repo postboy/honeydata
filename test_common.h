@@ -10,10 +10,10 @@ License: BSD 2-Clause
 
 extern void error_handler(void);
 //encrypt a message
-extern int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
+extern int encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char *key,
 	unsigned char *iv, unsigned char *ciphertext);
 //decrypt a message
-extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+extern int decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key,
 	unsigned char *iv, unsigned char *plaintext);
 extern int8_t print_uint8_array(const uint8_t *array, const size_t size);
 extern int8_t print_uint16_array(const uint16_t *array, const size_t size);

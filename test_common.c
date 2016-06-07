@@ -12,7 +12,7 @@ extern void error_handler(void)
 }
 
 //encrypt a message
-extern int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
+extern int encrypt(unsigned char *plaintext, size_t plaintext_len, unsigned char *key,
 	unsigned char *iv, unsigned char *ciphertext)
 {
 	EVP_CIPHER_CTX *ctx;
@@ -52,7 +52,7 @@ extern int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *k
 }
 
 //decrypt a message
-extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+extern int decrypt(unsigned char *ciphertext, size_t ciphertext_len, unsigned char *key,
 	unsigned char *iv, unsigned char *plaintext)
 {
 	EVP_CIPHER_CTX *ctx;
@@ -94,7 +94,7 @@ extern int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char 
 #define PRINT_ARRAY(itype, format) \
 (const itype *array, const size_t size) \
 { \
-	uint64_t i; \
+	size_t i; \
 	\
 	/*wrong input value*/ \
 	if (size < 1) { \
@@ -120,7 +120,7 @@ extern int8_t print_uint16_array
 #define STATS_INT_ARRAY(itype) \
 (const itype *in_array, const size_t size, uint64_t *stats) \
 { \
-	uint64_t i; \
+	size_t i; \
 	itype elt;	/*current processing element*/ \
 	\
 	/*wrong input value*/ \
