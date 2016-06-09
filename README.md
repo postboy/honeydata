@@ -1,5 +1,5 @@
 ## Honeydata 0.02 — honey encryption library (work in progress)
-[Honey encryption] (https://en.wikipedia.org/wiki/Honey_Encryption) is a novel type of data encryption. This library provides honey encryption primitives for certain types of numeric data. Licence: [BSD 2-clause] (http://opensource.org/licenses/bsd-license.php) with public domain parts.
+[Honey encryption] (https://en.wikipedia.org/wiki/Honey_Encryption) is a novel type of data encryption. This library provides honey encryption primitives for some types of numeric data. Licence: [BSD 2-clause] (http://opensource.org/licenses/bsd-license.php) with public domain parts.
 
 ## Features
 * honey encryption of uint8_t subsets distributed uniformly

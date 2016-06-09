@@ -87,10 +87,10 @@ extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
 	return plaintext_len;
 }
 
-//parameters in following generalized functions:
+//parameters in following generic functions:
 //itype - type of input elements
 
-//generalized function for printing a numeric array
+//generic function for printing a numeric array
 #define PRINT_ARRAY(itype, format) \
 (const itype *array, const size_t size) \
 { \
@@ -103,7 +103,7 @@ extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
 		} \
 	\
 	for (i = 0; i < size; i++) \
-		printf(format, array[i]); \
+		printf( (format), array[i]); \
 	printf("\n"); \
 	return 0; \
 }
@@ -116,7 +116,7 @@ extern int8_t print_uint16_array
 
 #undef PRINT_ARRAY
 
-//generalized function for getting a number of occurences of different elements in integer array
+//generic function for getting a number of occurences of different elements in integer array
 #define STATS_INT_ARRAY(itype) \
 (const itype *in_array, const size_t size, uint64_t *stats) \
 { \

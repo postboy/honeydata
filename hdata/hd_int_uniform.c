@@ -5,14 +5,14 @@ License: BSD 2-Clause
 
 #include "hd_int_uniform.h"
 
-//parameters in following generalized functions:
+//parameters in following generic functions:
 //itype - type of input elements
 //utype - unsigned type of same size as input type
 //otype - type of output elements (always unsigned, size is twice larger than size of itype)
 //ISPACE - size of utype code space
 //OSPACE - size of otype code space
 
-//generalized function for finding minimum and maximum in array------------------------------------
+//generic function for finding minimum and maximum in array----------------------------------------
 #define GET_ARRAY_MINMAX(itype) \
 (const itype *array, const size_t size, itype *min, itype *max) \
 { \
@@ -45,7 +45,7 @@ License: BSD 2-Clause
 	return 0; \
 }
 
-//generalized function for encoding an integer array-----------------------------------------------
+//generic function for encoding an integer array---------------------------------------------------
 #define ENCODE_INT_UNIFORM(itype, utype, otype, ISPACE, OSPACE) \
 (const itype *in_array, otype *out_array, const size_t size, const itype min, const itype max) \
 { \
@@ -64,10 +64,10 @@ License: BSD 2-Clause
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	const otype group_size = max - min + 1; \
 	/*number of elements in the last group or 0 if the last group is full, from 0 to ISPACE-1*/ \
-	const utype last_group_size = OSPACE % group_size; \
+	const utype last_group_size = (OSPACE) % group_size; \
 	\
 	/*if every value is possible*/ \
-	if (group_size == ISPACE) { \
+	if (group_size == (ISPACE) ) { \
 		/*then just copy input array to output array to create a first half*/ \
 		memcpy(out_array, in_array, size*sizeof(itype)); \
 		/*follow it by random numbers to create a second half*/ \
@@ -99,7 +99,7 @@ License: BSD 2-Clause
 	/*number of groups (from ISPACE+1 to OSPACE/2), so they will have values in interval \
 	[0; group_num-1]; notice type conversion here - we want float result of division instead of \
 	integer!*/ \
-	const otype group_num = ceil(OSPACE / (float)group_size); \
+	const otype group_num = ceil( (OSPACE) / (float)group_size); \
 	\
 	/*else encode each number using random numbers from out_array for group selection*/ \
 	for (i = 0; i < size; i++) { \
@@ -123,7 +123,7 @@ License: BSD 2-Clause
 	return 0; \
 }
 
-//generalized function for decoding an integer array-----------------------------------------------
+//generic function for decoding an integer array---------------------------------------------------
 #define DECODE_INT_UNIFORM(itype, otype, ISPACE) \
 (const otype *in_array, itype *out_array, const size_t size, const itype min, const itype max) \
 { \
@@ -143,7 +143,7 @@ License: BSD 2-Clause
 	const otype group_size = max - min + 1; \
 	\
 	/*if every value is possible then just copy first half of input array to output array*/ \
-	if (group_size == ISPACE) { \
+	if (group_size == (ISPACE) ) { \
 		memcpy(out_array, in_array, size*sizeof(itype)); \
 		return 0; \
 		} \
@@ -231,7 +231,7 @@ extern int8_t encode_int32_uniform
 extern int8_t decode_int32_uniform
 	DECODE_INT_UNIFORM(int32_t, uint64_t, (UINT32_MAX+1) )
 
-//finally undef our generalized functions
+//finally undef our generic functions
 #undef GET_ARRAY_MINMAX
 #undef ENCODE_INT_UNIFORM
 #undef DECODE_INT_UNIFORM
