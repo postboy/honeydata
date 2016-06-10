@@ -34,7 +34,7 @@ extern int main(void)
 	//initialise the crypto library
 	ERR_load_crypto_strings();
 	OpenSSL_add_all_algorithms();
-	OPENSSL_config(NULL);
+	//OPENSSL_config(NULL);
 	if (!RAND_status()) {
 		error("PRNG hasn't been seeded with enough data");
     	return 1;
@@ -55,7 +55,7 @@ extern int main(void)
 	encode_uint8_uniform(orig_array, encoded_array, size, 100, 200);
 	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*size, key, iv, ciphertext);
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, (unsigned char *)encoded_array);
-	decode_uint8_uniform(encoded_array, decoded_array, decryptedtext_len, 100, 200);
+	decode_uint8_uniform(encoded_array, decoded_array, size, 100, 200);
 	
 	//compare result of decryption and original array
 	if ( memcmp(orig_array, decoded_array, size) || (decryptedtext_len != 2*size) ) {
@@ -85,7 +85,7 @@ extern int main(void)
 		memcpy((void *)(big_key+30), &bfkey, sizeof(bfkey));	//get current key for decryption
 		bfkey++;												//try next key on next iteration
 		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv, (unsigned char *)encoded_array);
-		decode_uint8_uniform(encoded_array, decoded_array, decryptedtext_len, 100, 200);
+		decode_uint8_uniform(encoded_array, decoded_array, size, 100, 200);
 		if (decryptedtext_len != 2*size) {
 			error("size and decryptedtext_len are not the equal");
 			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
