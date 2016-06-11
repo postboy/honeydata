@@ -1,5 +1,5 @@
 #!/bin/sh
-#testing a program with valgrind
+#compilation and testing of program with valgrind
 
 ./build.sh && \
 valgrind --tool=memcheck --trace-children=yes --show-reachable=yes --track-fds=yes \
