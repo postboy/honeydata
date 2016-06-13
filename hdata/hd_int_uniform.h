@@ -20,7 +20,8 @@ License: BSD 2-Clause
 //macros for printing error messages easily
 #define error(...) fprintf (stderr, "error: %s: %i: %s\n", __func__, __LINE__, __VA_ARGS__)
 
-//functions for unsigned 8 bit integers: get minimum and maximum array values, DTE and DTD
+//get minimum and maximum array values, DTE and DTD
+//functions for unsigned and signed 8 bit integers
 extern int8_t get_uint8_minmax(const uint8_t *array, const size_t size,
 	uint8_t *min, uint8_t *max);
 extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
@@ -28,7 +29,6 @@ extern int8_t encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
 extern int8_t decode_uint8_uniform(const uint16_t *in_array, uint8_t *out_array,
 	const size_t size, const uint8_t min, const uint8_t max);
 
-//for signed 8 bit integers
 extern int8_t get_int8_minmax(const int8_t *array, const size_t size,
 	int8_t *min, int8_t *max);
 extern int8_t encode_int8_uniform(const int8_t *in_array, uint16_t *out_array,

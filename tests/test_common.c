@@ -90,6 +90,38 @@ extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
 //parameters in following generic functions:
 //itype - type of input elements
 
+//generic function for getting a number of occurences of different elements in integer array
+#define STATS_INT_ARRAY(itype, min) \
+(const itype *in_array, const size_t size, uint64_t *stats) \
+{ \
+	size_t i; \
+	itype elt;	/*current processing element*/ \
+	\
+	/*wrong input value*/ \
+	if (size < 1) { \
+		error("size < 1"); \
+		return 1; \
+		} \
+	\
+	for (i = 0; i < size; i++) { \
+		elt = in_array[i];	/*read a current element*/ \
+		++stats[elt - min];	/*increment the corresponding number in output array*/ \
+		} \
+	\
+	return 0; \
+}
+
+extern int8_t stats_uint8_array
+	STATS_INT_ARRAY(uint8_t, 0)
+
+extern int8_t stats_int8_array
+	STATS_INT_ARRAY(int8_t, INT8_MIN)
+
+extern int8_t stats_uint16_array
+	STATS_INT_ARRAY(uint16_t, 0)
+
+#undef STATS_INT_ARRAY
+
 //generic function for printing a numeric array
 #define PRINT_ARRAY(itype, format) \
 (const itype *array, const size_t size) \
@@ -109,38 +141,12 @@ extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
 }
 
 extern int8_t print_uint8_array
-	PRINT_ARRAY(uint8_t, "%u ")
+	PRINT_ARRAY(uint8_t, "%"PRIu8" ")
+
+extern int8_t print_int8_array
+	PRINT_ARRAY(int8_t, "%"PRIi8" ")
 
 extern int8_t print_uint16_array
-	PRINT_ARRAY(uint16_t, "%u ")
+	PRINT_ARRAY(uint16_t, "%"PRIu16" ")
 
 #undef PRINT_ARRAY
-
-//generic function for getting a number of occurences of different elements in integer array
-#define STATS_INT_ARRAY(itype) \
-(const itype *in_array, const size_t size, uint64_t *stats) \
-{ \
-	size_t i; \
-	itype elt;	/*current processing element*/ \
-	\
-	/*wrong input value*/ \
-	if (size < 1) { \
-		error("size < 1"); \
-		return 1; \
-		} \
-	\
-	for (i = 0; i < size; i++) { \
-		elt = in_array[i];		/*read a current element*/ \
-		++stats[elt];			/*increment the corresponding number in output array*/ \
-		} \
-	\
-	return 0; \
-}
-
-extern int8_t stats_uint8_array
-	STATS_INT_ARRAY(uint8_t)
-
-extern int8_t stats_uint16_array
-	STATS_INT_ARRAY(uint16_t)
-
-#undef STATS_INT_ARRAY

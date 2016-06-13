@@ -60,7 +60,8 @@ License: BSD 2-Clause
 		} \
 	\
 	size_t i; \
-	otype elt;	/*current processing element*/ \
+	itype ielt;	/*current processing element before and after type promotion*/ \
+	otype oelt; \
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	const otype group_size = max - min + 1; \
 	/*number of elements in the last group or 0 if the last group is full, from 0 to ISPACE-1*/ \
@@ -103,21 +104,22 @@ License: BSD 2-Clause
 	\
 	/*else encode each number using random numbers from out_array for group selection*/ \
 	for (i = 0; i < size; i++) { \
-		elt = in_array[i];	/*read current value*/ \
-		if ( (elt < min) || (elt > max) ) { \
+		ielt = in_array[i];	/*read current element*/ \
+		if ( (ielt < min) || (ielt > max) ) { \
 			error("wrong min or max value"); \
 			return 1; \
 			} \
-		elt = elt - min;	/*normalize it*/ \
+		oelt = ielt; 		/*make type promotion to begin encoding*/ \
+		oelt = oelt - min;	/*normalize current element*/ \
 		\
 		/*if we can place a current element in any group (including the last one) then do it*/ \
-		if ( (elt < last_group_size) || (last_group_size == 0) ) \
-			elt += (out_array[i] % group_num) * group_size; \
+		if ( (oelt < last_group_size) || (last_group_size == 0) ) \
+			oelt += (out_array[i] % group_num) * group_size; \
 		/*else place it in any group excluding the last one*/ \
 		else \
-			elt += ( out_array[i] % (group_num-1) ) * group_size; \
+			oelt += ( out_array[i] % (group_num-1) ) * group_size; \
 		\
-		out_array[i] = elt;	/*finally write it to buffer*/ \
+		out_array[i] = oelt;	/*finally write it to buffer*/ \
 		} \
 	\
 	return 0; \
@@ -138,7 +140,8 @@ License: BSD 2-Clause
 		} \
 	\
 	size_t i; \
-	otype elt;	/*current processing element*/ \
+	otype oelt; /*current processing element before and after type regression*/ \
+	itype ielt;	\
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	const otype group_size = max - min + 1; \
 	\
@@ -157,16 +160,17 @@ License: BSD 2-Clause
 	\
 	/*else decode each number*/ \
 	for (i = 0; i < size; i++) { \
-		/*read current element, get it's value in first group, denormalize it*/ \
-		elt = (in_array[i] % group_size) + min; \
+		oelt = in_array[i];	/*read current element*/ \
+		/*get it's value in first group, denormalize it, do a type regression*/ \
+		ielt = (oelt % group_size) + min; \
 		\
 		/*if algorithm works right, this error should never been thrown*/ \
-		if ( (elt < min) || (elt > max) ) { \
+		if ( (ielt < min) || (ielt > max) ) { \
 			error("algorithm error"); \
 			return 1; \
 			} \
 		\
-		out_array[i] = (itype)elt;	/*finally write it to buffer*/ \
+		out_array[i] = ielt;	/*finally write it to buffer*/ \
 		} \
 	\
 	return 0; \

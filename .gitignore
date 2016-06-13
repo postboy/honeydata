@@ -1,5 +1,3 @@
-#exclude a compiled program and temporary files
-uint8_test
+#exclude a compiled programs, tables and temporary files
+/build
 *~
-*.ods
-/tables
