@@ -78,7 +78,8 @@ extern int main(void)
 	for (i = 0; i < 65536; i++) {
 		memcpy((void *)(big_key+30), &bfkey, sizeof(bfkey));	//get current key for decryption
 		bfkey++;												//try next key on next iteration
-		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv, (unsigned char *)encoded_array);
+		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv,
+									(unsigned char *)encoded_array);
 		decode_uint8_uniform(encoded_array, decoded_array, size, 100, 200);
 		if (decryptedtext_len != 2*size) {
 			error("size and decryptedtext_len are not the equal");
@@ -162,7 +163,8 @@ extern int main(void)
 		}
 	
 	encode_uint8_uniform(orig_array, encoded_array, size, 100, 219);
-	stats_uint8_array((uint8_t *)encoded_array, 2*size, out_stats);	//get a statistics on an encoded array
+	//get a statistics on an encoded array
+	stats_uint8_array((uint8_t *)encoded_array, 2*size, out_stats);
 	decode_uint8_uniform(encoded_array, decoded_array, size, 100, 219);
 	if (memcmp(orig_array, decoded_array, size)) {
 		error("orig_array and decoded_array are not the same");

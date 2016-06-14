@@ -48,7 +48,8 @@ extern int main(void)
 
 	encode_int8_uniform(orig_array, encoded_array, size, -50, 50);
 	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*size, key, iv, ciphertext);
-	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, (unsigned char *)encoded_array);
+	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
+								(unsigned char *)encoded_array);
 	decode_int8_uniform(encoded_array, decoded_array, size, -50, 50);
 	
 	//compare result of decryption and original array
@@ -78,7 +79,8 @@ extern int main(void)
 	for (i = 0; i < 65536; i++) {
 		memcpy((void *)(big_key+30), &bfkey, sizeof(bfkey));	//get current key for decryption
 		bfkey++;												//try next key on next iteration
-		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv, (unsigned char *)encoded_array);
+		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv,
+									(unsigned char *)encoded_array);
 		decode_int8_uniform(encoded_array, decoded_array, size, -50, 50);
 		if (decryptedtext_len != 2*size) {
 			error("size and decryptedtext_len are not the equal");
@@ -124,7 +126,7 @@ extern int main(void)
 			}
 		else
 			/*166 111 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
-			elements) / 101 (number of possible array values from -50 to ) = 16 777 216 (total
+			elements) / 101 (number of possible array values from -50 to 50) = 16 777 216 (total
 			amount of numbers) / 101 (their possible values) - expected result in out_stats*/
 			if (fprintf(fp,  "%llu\t%i\n", out_stats[i-INT8_MIN], 166111) < 0) {
 				error("cannot write to 'int8_bruteforce.ods' file");
@@ -152,7 +154,6 @@ extern int main(void)
       
 	//let orig_array contain numbers from -100 to 19 distributed uniformly
 	for (j = 0; j < size; j++) {
-		//write a fresh random byte to this position until it will be between 0 and 239
 		while ( (orig_array[j] < -100) || (orig_array[j] > 19) ) {
 			if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
 	    		OpenSSL_error();
@@ -160,7 +161,8 @@ extern int main(void)
 		}
 	
 	encode_int8_uniform(orig_array, encoded_array, size, -100, 19);
-	stats_int8_array((int8_t *)encoded_array, 2*size, out_stats);	//get a statistics on an encoded array
+	//get a statistics on an encoded array
+	stats_int8_array((int8_t *)encoded_array, 2*size, out_stats);
 	decode_int8_uniform(encoded_array, decoded_array, size, -100, 19);
 	if (memcmp(orig_array, decoded_array, size)) {
 		error("orig_array and decoded_array are not the same");
@@ -183,7 +185,8 @@ extern int main(void)
 		}
 	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
 	for (i = INT8_MIN; i <= INT8_MAX; i++) {
-		if (fprintf(fp, "%llu\t%i\t%llu\t%i\n",	in_stats[i-INT8_MIN], size/256, out_stats[i-INT8_MIN], size/128) < 0) {
+		if (fprintf(fp, "%llu\t%i\t%llu\t%i\n",	in_stats[i-INT8_MIN], size/256,
+					out_stats[i-INT8_MIN], size/128) < 0) {
 			error("cannot write to 'int8_encoding.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
@@ -209,7 +212,6 @@ extern int main(void)
     	
    		//let orig_array contain numbers from -100 to -1 distributed uniformly
 		for (j = 0; j < size; j++) {
-			//write a fresh random byte to this position until it will be between 0 and 199
 			while ( (orig_array[j] < -100) || (orig_array[j] > -1) ) {
 				if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
 		    		OpenSSL_error();
@@ -256,7 +258,8 @@ extern int main(void)
 	
 	//random encoding and decoding-----------------------------------------------------------------
 	for (i = 1; i <= UINT8_MAX; i++) {
-		if (!RAND_bytes((unsigned char *)orig_array, i))	//write a random numbers to original array
+		//write a random numbers to original array
+		if (!RAND_bytes((unsigned char *)orig_array, i))
     		OpenSSL_error();
     	get_int8_minmax(orig_array, i, &min, &max);
 		encode_int8_uniform(orig_array, encoded_array, i, min, max);
