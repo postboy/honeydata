@@ -20,7 +20,8 @@ extern int main(void)
 	unsigned char ciphertext[1024];
 	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
 	
-	size_t i, j, size, maxsize = 1048576;	//cycle counters, current and maximum array sizes (1MB)
+	int32_t i, j;					//cycle counters					
+	size_t size, maxsize = 1048576;	//current and maximum array sizes (1MB)
 	//statistics on pseudorandom and output arrays
 	uint64_t in_stats[256] = {0}, out_stats[256] = {0}, long_stats[65536] = {0};
 	int8_t min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
@@ -71,7 +72,7 @@ extern int main(void)
 	
 	//let's try to bruteforce last 2 bytes of a key
 	bfkey = 0;
-	memcpy(big_key, key, 30);		//suppose that we know 30 first bytes of key
+	memcpy(big_key, key, 30);					//suppose that we know 30 first bytes of key
 	memset(out_stats, 0, sizeof(out_stats));	//initialize statistics arrays
 	
 	for (i = 0; i < 65536; i++) {
@@ -112,9 +113,9 @@ extern int main(void)
 		test_error();
 		}
 	//write two columns to file: actual and ideal distribution for CHITEST
-	for (i = 0; i < 256; i++) {
-		if ( (i < 78) || (i > 178) ) {
-			if (fprintf(fp, "%llu\t%i\n", out_stats[i], 0) < 0) {
+	for (i = INT8_MIN; i <= INT8_MAX; i++) {
+		if ( (i < -50) || (i > 50) ) {
+			if (fprintf(fp, "%llu\t%i\n", out_stats[i-INT8_MIN], 0) < 0) {
 				error("cannot write to 'int8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -123,9 +124,9 @@ extern int main(void)
 			}
 		else
 			/*166 111 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
-			elements) / 101 (number of possible array values from 100 to 200) = 16 777 216 (total
+			elements) / 101 (number of possible array values from -50 to ) = 16 777 216 (total
 			amount of numbers) / 101 (their possible values) - expected result in out_stats*/
-			if (fprintf(fp,  "%llu\t%i\n", out_stats[i], 166111) < 0) {
+			if (fprintf(fp,  "%llu\t%i\n", out_stats[i-INT8_MIN], 166111) < 0) {
 				error("cannot write to 'int8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -181,8 +182,8 @@ extern int main(void)
 		test_error();
 		}
 	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
-	for (i = 0; i < 256; i++) {
-		if (fprintf(fp, "%llu\t%i\t%llu\t%i\n",	in_stats[i], size/256, out_stats[i], size/128) < 0) {
+	for (i = INT8_MIN; i <= INT8_MAX; i++) {
+		if (fprintf(fp, "%llu\t%i\t%llu\t%i\n",	in_stats[i-INT8_MIN], size/256, out_stats[i-INT8_MIN], size/128) < 0) {
 			error("cannot write to 'int8_encoding.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
@@ -234,7 +235,7 @@ extern int main(void)
 		test_error();
 		}
 	//write two columns to file: actual and ideal distribution for CHITEST
-	for (i = 0; i < 65536; i++) {
+	for (i = 0; i <= UINT16_MAX; i++) {
 		/*256 = 65 536 (number of encodings) * 256 (size of each array for encoding) / 65536
 		(number of possible array values from 0 to 65 535) = 16 777 216 (total amount of
 		numbers) / 65536 (their possible values) - expected result in long_stats*/
@@ -254,7 +255,7 @@ extern int main(void)
 	
 	
 	//random encoding and decoding-----------------------------------------------------------------
-	for (i = 1; i < 256; i++) {
+	for (i = 1; i <= UINT8_MAX; i++) {
 		if (!RAND_bytes((unsigned char *)orig_array, i))	//write a random numbers to original array
     		OpenSSL_error();
     	get_int8_minmax(orig_array, i, &min, &max);
