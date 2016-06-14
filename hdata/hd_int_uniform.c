@@ -16,14 +16,15 @@ License: BSD 2-Clause
 #define GET_ARRAY_MINMAX(itype) \
 (const itype *array, const size_t size, itype *min, itype *max) \
 { \
-	itype tmpmin, tmpmax;	/*variables for storing temporary minimum and maximum values*/ \
-	size_t i; \
 	\
 	/*wrong input value*/ \
-	if (size < 1) { \
-		error("size < 1"); \
+	if (size == 0) { \
+		error("size = 0"); \
 		return 1; \
 		} \
+	\
+	itype tmpmin, tmpmax;	/*variables for storing temporary minimum and maximum values*/ \
+	size_t i; \
 	\
 	/*initialize minimum and maximum values*/ \
 	tmpmin = array[0]; \
@@ -45,13 +46,29 @@ License: BSD 2-Clause
 	return 0; \
 }
 
-//generic function for encoding an integer array---------------------------------------------------
+//it's concretizations
+extern int8_t get_uint8_minmax
+	GET_ARRAY_MINMAX(uint8_t)
+extern int8_t get_int8_minmax
+	GET_ARRAY_MINMAX(int8_t)
+extern int8_t get_uint16_minmax
+	GET_ARRAY_MINMAX(uint16_t)
+extern int8_t get_int16_minmax
+	GET_ARRAY_MINMAX(int16_t)
+extern int8_t get_uint32_minmax
+	GET_ARRAY_MINMAX(uint32_t)
+extern int8_t get_int32_minmax
+	GET_ARRAY_MINMAX(int32_t)
+
+#undef GET_ARRAY_MINMAX
+
+//generic DTE function for integer arrays----------------------------------------------------------
 #define ENCODE_INT_UNIFORM(itype, utype, otype, ISPACE, OSPACE) \
 (const itype *in_array, otype *out_array, const size_t size, const itype min, const itype max) \
 { \
 	/*wrong input values*/ \
-	if (size < 1) { \
-		error("size < 1"); \
+	if (size == 0) { \
+		error("size = 0"); \
 		return 1; \
 		} \
 	if (min > max) { \
@@ -89,8 +106,13 @@ License: BSD 2-Clause
 	if (group_size == 1) { \
 		/*we're already done with random numbers, but we should check an input array*/ \
 		for (i = 0; i < size; i++) { \
-			if (in_array[i] != min) { \
-				error("wrong min or max value"); \
+			ielt = in_array[i]; \
+			if (ielt < min) { \
+				error("wrong min value"); \
+				return 1; \
+				} \
+			else if (ielt > max) { \
+				error("wrong max value"); \
 				return 1; \
 				} \
 			} \
@@ -104,9 +126,13 @@ License: BSD 2-Clause
 	\
 	/*else encode each number using random numbers from out_array for group selection*/ \
 	for (i = 0; i < size; i++) { \
-		ielt = in_array[i];	/*read current element*/ \
-		if ( (ielt < min) || (ielt > max) ) { \
-			error("wrong min or max value"); \
+		ielt = in_array[i]; \
+		if (ielt < min) { \
+			error("wrong min value"); \
+			return 1; \
+			} \
+		else if (ielt > max) { \
+			error("wrong max value"); \
 			return 1; \
 			} \
 		oelt = ielt; 		/*make type promotion to begin encoding*/ \
@@ -125,13 +151,28 @@ License: BSD 2-Clause
 	return 0; \
 }
 
-//generic function for decoding an integer array---------------------------------------------------
+extern int8_t encode_uint8_uniform
+	ENCODE_INT_UNIFORM(uint8_t, uint8_t, uint16_t, (UINT8_MAX+1), (UINT16_MAX+1) )
+extern int8_t encode_int8_uniform
+	ENCODE_INT_UNIFORM(int8_t, uint8_t, uint16_t, (UINT8_MAX+1), (UINT16_MAX+1) )
+extern int8_t encode_uint16_uniform
+	ENCODE_INT_UNIFORM(uint16_t, uint16_t, uint32_t, (UINT16_MAX+1), (UINT32_MAX+1) )
+extern int8_t encode_int16_uniform
+	ENCODE_INT_UNIFORM(int16_t, uint16_t, uint32_t, (UINT16_MAX+1), (UINT32_MAX+1) )
+extern int8_t encode_uint32_uniform
+	ENCODE_INT_UNIFORM(uint32_t, uint32_t, uint64_t, (UINT32_MAX+1), (UINT64_MAX+1) )
+extern int8_t encode_int32_uniform
+	ENCODE_INT_UNIFORM(int32_t, uint32_t, uint64_t, (UINT32_MAX+1), (UINT64_MAX+1) )
+
+#undef ENCODE_INT_UNIFORM
+
+//generic DTD function for integer arrays----------------------------------------------------------
 #define DECODE_INT_UNIFORM(itype, otype, ISPACE) \
 (const otype *in_array, itype *out_array, const size_t size, const itype min, const itype max) \
 { \
 	/*wrong input values*/ \
-	if (size < 1) { \
-		error("size < 1"); \
+	if (size == 0) { \
+		error("size = 0"); \
 		return 1; \
 		} \
 	if (min > max) { \
@@ -164,9 +205,13 @@ License: BSD 2-Clause
 		/*get it's value in first group, denormalize it, do a type regression*/ \
 		ielt = (oelt % group_size) + min; \
 		\
-		/*if algorithm works right, this error should never been thrown*/ \
-		if ( (ielt < min) || (ielt > max) ) { \
-			error("algorithm error"); \
+		/*if algorithm works right, this errors should never been thrown*/ \
+		if (ielt < min) { \
+			error("algorithm error: wrong value < min"); \
+			return 1; \
+			} \
+		else if (ielt > max) { \
+			error("algorithm error: wrong value > max"); \
 			return 1; \
 			} \
 		\
@@ -176,66 +221,17 @@ License: BSD 2-Clause
 	return 0; \
 }
 
-//uint8_t functions--------------------------------------------------------------------------------
-
-//get minimum and maximum of uint8 array
-extern int8_t get_uint8_minmax
-	GET_ARRAY_MINMAX(uint8_t)
-
-//DTE for unsigned 8 bit integers distributed uniformly
-extern int8_t encode_uint8_uniform
-	ENCODE_INT_UNIFORM(uint8_t, uint8_t, uint16_t, (UINT8_MAX+1), (UINT16_MAX+1) )
-
-//DTD for unsigned 8 bit integers distributed uniformly
 extern int8_t decode_uint8_uniform
 	DECODE_INT_UNIFORM(uint8_t, uint16_t, (UINT8_MAX+1) )
-
-//int8_t functions---------------------------------------------------------------------------------
-
-extern int8_t get_int8_minmax
-	GET_ARRAY_MINMAX(int8_t)
-extern int8_t encode_int8_uniform
-	ENCODE_INT_UNIFORM(int8_t, uint8_t, uint16_t, (UINT8_MAX+1), (UINT16_MAX+1) )
 extern int8_t decode_int8_uniform
 	DECODE_INT_UNIFORM(int8_t, uint16_t, (UINT8_MAX+1) )
-
-//uint16_t functions-------------------------------------------------------------------------------
-
-extern int8_t get_uint16_minmax
-	GET_ARRAY_MINMAX(uint16_t)
-extern int8_t encode_uint16_uniform
-	ENCODE_INT_UNIFORM(uint16_t, uint16_t, uint32_t, (UINT16_MAX+1), (UINT32_MAX+1) )
 extern int8_t decode_uint16_uniform
 	DECODE_INT_UNIFORM(uint16_t, uint32_t, (UINT16_MAX+1) )
-
-//int16_t functions--------------------------------------------------------------------------------
-
-extern int8_t get_int16_minmax
-	GET_ARRAY_MINMAX(int16_t)
-extern int8_t encode_int16_uniform
-	ENCODE_INT_UNIFORM(int16_t, uint16_t, uint32_t, (UINT16_MAX+1), (UINT32_MAX+1) )
 extern int8_t decode_int16_uniform
 	DECODE_INT_UNIFORM(int16_t, uint32_t, (UINT16_MAX+1) )
-
-//uint32_t functions-------------------------------------------------------------------------------
-
-extern int8_t get_uint32_minmax
-	GET_ARRAY_MINMAX(uint32_t)
-extern int8_t encode_uint32_uniform
-	ENCODE_INT_UNIFORM(uint32_t, uint32_t, uint64_t, (UINT32_MAX+1), (UINT64_MAX+1) )
 extern int8_t decode_uint32_uniform
 	DECODE_INT_UNIFORM(uint32_t, uint64_t, (UINT32_MAX+1) )
-
-//int32_t functions--------------------------------------------------------------------------------
-
-extern int8_t get_int32_minmax
-	GET_ARRAY_MINMAX(int32_t)
-extern int8_t encode_int32_uniform
-	ENCODE_INT_UNIFORM(int32_t, uint32_t, uint64_t, (UINT32_MAX+1), (UINT64_MAX+1) )
 extern int8_t decode_int32_uniform
 	DECODE_INT_UNIFORM(int32_t, uint64_t, (UINT32_MAX+1) )
 
-//finally undef our generic functions
-#undef GET_ARRAY_MINMAX
-#undef ENCODE_INT_UNIFORM
 #undef DECODE_INT_UNIFORM

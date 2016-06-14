@@ -5,12 +5,6 @@ License: BSD 2-Clause
 
 #include "test_common.h"
 
-extern void error_handler(void)
-{
-	ERR_print_errors_fp(stderr);
-	exit(1);
-}
-
 //encrypt a message
 extern int encrypt(const unsigned char *plaintext, const size_t plaintext_len,
 	const unsigned char *key, const unsigned char *iv, unsigned char *ciphertext)
@@ -98,8 +92,8 @@ extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
 	itype elt;	/*current processing element*/ \
 	\
 	/*wrong input value*/ \
-	if (size < 1) { \
-		error("size < 1"); \
+	if (size == 0) { \
+		error("size = 0"); \
 		return 1; \
 		} \
 	\
@@ -129,8 +123,8 @@ extern int8_t stats_uint16_array
 	size_t i; \
 	\
 	/*wrong input value*/ \
-	if (size < 1) { \
-		error("size < 1"); \
+	if (size == 0) { \
+		error("size = 0"); \
 		return 1; \
 		} \
 	\
@@ -150,3 +144,29 @@ extern int8_t print_uint16_array
 	PRINT_ARRAY(uint16_t, "%"PRIu16" ")
 
 #undef PRINT_ARRAY
+
+extern void test_init(void)
+{
+	//initialise the crypto library
+	ERR_load_crypto_strings();
+	OpenSSL_add_all_algorithms();
+	//OPENSSL_config(NULL);
+	if (!RAND_status()) {
+		error("PRNG hasn't been seeded with enough data");
+    	exit(1);
+		}
+}
+
+extern void test_deinit(void)
+{
+	//clean up
+	RAND_cleanup();
+	EVP_cleanup();
+	ERR_free_strings();
+}
+
+extern void error_handler(void)
+{
+	ERR_print_errors_fp(stderr);
+	exit(1);
+}

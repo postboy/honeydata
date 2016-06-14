@@ -1,5 +1,5 @@
 /*
-test_int8_uniform.c - test program for honeydata library
+int8_uniform_test.c - test program for honeydata library
 License: BSD 2-Clause
 */
 
@@ -31,15 +31,8 @@ extern int main(void)
 	uint16_t bfkey;				//current iteration number
 	unsigned char big_key[32];	//current key
 	
-	//initialise the crypto library
-	ERR_load_crypto_strings();
-	OpenSSL_add_all_algorithms();
-	//OPENSSL_config(NULL);
-	if (!RAND_status()) {
-		error("PRNG hasn't been seeded with enough data");
-    	return 1;
-		}
-	
+	test_init();
+
 	
 	
 	//random data encoding, encryption, decryption, decoding---------------------------------------
@@ -50,7 +43,7 @@ extern int main(void)
 
     //let orig_array contain numbers from -50 to 50
 	for (i = 0; i < size; i++)
-		orig_array[i] = ((orig_array[i]+128) % 101) - 50;
+		orig_array[i] = ((orig_array[i] - INT8_MIN) % 101) - 50;
 
 	encode_int8_uniform(orig_array, encoded_array, size, -50, 50);
 	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*size, key, iv, ciphertext);
@@ -112,7 +105,7 @@ extern int main(void)
 		}
 		
 	//compare actual vs. ideal distributions of output array
-	if (fprintf(fp, "=CHITEST(A102:A202;B102:B202)\n") < 0) {
+	if (fprintf(fp, "=CHITEST(A80:A180;B80:B180)\n") < 0) {
 		error("cannot write to 'int8_bruteforce.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
@@ -120,7 +113,7 @@ extern int main(void)
 		}
 	//write two columns to file: actual and ideal distribution for CHITEST
 	for (i = 0; i < 256; i++) {
-		if ( (i < 100) || (i > 200) ) {
+		if ( (i < 78) || (i > 178) ) {
 			if (fprintf(fp, "%llu\t%i\n", out_stats[i], 0) < 0) {
 				error("cannot write to 'int8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
@@ -146,7 +139,7 @@ extern int main(void)
 		}
 	
 	
-	/*
+	
 	//random data encoding and decoding with statistics collection---------------------------------
 
 	size = maxsize;
@@ -159,12 +152,10 @@ extern int main(void)
 	//let orig_array contain numbers from -100 to 19 distributed uniformly
 	for (j = 0; j < size; j++) {
 		//write a fresh random byte to this position until it will be between 0 and 239
-		while (orig_array[j] > 239) {
+		while ( (orig_array[j] < -100) || (orig_array[j] > 19) ) {
 			if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
 	    		error_handler();
 			}
-				
-		orig_array[j] = (orig_array[j] % 120) - 100;
 		}
 	
 	encode_int8_uniform(orig_array, encoded_array, size, -100, 19);
@@ -218,12 +209,10 @@ extern int main(void)
    		//let orig_array contain numbers from -100 to -1 distributed uniformly
 		for (j = 0; j < size; j++) {
 			//write a fresh random byte to this position until it will be between 0 and 199
-			while (orig_array[j] > 199) {
+			while ( (orig_array[j] < -100) || (orig_array[j] > -1) ) {
 				if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
 		    		error_handler();
 				}
-				
-			orig_array[j] = (orig_array[j] % 100) - 100;
 			}
 
 		encode_int8_uniform(orig_array, encoded_array, size, -100, -1);
@@ -245,10 +234,10 @@ extern int main(void)
 		return 1;
 		}
 	//write two columns to file: actual and ideal distribution for CHITEST
-	for (i = 0; i < 65536; i++) {*/
+	for (i = 0; i < 65536; i++) {
 		/*256 = 65 536 (number of encodings) * 256 (size of each array for encoding) / 65536
 		(number of possible array values from 0 to 65 535) = 16 777 216 (total amount of
-		numbers) / 65536 (their possible values) - expected result in long_stats*//*
+		numbers) / 65536 (their possible values) - expected result in long_stats*/
 		if (fprintf(fp,  "%llu\t%i\n", long_stats[i], 256) < 0) {
 			error("cannot write to 'int8_encoding2.ods' file");
 			if (fclose(fp) == EOF)
@@ -278,7 +267,7 @@ extern int main(void)
 			return 1;
 			}
 		}
-	*/
+	
 	
 	
 	//fixed general cases--------------------------------------------------------------------------
@@ -361,15 +350,10 @@ extern int main(void)
 	print_uint16_array(NULL, 0);
 	stats_int8_array(NULL, 0, NULL);
 	stats_uint16_array(NULL, 0, NULL);
+		
 	
 	
-	
-	//clean up
-	RAND_cleanup();
-	EVP_cleanup();
-	ERR_free_strings();
-	
-	//getchar();	//for debugging purposes
-	
+	test_deinit();
+
 	return 0;
 }

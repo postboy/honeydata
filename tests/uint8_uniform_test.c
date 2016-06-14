@@ -1,5 +1,5 @@
 /*
-test_uint8_uniform.c - test program for honeydata library
+uint8_uniform_test.c - test program for honeydata library
 License: BSD 2-Clause
 */
 
@@ -31,14 +31,7 @@ extern int main(void)
 	uint16_t bfkey;				//current iteration number
 	unsigned char big_key[32];	//current key
 	
-	//initialise the crypto library
-	ERR_load_crypto_strings();
-	OpenSSL_add_all_algorithms();
-	//OPENSSL_config(NULL);
-	if (!RAND_status()) {
-		error("PRNG hasn't been seeded with enough data");
-    	return 1;
-		}
+	test_init();
 	
 	
 	
@@ -363,12 +356,7 @@ extern int main(void)
 	
 	
 	
-	//clean up
-	RAND_cleanup();
-	EVP_cleanup();
-	ERR_free_strings();
-	
-	//getchar();	//for debugging purposes
+	test_deinit();
 	
 	return 0;
 }
