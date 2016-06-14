@@ -29,6 +29,7 @@ extern int8_t print_uint16_array(const uint16_t *array, const size_t size);
 extern void test_init(void);
 extern void test_deinit(void);
 
-extern void error_handler(void);
+extern void OpenSSL_error(void);
+extern void test_error(void);
 
 #endif

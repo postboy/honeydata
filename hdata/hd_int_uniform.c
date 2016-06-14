@@ -17,10 +17,22 @@ License: BSD 2-Clause
 (const itype *array, const size_t size, itype *min, itype *max) \
 { \
 	\
-	/*wrong input value*/ \
+	/*check the arguments*/ \
+	if (array == NULL) { \
+		error("array = NULL"); \
+		return 1; \
+		} \
 	if (size == 0) { \
 		error("size = 0"); \
-		return 1; \
+		return 2; \
+		} \
+	if (min == NULL) { \
+		error("min = NULL"); \
+		return 3; \
+		} \
+	if (max == NULL) { \
+		error("max = NULL"); \
+		return 4; \
 		} \
 	\
 	itype tmpmin, tmpmax;	/*variables for storing temporary minimum and maximum values*/ \
@@ -66,14 +78,22 @@ extern int8_t get_int32_minmax
 #define ENCODE_INT_UNIFORM(itype, utype, otype, ISPACE, OSPACE) \
 (const itype *in_array, otype *out_array, const size_t size, const itype min, const itype max) \
 { \
-	/*wrong input values*/ \
+	/*check the arguments*/ \
+	if (in_array == NULL) { \
+		error("in_array = NULL"); \
+		return 1; \
+		} \
+	if (out_array == NULL) { \
+		error("out_array = NULL"); \
+		return 2; \
+		} \
 	if (size == 0) { \
 		error("size = 0"); \
-		return 1; \
+		return 3; \
 		} \
 	if (min > max) { \
 		error("min > max"); \
-		return 1; \
+		return 4; \
 		} \
 	\
 	size_t i; \
@@ -91,7 +111,7 @@ extern int8_t get_int32_minmax
 		/*follow it by random numbers to create a second half*/ \
 		if (!RAND_bytes( (unsigned char *)out_array + size*sizeof(itype), size*sizeof(itype) )) { \
     		ERR_print_errors_fp(stderr); \
-    		return 1; \
+    		return 5; \
     		} \
 		return 0; \
 		} \
@@ -99,7 +119,7 @@ extern int8_t get_int32_minmax
 	/*write a random numbers to output array*/ \
 	if (!RAND_bytes( (unsigned char *)out_array, 2*size*sizeof(itype) )) { \
     	ERR_print_errors_fp(stderr); \
-    	return 1; \
+    	return 6; \
     	} \
 	\
 	/*if only one value is possible then use a random number for encoding each number*/ \
@@ -109,11 +129,11 @@ extern int8_t get_int32_minmax
 			ielt = in_array[i]; \
 			if (ielt < min) { \
 				error("wrong min value"); \
-				return 1; \
+				return 7; \
 				} \
 			else if (ielt > max) { \
 				error("wrong max value"); \
-				return 1; \
+				return 8; \
 				} \
 			} \
 		return 0; \
@@ -129,11 +149,11 @@ extern int8_t get_int32_minmax
 		ielt = in_array[i]; \
 		if (ielt < min) { \
 			error("wrong min value"); \
-			return 1; \
+			return 9; \
 			} \
 		else if (ielt > max) { \
 			error("wrong max value"); \
-			return 1; \
+			return 10; \
 			} \
 		oelt = ielt; 		/*make type promotion to begin encoding*/ \
 		oelt = oelt - min;	/*normalize current element*/ \
@@ -170,14 +190,22 @@ extern int8_t encode_int32_uniform
 #define DECODE_INT_UNIFORM(itype, otype, ISPACE) \
 (const otype *in_array, itype *out_array, const size_t size, const itype min, const itype max) \
 { \
-	/*wrong input values*/ \
+	/*check the arguments*/ \
+	if (in_array == NULL) { \
+		error("in_array = NULL"); \
+		return 1; \
+		} \
+	if (out_array == NULL) { \
+		error("out_array = NULL"); \
+		return 2; \
+		} \
 	if (size == 0) { \
 		error("size = 0"); \
-		return 1; \
+		return 3; \
 		} \
 	if (min > max) { \
 		error("min > max"); \
-		return 1; \
+		return 4; \
 		} \
 	\
 	size_t i; \
@@ -208,11 +236,11 @@ extern int8_t encode_int32_uniform
 		/*if algorithm works right, this errors should never been thrown*/ \
 		if (ielt < min) { \
 			error("algorithm error: wrong value < min"); \
-			return 1; \
+			return 5; \
 			} \
 		else if (ielt > max) { \
 			error("algorithm error: wrong value > max"); \
-			return 1; \
+			return 6; \
 			} \
 		\
 		out_array[i] = ielt;	/*finally write it to buffer*/ \

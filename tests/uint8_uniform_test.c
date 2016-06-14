@@ -39,7 +39,7 @@ extern int main(void)
 	
 	size = 256;
 	if (!RAND_bytes(orig_array, size))	//write a random numbers to original array
-    	error_handler();
+    	OpenSSL_error();
 
     //let orig_array contain numbers from 100 to 200
 	for (i = 0; i < size; i++)
@@ -56,7 +56,7 @@ extern int main(void)
 		printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
 		print_uint8_array(orig_array, size);
 		print_uint8_array(decoded_array, decryptedtext_len);
-		return 1;
+		test_error();
 		}
 	
 	
@@ -82,7 +82,7 @@ extern int main(void)
 		if (decryptedtext_len != 2*size) {
 			error("size and decryptedtext_len are not the equal");
 			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
-			return 1;
+			test_error();
 			}
 		//get a statistics on current bruteforce iteration
 	    stats_uint8_array(decoded_array, size, out_stats);
@@ -101,7 +101,7 @@ extern int main(void)
 	//try to open file for writing
 	if ((fp = fopen("uint8_bruteforce.ods", "w")) == NULL) {
 		error("can't open file 'uint8_bruteforce.ods' for writing");
-	    return 1;
+		test_error();
 		}
 		
 	//compare actual vs. ideal distributions of output array
@@ -109,7 +109,7 @@ extern int main(void)
 		error("cannot write to 'uint8_bruteforce.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
-		return 1;
+		test_error();
 		}
 	//write two columns to file: actual and ideal distribution for CHITEST
 	for (i = 0; i < 256; i++) {
@@ -118,7 +118,7 @@ extern int main(void)
 				error("cannot write to 'uint8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
-				return 1;
+				test_error();
 				}
 			}
 		else
@@ -129,13 +129,13 @@ extern int main(void)
 				error("cannot write to 'uint8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
-				return 1;
+				test_error();
 				}
 		}
 	//close file
 	if (fclose(fp) == EOF) {
 		perror("test: fclose error");
-		return 1;
+		test_error();
 		}
 	
 	
@@ -144,7 +144,7 @@ extern int main(void)
 
 	size = maxsize;
 	if (!RAND_bytes(orig_array, size))				//write a random numbers to original array
-    	error_handler();
+    	OpenSSL_error();
     memset(in_stats, 0, sizeof(in_stats));			//initialize statistics arrays
     memset(out_stats, 0, sizeof(out_stats));
     stats_uint8_array(orig_array, size, in_stats);	//get a statistics on a pseudorandom numbers
@@ -154,7 +154,7 @@ extern int main(void)
 		//write a fresh random byte to this position until it will be between 0 and 239
 		while (orig_array[j] > 239) {
 			if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
-	    		error_handler();
+	    		OpenSSL_error();
 			}
 				
 		orig_array[j] = (orig_array[j] % 120) + 100;
@@ -165,14 +165,14 @@ extern int main(void)
 	decode_uint8_uniform(encoded_array, decoded_array, size, 100, 219);
 	if (memcmp(orig_array, decoded_array, size)) {
 		error("orig_array and decoded_array are not the same");
-		return 1;
+		test_error();
 		}
 
 	//write statistics to file
 	//try to open file for writing
 	if ((fp = fopen("uint8_encoding.ods", "w")) == NULL) {	
 		error("can't open file 'uint8_encoding.ods' for writing");
-	    return 1;
+		test_error();
 		}
 
 	//compare pseudorandom vs. ideal, actual vs. ideal distributions
@@ -180,7 +180,7 @@ extern int main(void)
 		error("cannot write to 'uint8_encoding.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
-		return 1;
+		test_error();
 		}
 	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
 	for (i = 0; i < 256; i++) {
@@ -188,13 +188,13 @@ extern int main(void)
 			error("cannot write to 'uint8_encoding.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
-			return 1;
+			test_error();
 			}
 		}
 	//close file
 	if (fclose(fp) == EOF) {
 		perror("test: fclose error");
-		return 1;
+		test_error();
 		}
 	
 	
@@ -205,14 +205,14 @@ extern int main(void)
 	memset(long_stats, 0, sizeof(long_stats));	//initialize statistics array
 	for (i = 0; i < 65536; i++) {
 		if (!RAND_bytes(orig_array, size))		//write a random numbers to original array
-    		error_handler();
+    		OpenSSL_error();
     	
    		//let orig_array contain numbers from 100 to 199 distributed uniformly
 		for (j = 0; j < size; j++) {
 			//write a fresh random byte to this position until it will be between 0 and 199
 			while (orig_array[j] > 199) {
 				if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
-		    		error_handler();
+		    		OpenSSL_error();
 				}
 				
 			orig_array[j] = (orig_array[j] % 100) + 100;
@@ -226,7 +226,7 @@ extern int main(void)
 	//try to open file for writing
 	if ((fp = fopen("uint8_encoding2.ods", "w")) == NULL) {
 		error("can't open file 'uint8_encoding2.ods' for writing");
-	    return 1;
+	    test_error();
 		}
 		
 	//compare actual vs. ideal distributions of output array
@@ -234,7 +234,7 @@ extern int main(void)
 		error("cannot write to 'uint8_encoding2.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
-		return 1;
+		test_error();
 		}
 	//write two columns to file: actual and ideal distribution for CHITEST
 	for (i = 0; i < 65536; i++) {
@@ -245,13 +245,13 @@ extern int main(void)
 			error("cannot write to 'uint8_encoding2.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
-			return 1;
+			test_error();
 			}
 		}
 	//close file
 	if (fclose(fp) == EOF) {
 		perror("test: fclose error");
-		return 1;
+		test_error();
 		}
 	
 	
@@ -259,7 +259,7 @@ extern int main(void)
 	//random encoding and decoding-----------------------------------------------------------------
 	for (i = 1; i < 256; i++) {
 		if (!RAND_bytes(orig_array, i))	//write a random numbers to original array
-    		error_handler();
+    		OpenSSL_error();
     	get_uint8_minmax(orig_array, i, &min, &max);
 		encode_uint8_uniform(orig_array, encoded_array, i, min, max);
     	decode_uint8_uniform(encoded_array, decoded_array, i, min, max);
@@ -267,7 +267,7 @@ extern int main(void)
     		error("orig_array and decoded_array are not the same");
 			print_uint8_array(orig_array, i);
 			print_uint8_array(decoded_array, i);
-			return 1;
+			test_error();
 			}
 		}
 	
@@ -343,20 +343,46 @@ extern int main(void)
 	
 	//wrong parameters-----------------------------------------------------------------------------
 	get_uint8_minmax(NULL, 0, NULL, NULL);
-	encode_uint8_uniform(NULL, NULL, 1, 2, 1);
-	encode_uint8_uniform(NULL, NULL, 0, 1, 2);
-	encode_uint8_uniform(orig_array, encoded_array, size, 0, 19);
+	get_uint8_minmax(orig_array, 0, NULL, NULL);
+	get_uint8_minmax(orig_array, 1, NULL, NULL);
+	get_uint8_minmax(orig_array, 1, &min, NULL);
+	printf("\n");
+	
+	encode_uint8_uniform(NULL, NULL, 0, 0, 0);
+	encode_uint8_uniform(orig_array, NULL, 0, 0, 0);
+	encode_uint8_uniform(orig_array, encoded_array, 0, 0, 0);
+	encode_uint8_uniform(orig_array, encoded_array, 1, 2, 1);
 	encode_uint8_uniform(orig_array, encoded_array, size, 21, 100);
-	decode_uint8_uniform(NULL, NULL, 1, 2, 1);
-	decode_uint8_uniform(NULL, NULL, 0, 1, 2);
-	print_uint8_array(NULL, 0);
-	print_uint16_array(NULL, 0);
+	encode_uint8_uniform(orig_array, encoded_array, size, 0, 19);
+	printf("\n");
+	
+	decode_uint8_uniform(NULL, NULL, 0, 0, 0);
+	decode_uint8_uniform(encoded_array, NULL, 0, 0, 0);
+	decode_uint8_uniform(encoded_array, orig_array, 0, 0, 0);
+	decode_uint8_uniform(encoded_array, orig_array, 1, 2, 1);
+	printf("\n");
+	
 	stats_uint8_array(NULL, 0, NULL);
+	stats_uint8_array(orig_array, 0, NULL);
+	stats_uint8_array(orig_array, 1, NULL);
+	printf("\n");
+	
+	print_uint8_array(NULL, 0);
+	print_uint8_array(orig_array, 0);
+	printf("\n");
+	
 	stats_uint16_array(NULL, 0, NULL);
+	stats_uint16_array(encoded_array, 0, NULL);
+	stats_uint16_array(encoded_array, 1, NULL);
+	printf("\n");
+	
+	print_uint16_array(NULL, 0);
+	print_uint16_array(encoded_array, 0);
 	
 	
 	
 	test_deinit();
 	
 	return 0;
+	
 }
