@@ -107,7 +107,7 @@ extern int main(void)
 		}
 		
 	//compare actual vs. ideal distributions of output array
-	if (fprintf(fp, "=CHITEST(A102:A202;B102:B202)\n") < 0) {
+	if (fprintf(fp, "\t=CHITEST(B102:B202;C102:C202)\n") < 0) {
 		error("cannot write to 'uint8_bruteforce.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
@@ -116,7 +116,7 @@ extern int main(void)
 	//write two columns to file: actual and ideal distribution for CHITEST
 	for (i = 0; i <= UINT8_MAX; i++) {
 		if ( (i < 100) || (i > 200) ) {
-			if (fprintf(fp, "%llu\t%i\n", out_stats[i], 0) < 0) {
+			if (fprintf(fp, "%i\t%llu\t%i\n", i, out_stats[i], 0) < 0) {
 				error("cannot write to 'uint8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -127,7 +127,7 @@ extern int main(void)
 			/*166 111 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
 			elements) / 101 (number of possible array values from 100 to 200) = 16 777 216 (total
 			amount of numbers) / 101 (their possible values) - expected result in out_stats*/
-			if (fprintf(fp,  "%llu\t%i\n", out_stats[i], 166111) < 0) {
+			if (fprintf(fp,  "%i\t%llu\t%i\n", i, out_stats[i], 166111) < 0) {
 				error("cannot write to 'uint8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -179,7 +179,7 @@ extern int main(void)
 		}
 
 	//compare pseudorandom vs. ideal, actual vs. ideal distributions
-	if (fprintf(fp, "=CHITEST(A2:A257;B2:B257)\t\t=CHITEST(C2:C257;D2:D257)\n") < 0) {
+	if (fprintf(fp, "\t=CHITEST(B2:B257;C2:C257)\t\t=CHITEST(D2:D257;E2:E257)\n") < 0) {
 		error("cannot write to 'uint8_encoding.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
@@ -187,7 +187,7 @@ extern int main(void)
 		}
 	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
 	for (i = 0; i <= UINT8_MAX; i++) {
-		if (fprintf(fp, "%llu\t%i\t%llu\t%i\n",	in_stats[i], size/256, out_stats[i], size/128) < 0) {
+		if (fprintf(fp, "%i\t%llu\t%i\t%llu\t%i\n", i, in_stats[i], size/256, out_stats[i], size/128) < 0) {
 			error("cannot write to 'uint8_encoding.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
@@ -233,7 +233,7 @@ extern int main(void)
 		}
 		
 	//compare actual vs. ideal distributions of output array
-	if (fprintf(fp, "=CHITEST(A2:A65537;B2:B65537)\n") < 0) {
+	if (fprintf(fp, "\t=CHITEST(B2:B65537;C2:C65537)\n") < 0) {
 		error("cannot write to 'uint8_encoding2.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
@@ -244,7 +244,7 @@ extern int main(void)
 		/*256 = 65 536 (number of encodings) * 256 (size of each array for encoding) / 65536
 		(number of possible array values from 0 to 65 535) = 16 777 216 (total amount of
 		numbers) / 65536 (their possible values) - expected result in long_stats*/
-		if (fprintf(fp,  "%llu\t%i\n", long_stats[i], 256) < 0) {
+		if (fprintf(fp,  "%i\t%llu\t%i\n", i, long_stats[i], 256) < 0) {
 			error("cannot write to 'uint8_encoding2.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
