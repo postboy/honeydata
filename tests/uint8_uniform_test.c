@@ -304,10 +304,10 @@ extern int main(void)
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
-	printf("min = 0, max = 255:\n");
-	encode_uint8_uniform(orig_array, encoded_array, size, 0, 255);
+	printf("min = 0, max = %i:\n", UINT8_MAX);
+	encode_uint8_uniform(orig_array, encoded_array, size, 0, UINT8_MAX);
 	print_uint16_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, size, 0, 255);
+	decode_uint8_uniform(encoded_array, decoded_array, size, 0, UINT8_MAX);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	printf("\n");
@@ -334,10 +334,10 @@ extern int main(void)
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	
-	printf("min = 0, max = 255:\n");
-	encode_uint8_uniform(orig_array, encoded_array, size, 0, 255);
+	printf("min = 0, max = %i:\n", UINT8_MAX);
+	encode_uint8_uniform(orig_array, encoded_array, size, 0, UINT8_MAX);
 	print_uint16_array(encoded_array, size);
-	decode_uint8_uniform(encoded_array, decoded_array, size, 0, 255);
+	decode_uint8_uniform(encoded_array, decoded_array, size, 0, UINT8_MAX);
 	if (memcmp(orig_array, decoded_array, size))
 		print_uint8_array(decoded_array, size);
 	printf("\n");
