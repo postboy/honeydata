@@ -100,11 +100,9 @@ extern int main(void)
 		//get a statistics on current bruteforce iteration
 	    stats_uint8_array(decoded_array, size, out_stats);
 		/*
-		char temp[4];								//buffer for temporary output
-		for (j=0; j < 32; j++) {					//print current key
-			snprintf(temp, 4, "%02x", big_key[j]);	//output format is HEX-code
-			printf("%s", temp);
-			if ( (j+1) % 4 == 0) printf(" ");		//place a space every 2 bytes
+		for (j=0; j < 32; j++) {				//print current key
+			printf("%02x", big_key[j]);			//output format is HEX-code
+			if ( (j+1) % 4 == 0) printf(" ");	//place a space every 2 bytes
 			}
 		printf("\n");
 	    */
