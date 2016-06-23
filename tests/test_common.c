@@ -164,6 +164,15 @@ extern int8_t print_int16_array
 extern int8_t print_uint32_array
 	PRINT_ARRAY(uint32_t, "%"PRIu32" ")
 
+extern int8_t print_int32_array
+	PRINT_ARRAY(int32_t, "%"PRIi32" ")
+
+extern int8_t print_uint64_array
+	PRINT_ARRAY(uint64_t, "%"PRIu64" ")
+
+extern int8_t print_int64_array
+	PRINT_ARRAY(int64_t, "%"PRIi64" ")
+
 #undef PRINT_ARRAY
 
 extern void test_init(void)

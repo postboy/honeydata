@@ -10,3 +10,6 @@ gcc tests/int8_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o buil
 	-fno-builtin-memset -lcrypto -lm -g -Wall
 gcc tests/uint16_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o build/uint16_test \
 	-fno-builtin-memset -lcrypto -lm -g -Wall
+gcc tests/int16_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o build/int16_test \
+	-fno-builtin-memset -lcrypto -lm -g -Wall
+

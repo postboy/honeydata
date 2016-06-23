@@ -29,8 +29,13 @@ extern int8_t print_uint16_array(const uint16_t *array, const size_t size);
 extern int8_t stats_int16_array(const int16_t *in_array, const size_t size, uint64_t *stats);
 extern int8_t print_int16_array(const int16_t *array, const size_t size);
 
-//for unsigned 32 bit integers
+//for unsigned and signed 32 bit integers
 extern int8_t print_uint32_array(const uint32_t *array, const size_t size);
+extern int8_t print_int32_array(const int32_t *array, const size_t size);
+
+//for unsigned and signed 64 bit integers
+extern int8_t print_uint64_array(const uint64_t *array, const size_t size);
+extern int8_t print_int64_array(const int64_t *array, const size_t size);
 
 extern void test_init(void);
 extern void test_deinit(void);

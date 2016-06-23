@@ -269,7 +269,7 @@ extern int main(void)
 	
 	
 	//random encoding and decoding-----------------------------------------------------------------
-	for (size = 1; size <= UINT8_MAX; size++) {
+	for (size = 1; size < 256; size++) {
 		//write a random numbers to original array
 		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
     		OpenSSL_error();
