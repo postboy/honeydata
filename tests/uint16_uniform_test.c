@@ -44,9 +44,16 @@ extern int main(void)
 	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
     	OpenSSL_error();
 	
-    //let orig_array contain numbers from 1000 to 2000
-	for (i = 0; i < size; i++)
-		orig_array[i] = (orig_array[i] % 1001) + 1000;
+    //let orig_array contain numbers from 1000 to 1999
+	for (i = 0; i < size; i++) {
+		//write a fresh random element to this position until it will be between 0 and 59999
+		while (orig_array[i] > 64999) {
+			if ( !RAND_bytes( (unsigned char *)(orig_array+i), sizeof(uint16_t)) )
+	    		OpenSSL_error();
+			}
+		
+		orig_array[i] = (orig_array[i] % 1000) + 1000;
+		}
 	
 	get_uint16_minmax(orig_array, size, &min, &max);
 	encode_uint16_uniform(orig_array, encoded_array, size, min, max);
@@ -55,7 +62,7 @@ extern int main(void)
 	decode_uint16_uniform(encoded_array, decoded_array, size, min, max);
 	
 	//compare result of decryption and original array
-	if ( memcmp(orig_array, decoded_array, size) || (decryptedtext_len != 2*BYTESIZE) ) {
+	if ( memcmp(orig_array, decoded_array, BYTESIZE) || (decryptedtext_len != 2*BYTESIZE) ) {
 		error("orig_array and decoded_array are not the same");
 		printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
 		print_uint16_array(orig_array, size);
@@ -64,33 +71,33 @@ extern int main(void)
 		}
 	
 	
-	/*
+	
 	//bruteforce test (complexity equals 2^16) with statistics collection--------------------------
 	
 	size = 256;
 	
 	//encode and encrypt data
-	encode_uint16_uniform(orig_array, encoded_array, size, 100, 200);
+	encode_uint16_uniform(orig_array, encoded_array, size, 1000, 1999);
 	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*BYTESIZE, key, iv, ciphertext);
 	
 	//let's try to bruteforce last 2 bytes of a key
 	bfkey = 0;
 	memcpy(big_key, key, 30);					//suppose that we know 30 first bytes of key
-	memset(out_stats, 0, sizeof(out_stats));	//initialize statistics arrays
+	memset(long_stats, 0, sizeof(long_stats));	//initialize statistics arrays
 	
 	for (i = 0; i < 65536; i++) {
 		memcpy((void *)(big_key+30), &bfkey, sizeof(bfkey));	//get current key for decryption
 		bfkey++;												//try next key on next iteration
 		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv,
 									(unsigned char *)encoded_array);
-		decode_uint16_uniform(encoded_array, decoded_array, size, 100, 200);
+		decode_uint16_uniform(encoded_array, decoded_array, size, 1000, 1999);
 		if (decryptedtext_len != 2*BYTESIZE) {
-			error("size and decryptedtext_len are not the equal");
+			error("wrong decryptedtext_len value");
 			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
 			test_error();
 			}
 		//get a statistics on current bruteforce iteration
-	    stats_uint8_array(decoded_array, size, out_stats);*/
+	    stats_uint16_array(decoded_array, size, long_stats);
 		/*
 		char temp[4];								//buffer for temporary output
 		for (j=0; j < 32; j++) {					//print current key
@@ -99,7 +106,7 @@ extern int main(void)
 			if ( (j+1) % 4 == 0) printf(" ");		//place a space every 2 bytes
 			}
 		printf("\n");
-	    *//*
+	    */
 		}
 		
 	//write overall bruteforce statistics to file
@@ -110,27 +117,27 @@ extern int main(void)
 		}
 		
 	//compare actual vs. ideal distributions of output array
-	if (fprintf(fp, "\t=CHITEST(B102:B202;C102:C202)\n") < 0) {
+	if (fprintf(fp, "\t=CHITEST(B12:B1011;C12:C1011)\n") < 0) {
 		error("cannot write to 'uint16_bruteforce.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
 		test_error();
 		}
 	//write two columns to file: actual and ideal distribution for CHITEST
-	for (i = 0; i <= UINT8_MAX; i++) {
-		if ( (i < 100) || (i > 200) ) {
-			if (fprintf(fp, "%i\t%llu\t%i\n", i, out_stats[i], 0) < 0) {
+	for (i = 990; i <= 2010; i++) {
+		if ( (i < 1000) || (i > 1999) ) {
+			if (fprintf(fp, "%i\t%llu\t%i\n", i, long_stats[i], 0) < 0) {
 				error("cannot write to 'uint16_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
 				test_error();
 				}
 			}
-		else*/
-			/*166 111 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
-			elements) / 101 (number of possible array values from 100 to 200) = 16 777 216 (total
-			amount of numbers) / 101 (their possible values) - expected result in out_stats*//*
-			if (fprintf(fp,  "%i\t%llu\t%i\n", i, out_stats[i], 166111) < 0) {
+		else
+			/*16 777 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
+			elements) / 1000 (number of possible array values from 1000 to 1999) = 16 777 216 (total
+			amount of numbers) / 1000 (their possible values) - expected result in long_stats*/
+			if (fprintf(fp,  "%i\t%llu\t%i\n", i, long_stats[i], 16777) < 0) {
 				error("cannot write to 'uint16_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -153,24 +160,25 @@ extern int main(void)
     	OpenSSL_error();
     memset(in_stats, 0, sizeof(in_stats));			//initialize statistics arrays
     memset(out_stats, 0, sizeof(out_stats));
-    stats_uint8_array(orig_array, size, in_stats);	//get a statistics on a pseudorandom numbers
+    //get a statistics on a pseudorandom numbers
+    stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
       
-	//let orig_array contain numbers from 100 to 219 distributed uniformly
+	//let orig_array contain numbers from 11000 to 20999 distributed uniformly
 	for (j = 0; j < size; j++) {
-		//write a fresh random byte to this position until it will be between 0 and 239
-		while (orig_array[j] > 239) {
-			if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
+		//write a fresh random element to this position until it will be between 0 and 59999
+		while (orig_array[j] > 59999) {
+			if ( !RAND_bytes( (unsigned char *)(orig_array+j), sizeof(uint16_t)) )
 	    		OpenSSL_error();
 			}
 				
-		orig_array[j] = (orig_array[j] % 120) + 100;
+		orig_array[j] = (orig_array[j] % 10000) + 11000;
 		}
 	
-	encode_uint16_uniform(orig_array, encoded_array, size, 100, 219);
+	encode_uint16_uniform(orig_array, encoded_array, size, 11000, 20999);
 	//get a statistics on an encoded array
 	stats_uint8_array((uint8_t *)encoded_array, 2*BYTESIZE, out_stats);
-	decode_uint16_uniform(encoded_array, decoded_array, size, 100, 219);
-	if (memcmp(orig_array, decoded_array, size)) {
+	decode_uint16_uniform(encoded_array, decoded_array, size, 11000, 20999);
+	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 		error("orig_array and decoded_array are not the same");
 		test_error();
 		}
@@ -191,7 +199,8 @@ extern int main(void)
 		}
 	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
 	for (i = 0; i <= UINT8_MAX; i++) {
-		if (fprintf(fp, "%i\t%llu\t%i\t%llu\t%i\n", i, in_stats[i], size/256, out_stats[i], size/128) < 0) {
+		if (fprintf(fp, "%i\t%llu\t%i\t%llu\t%i\n", i, in_stats[i], BYTESIZE/256, out_stats[i],
+					BYTESIZE/128) < 0) {
 			error("cannot write to 'uint16_encoding.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
@@ -205,7 +214,7 @@ extern int main(void)
 		}
 	
 	
-	
+	/*
 	//random data encoding with advanced statistics collection (slow!)-----------------------------
 	
 	size = 256;
@@ -219,7 +228,7 @@ extern int main(void)
 		for (j = 0; j < size; j++) {
 			//write a fresh random byte to this position until it will be between 0 and 199
 			while (orig_array[j] > 199) {
-				if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
+				if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(uint16_t)) )
 		    		OpenSSL_error();
 				}
 				
@@ -272,7 +281,7 @@ extern int main(void)
     	get_uint16_minmax(orig_array, size, &min, &max);
 		encode_uint16_uniform(orig_array, encoded_array, size, min, max);
     	decode_uint16_uniform(encoded_array, decoded_array, size, min, max);
-    	if (memcmp(orig_array, decoded_array, size)) {
+    	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
     		error("orig_array and decoded_array are not the same");
 			print_uint16_array(orig_array, size);
 			print_uint16_array(decoded_array, size);
@@ -300,21 +309,21 @@ extern int main(void)
 	print_uint32_array(encoded_array, size);
 	decode_uint16_uniform(encoded_array, decoded_array, size, min, max);
 	//if original and decoded arrays is not equal then print a decoded array too
-	if (memcmp(orig_array, decoded_array, size))
+	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint16_array(decoded_array, size);
 	
 	printf("min = 1500, max = 4500:\n");
 	encode_uint16_uniform(orig_array, encoded_array, size, 1500, 4500);
 	print_uint32_array(encoded_array, size);
 	decode_uint16_uniform(encoded_array, decoded_array, size, 1500, 4500);
-	if (memcmp(orig_array, decoded_array, size))
+	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint16_array(decoded_array, size);
 	
 	printf("min = 0, max = %i:\n", UINT16_MAX);
 	encode_uint16_uniform(orig_array, encoded_array, size, 0, UINT16_MAX);
 	print_uint32_array(encoded_array, size);
 	decode_uint16_uniform(encoded_array, decoded_array, size, 0, UINT16_MAX);
-	if (memcmp(orig_array, decoded_array, size))
+	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint16_array(decoded_array, size);
 	printf("\n");
 	
@@ -337,14 +346,14 @@ extern int main(void)
 	encode_uint16_uniform(orig_array, encoded_array, size, min, max);
 	print_uint32_array(encoded_array, size);
 	decode_uint16_uniform(encoded_array, decoded_array, size, min, max);
-	if (memcmp(orig_array, decoded_array, size))
+	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint16_array(decoded_array, size);
 	
 	printf("min = 0, max = %i:\n", UINT16_MAX);
 	encode_uint16_uniform(orig_array, encoded_array, size, 0, UINT16_MAX);
 	print_uint32_array(encoded_array, size);
 	decode_uint16_uniform(encoded_array, decoded_array, size, 0, UINT16_MAX);
-	if (memcmp(orig_array, decoded_array, size))
+	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint16_array(decoded_array, size);
 	printf("\n");
 	

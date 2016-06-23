@@ -171,7 +171,7 @@ extern int8_t get_int32_minmax
 	return 0; \
 }
 
-//note the type promotions here: (max_type_number+1) can become 0 without them!
+//note the type promotions here: (max_type_number+1) can become 0 without them because of overflow
 extern int8_t encode_uint8_uniform
 	ENCODE_INT_UNIFORM(uint8_t, uint8_t, uint16_t,
 						( (uint16_t)UINT8_MAX+1 ), ( (uint32_t)UINT16_MAX+1 ) )
@@ -250,7 +250,7 @@ extern int8_t encode_int16_uniform
 	return 0; \
 }
 
-//note the type promotions here: (max_type_number+1) can become 0 without them!
+//note the type promotions here: (max_type_number+1) can become 0 without them because of overflow
 extern int8_t decode_uint8_uniform
 	DECODE_INT_UNIFORM(uint8_t, uint16_t, ( (uint16_t)UINT8_MAX+1 ) )
 extern int8_t decode_int8_uniform

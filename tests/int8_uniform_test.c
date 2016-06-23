@@ -45,8 +45,13 @@ extern int main(void)
     	OpenSSL_error();
 	
     //let orig_array contain numbers from -50 to 50
-	for (i = 0; i < size; i++)
-		orig_array[i] = ((orig_array[i] - INT8_MIN) % 101) - 50;
+	for (i = 0; i < size; i++) {
+		//write a fresh random element to this position until it will be between -50 and 50
+		while ( (orig_array[i] < -50) || (orig_array[i] > 50) ) {
+			if ( !RAND_bytes((unsigned char *)(orig_array+i), sizeof(int8_t)) )
+	    		OpenSSL_error();
+			}
+		}
 	
 	get_int8_minmax(orig_array, size, &min, &max);
 	encode_int8_uniform(orig_array, encoded_array, size, min, max);
@@ -56,7 +61,7 @@ extern int main(void)
 	decode_int8_uniform(encoded_array, decoded_array, size, min, max);
 	
 	//compare result of decryption and original array
-	if ( memcmp(orig_array, decoded_array, size) || (decryptedtext_len != 2*BYTESIZE) ) {
+	if ( memcmp(orig_array, decoded_array, BYTESIZE) || (decryptedtext_len != 2*BYTESIZE) ) {
 		error("orig_array and decoded_array are not the same");
 		printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
 		print_int8_array(orig_array, size);
@@ -86,7 +91,7 @@ extern int main(void)
 									(unsigned char *)encoded_array);
 		decode_int8_uniform(encoded_array, decoded_array, size, -50, 50);
 		if (decryptedtext_len != 2*BYTESIZE) {
-			error("size and decryptedtext_len are not the equal");
+			error("wrong decryptedtext_len value");
 			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
 			test_error();
 			}
@@ -155,12 +160,13 @@ extern int main(void)
     memset(in_stats, 0, sizeof(in_stats));		//initialize statistics arrays
     memset(out_stats, 0, sizeof(out_stats));
     //get a statistics on a pseudorandom numbers
-    stats_uint8_array((uint8_t *)orig_array, size, in_stats);
+    stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
       
 	//let orig_array contain numbers from -100 to 19 distributed uniformly
 	for (j = 0; j < size; j++) {
+		//write a fresh random element to this position until it will be between -100 and 19
 		while ( (orig_array[j] < -100) || (orig_array[j] > 19) ) {
-			if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
+			if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(int8_t)) )
 	    		OpenSSL_error();
 			}
 		}
@@ -169,7 +175,7 @@ extern int main(void)
 	//get a statistics on an encoded array
 	stats_uint8_array((uint8_t *)encoded_array, 2*BYTESIZE, out_stats);
 	decode_int8_uniform(encoded_array, decoded_array, size, -100, 19);
-	if (memcmp(orig_array, decoded_array, size)) {
+	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 		error("orig_array and decoded_array are not the same");
 		test_error();
 		}
@@ -190,8 +196,8 @@ extern int main(void)
 		}
 	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
 	for (i = 0; i <= UINT8_MAX; i++) {
-		if (fprintf(fp, "%i\t%llu\t%i\t%llu\t%i\n", i, in_stats[i], size/256, out_stats[i],
-					size/128) < 0) {
+		if (fprintf(fp, "%i\t%llu\t%i\t%llu\t%i\n", i, in_stats[i], BYTESIZE/256, out_stats[i],
+					BYTESIZE/128) < 0) {
 			error("cannot write to 'int8_encoding.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
@@ -218,7 +224,7 @@ extern int main(void)
    		//let orig_array contain numbers from -100 to -1 distributed uniformly
 		for (j = 0; j < size; j++) {
 			while ( (orig_array[j] < -100) || (orig_array[j] > -1) ) {
-				if (!RAND_bytes((unsigned char *)(orig_array+j), 1))
+				if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(int8_t)) )
 		    		OpenSSL_error();
 				}
 			}
@@ -269,7 +275,7 @@ extern int main(void)
     	get_int8_minmax(orig_array, size, &min, &max);
 		encode_int8_uniform(orig_array, encoded_array, size, min, max);
     	decode_int8_uniform(encoded_array, decoded_array, size, min, max);
-    	if (memcmp(orig_array, decoded_array, size)) {
+    	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
     		error("orig_array and decoded_array are not the same");
 			print_int8_array(orig_array, size);
 			print_int8_array(decoded_array, size);
@@ -297,21 +303,21 @@ extern int main(void)
 	print_uint16_array(encoded_array, size);
 	decode_int8_uniform(encoded_array, decoded_array, size, min, max);
 	//if original and decoded arrays is not equal then print a decoded array too
-	if (memcmp(orig_array, decoded_array, size))
+	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_int8_array(decoded_array, size);
 	
 	printf("min = -45, max = -15:\n");
 	encode_int8_uniform(orig_array, encoded_array, size, -45, -15);
 	print_uint16_array(encoded_array, size);
 	decode_int8_uniform(encoded_array, decoded_array, size, -45, -15);
-	if (memcmp(orig_array, decoded_array, size))
+	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_int8_array(decoded_array, size);
 	
 	printf("min = %i, max = %i:\n", INT8_MIN, INT8_MAX);
 	encode_int8_uniform(orig_array, encoded_array, size, INT8_MIN, INT8_MAX);
 	print_uint16_array(encoded_array, size);
 	decode_int8_uniform(encoded_array, decoded_array, size, INT8_MIN, INT8_MAX);
-	if (memcmp(orig_array, decoded_array, size))
+	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_int8_array(decoded_array, size);
 	printf("\n");
 	
@@ -334,14 +340,14 @@ extern int main(void)
 	encode_int8_uniform(orig_array, encoded_array, size, min, max);
 	print_uint16_array(encoded_array, size);
 	decode_int8_uniform(encoded_array, decoded_array, size, min, max);
-	if (memcmp(orig_array, decoded_array, size))
+	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_int8_array(decoded_array, size);
 	
 	printf("min = %i, max = %i:\n", INT8_MIN, INT8_MAX);
 	encode_int8_uniform(orig_array, encoded_array, size, INT8_MIN, INT8_MAX);
 	print_uint16_array(encoded_array, size);
 	decode_int8_uniform(encoded_array, decoded_array, size, INT8_MIN, INT8_MAX);
-	if (memcmp(orig_array, decoded_array, size))
+	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_int8_array(decoded_array, size);
 	printf("\n");
 	
