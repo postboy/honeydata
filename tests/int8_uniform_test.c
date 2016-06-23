@@ -21,7 +21,8 @@ extern int main(void)
 	size_t decryptedtext_len, ciphertext_len;	//their lengths
 	
 	int32_t i, j;							//cycle counters					
-	size_t size, maxsize = 1048576;			//current and maximum array sizes (1MB)
+	size_t size;							//current and maximum array sizes (1MB)
+	const size_t maxsize = 1048576/sizeof(int8_t);
 	#define BYTESIZE (size*sizeof(int8_t))	//current input array size in bytes
 	//statistics on pseudorandom and output arrays
 	uint64_t in_stats[256] = {0}, out_stats[256] = {0}, long_stats[65536] = {0};

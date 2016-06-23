@@ -21,7 +21,8 @@ extern int main(void)
 	size_t decryptedtext_len, ciphertext_len;	//their lengths
 	
 	int32_t i, j;								//cycle counters					
-	size_t size, maxsize = 524288;				//current and maximum array sizes (1MB)
+	size_t size;								//current and maximum array sizes (1MB)
+	const size_t maxsize = 1048576/sizeof(uint16_t);
 	#define BYTESIZE (size*sizeof(uint16_t))	//current input array size in bytes
 	//statistics on pseudorandom and output arrays
 	uint64_t in_stats[256] = {0}, out_stats[256] = {0}, long_stats[65536] = {0};
@@ -46,7 +47,7 @@ extern int main(void)
 	
     //let orig_array contain numbers from 1000 to 1999
 	for (i = 0; i < size; i++) {
-		//write a fresh random element to this position until it will be between 0 and 59999
+		//write a fresh random element to this position until it will be between 0 and 64999
 		while (orig_array[i] > 64999) {
 			if ( !RAND_bytes( (unsigned char *)(orig_array+i), sizeof(uint16_t)) )
 	    		OpenSSL_error();
@@ -213,64 +214,6 @@ extern int main(void)
 		test_error();
 		}
 	
-	
-	/*
-	//random data encoding with advanced statistics collection (slow!)-----------------------------
-	
-	size = 256;
-	memset(long_stats, 0, sizeof(long_stats));	//initialize statistics array
-	for (i = 0; i < 65536; i++) {
-		//write a random numbers to original array
-		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-    		OpenSSL_error();
-    	
-   		//let orig_array contain numbers from 100 to 199 distributed uniformly
-		for (j = 0; j < size; j++) {
-			//write a fresh random byte to this position until it will be between 0 and 199
-			while (orig_array[j] > 199) {
-				if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(uint16_t)) )
-		    		OpenSSL_error();
-				}
-				
-			orig_array[j] = (orig_array[j] % 100) + 100;
-			}
-		
-		encode_uint16_uniform(orig_array, encoded_array, size, 100, 199);
-		stats_uint16_array(encoded_array, size, long_stats);
-		}
-	
-	//write overall statistics to file
-	//try to open file for writing
-	if ((fp = fopen("uint16_encoding2.ods", "w")) == NULL) {
-		error("can't open file 'uint16_encoding2.ods' for writing");
-	    test_error();
-		}
-		
-	//compare actual vs. ideal distributions of output array
-	if (fprintf(fp, "\t=CHITEST(B2:B65537;C2:C65537)\n") < 0) {
-		error("cannot write to 'uint16_encoding2.ods' file");
-		if (fclose(fp) == EOF)
-			perror("test: fclose error");
-		test_error();
-		}
-	//write two columns to file: actual and ideal distribution for CHITEST
-	for (i = 0; i <= UINT16_MAX; i++) {*/
-		/*256 = 65 536 (number of encodings) * 256 (size of each array for encoding) / 65536
-		(number of possible array values from 0 to 65 535) = 16 777 216 (total amount of
-		numbers) / 65536 (their possible values) - expected result in long_stats*//*
-		if (fprintf(fp,  "%i\t%llu\t%i\n", i, long_stats[i], 256) < 0) {
-			error("cannot write to 'uint16_encoding2.ods' file");
-			if (fclose(fp) == EOF)
-				perror("test: fclose error");
-			test_error();
-			}
-		}
-	//close file
-	if (fclose(fp) == EOF) {
-		perror("test: fclose error");
-		test_error();
-		}
-	*/
 	
 	
 	//random encoding and decoding-----------------------------------------------------------------

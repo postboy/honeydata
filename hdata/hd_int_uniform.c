@@ -140,8 +140,8 @@ extern int8_t get_int32_minmax
 		} \
 	\
 	/*number of groups (from ISPACE+1 to OSPACE/2), so they will have values in interval \
-	[0; group_num-1]; notice type conversion here - we want float result of division instead of \
-	integer!*/ \
+	[0; group_num-1]. notice type conversion here - we want float result of division instead of \
+	integer! this function probably works slow and can be optimized.*/ \
 	const otype group_num = ceil( (OSPACE) / (float)group_size); \
 	\
 	/*else encode each number using random numbers from out_array for group selection*/ \
@@ -234,7 +234,7 @@ extern int8_t encode_int16_uniform
 		/*get it's value in first group, denormalize it, do a type regression*/ \
 		ielt = (oelt % group_size) + min; \
 		\
-		/*if algorithm works right, this errors should never been thrown*/ \
+		/*if algorithm works right, this errors should never be thrown*/ \
 		if (ielt < min) { \
 			error("algorithm error: wrong value < min"); \
 			return 5; \
