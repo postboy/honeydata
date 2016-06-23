@@ -171,18 +171,19 @@ extern int8_t get_int32_minmax
 	return 0; \
 }
 
+//note the type promotions here: (max_type_number+1) can become 0 without them!
 extern int8_t encode_uint8_uniform
-	ENCODE_INT_UNIFORM(uint8_t, uint8_t, uint16_t, (UINT8_MAX+1), (UINT16_MAX+1) )
+	ENCODE_INT_UNIFORM(uint8_t, uint8_t, uint16_t,
+						( (uint16_t)UINT8_MAX+1 ), ( (uint32_t)UINT16_MAX+1 ) )
 extern int8_t encode_int8_uniform
-	ENCODE_INT_UNIFORM(int8_t, uint8_t, uint16_t, (UINT8_MAX+1), (UINT16_MAX+1) )
+	ENCODE_INT_UNIFORM(int8_t, uint8_t, uint16_t,
+						( (uint16_t)UINT8_MAX+1 ), ( (uint32_t)UINT16_MAX+1 ) )
 extern int8_t encode_uint16_uniform
-	ENCODE_INT_UNIFORM(uint16_t, uint16_t, uint32_t, (UINT16_MAX+1), (UINT32_MAX+1) )
+	ENCODE_INT_UNIFORM(uint16_t, uint16_t, uint32_t,
+						( (uint32_t)UINT16_MAX+1 ), ( (uint64_t)UINT32_MAX+1 ) )
 extern int8_t encode_int16_uniform
-	ENCODE_INT_UNIFORM(int16_t, uint16_t, uint32_t, (UINT16_MAX+1), (UINT32_MAX+1) )
-extern int8_t encode_uint32_uniform
-	ENCODE_INT_UNIFORM(uint32_t, uint32_t, uint64_t, (UINT32_MAX+1), (UINT64_MAX+1) )
-extern int8_t encode_int32_uniform
-	ENCODE_INT_UNIFORM(int32_t, uint32_t, uint64_t, (UINT32_MAX+1), (UINT64_MAX+1) )
+	ENCODE_INT_UNIFORM(int16_t, uint16_t, uint32_t,
+						( (uint32_t)UINT16_MAX+1 ), ( (uint64_t)UINT32_MAX+1 ) )
 
 #undef ENCODE_INT_UNIFORM
 
@@ -249,17 +250,14 @@ extern int8_t encode_int32_uniform
 	return 0; \
 }
 
+//note the type promotions here: (max_type_number+1) can become 0 without them!
 extern int8_t decode_uint8_uniform
-	DECODE_INT_UNIFORM(uint8_t, uint16_t, (UINT8_MAX+1) )
+	DECODE_INT_UNIFORM(uint8_t, uint16_t, ( (uint16_t)UINT8_MAX+1 ) )
 extern int8_t decode_int8_uniform
-	DECODE_INT_UNIFORM(int8_t, uint16_t, (UINT8_MAX+1) )
+	DECODE_INT_UNIFORM(int8_t, uint16_t, ( (uint16_t)UINT8_MAX+1 ) )
 extern int8_t decode_uint16_uniform
-	DECODE_INT_UNIFORM(uint16_t, uint32_t, (UINT16_MAX+1) )
+	DECODE_INT_UNIFORM(uint16_t, uint32_t, ( (uint32_t)UINT16_MAX+1 ) )
 extern int8_t decode_int16_uniform
-	DECODE_INT_UNIFORM(int16_t, uint32_t, (UINT16_MAX+1) )
-extern int8_t decode_uint32_uniform
-	DECODE_INT_UNIFORM(uint32_t, uint64_t, (UINT32_MAX+1) )
-extern int8_t decode_int32_uniform
-	DECODE_INT_UNIFORM(int32_t, uint64_t, (UINT32_MAX+1) )
+	DECODE_INT_UNIFORM(int16_t, uint32_t, ( (uint32_t)UINT16_MAX+1 ) )
 
 #undef DECODE_INT_UNIFORM

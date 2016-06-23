@@ -17,11 +17,12 @@ extern int main(void)
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC mode we need
 	one extra block)*/
-	unsigned char ciphertext[1024];
-	uint32_t decryptedtext_len, ciphertext_len;	//their lengths
+	unsigned char ciphertext[512];
+	size_t decryptedtext_len, ciphertext_len;	//their lengths
 	
-	int32_t i, j;					//cycle counters					
-	size_t size, maxsize = 1048576;	//current and maximum array sizes (1MB)
+	int32_t i, j;							//cycle counters					
+	size_t size, maxsize = 1048576;			//current and maximum array sizes (1MB)
+	#define BYTESIZE (size*sizeof(int8_t))	//current input array size in bytes
 	//statistics on pseudorandom and output arrays
 	uint64_t in_stats[256] = {0}, out_stats[256] = {0}, long_stats[65536] = {0};
 	int8_t min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
@@ -33,31 +34,33 @@ extern int main(void)
 	unsigned char big_key[32];	//current key
 	
 	test_init();
-
+	
 	
 	
 	//random data encoding, encryption, decryption, decoding---------------------------------------
 	
 	size = 256;
-	if (!RAND_bytes((unsigned char *)orig_array, size))	//write a random numbers to original array
+	//write a random numbers to original array
+	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
     	OpenSSL_error();
-
+	
     //let orig_array contain numbers from -50 to 50
 	for (i = 0; i < size; i++)
 		orig_array[i] = ((orig_array[i] - INT8_MIN) % 101) - 50;
-
-	encode_int8_uniform(orig_array, encoded_array, size, -50, 50);
-	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*size, key, iv, ciphertext);
+	
+	get_int8_minmax(orig_array, size, &min, &max);
+	encode_int8_uniform(orig_array, encoded_array, size, min, max);
+	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*BYTESIZE, key, iv, ciphertext);
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv,
 								(unsigned char *)encoded_array);
-	decode_int8_uniform(encoded_array, decoded_array, size, -50, 50);
+	decode_int8_uniform(encoded_array, decoded_array, size, min, max);
 	
 	//compare result of decryption and original array
-	if ( memcmp(orig_array, decoded_array, size) || (decryptedtext_len != 2*size) ) {
+	if ( memcmp(orig_array, decoded_array, size) || (decryptedtext_len != 2*BYTESIZE) ) {
 		error("orig_array and decoded_array are not the same");
 		printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
 		print_int8_array(orig_array, size);
-		print_int8_array(decoded_array, decryptedtext_len);
+		print_int8_array(decoded_array, size);
 		test_error();
 		}
 	
@@ -69,7 +72,7 @@ extern int main(void)
 	
 	//encode and encrypt data
 	encode_int8_uniform(orig_array, encoded_array, size, -50, 50);
-	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*size, key, iv, ciphertext);
+	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*BYTESIZE, key, iv, ciphertext);
 	
 	//let's try to bruteforce last 2 bytes of a key
 	bfkey = 0;
@@ -82,7 +85,7 @@ extern int main(void)
 		decryptedtext_len = decrypt(ciphertext, ciphertext_len, big_key, iv,
 									(unsigned char *)encoded_array);
 		decode_int8_uniform(encoded_array, decoded_array, size, -50, 50);
-		if (decryptedtext_len != 2*size) {
+		if (decryptedtext_len != 2*BYTESIZE) {
 			error("size and decryptedtext_len are not the equal");
 			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
 			test_error();
@@ -144,13 +147,15 @@ extern int main(void)
 	
 	
 	//random data encoding and decoding with statistics collection---------------------------------
-
+	
 	size = maxsize;
-	if (!RAND_bytes((unsigned char *)orig_array, size))	//write a random numbers to original array
+	//write a random numbers to original array
+	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
     	OpenSSL_error();
-    memset(in_stats, 0, sizeof(in_stats));				//initialize statistics arrays
+    memset(in_stats, 0, sizeof(in_stats));		//initialize statistics arrays
     memset(out_stats, 0, sizeof(out_stats));
-    stats_int8_array(orig_array, size, in_stats);		//get a statistics on a pseudorandom numbers
+    //get a statistics on a pseudorandom numbers
+    stats_uint8_array((uint8_t *)orig_array, size, in_stats);
       
 	//let orig_array contain numbers from -100 to 19 distributed uniformly
 	for (j = 0; j < size; j++) {
@@ -162,20 +167,20 @@ extern int main(void)
 	
 	encode_int8_uniform(orig_array, encoded_array, size, -100, 19);
 	//get a statistics on an encoded array
-	stats_int8_array((int8_t *)encoded_array, 2*size, out_stats);
+	stats_uint8_array((uint8_t *)encoded_array, 2*BYTESIZE, out_stats);
 	decode_int8_uniform(encoded_array, decoded_array, size, -100, 19);
 	if (memcmp(orig_array, decoded_array, size)) {
 		error("orig_array and decoded_array are not the same");
 		test_error();
 		}
-
+	
 	//write statistics to file
 	//try to open file for writing
 	if ((fp = fopen("int8_encoding.ods", "w")) == NULL) {	
 		error("can't open file 'int8_encoding.ods' for writing");
 	    test_error();
 		}
-
+	
 	//compare pseudorandom vs. ideal, actual vs. ideal distributions
 	if (fprintf(fp, "\t=CHITEST(B2:B257;C2:C257)\t\t=CHITEST(D2:D257;E2:E257)\n") < 0) {
 		error("cannot write to 'int8_encoding.ods' file");
@@ -207,7 +212,7 @@ extern int main(void)
 	memset(long_stats, 0, sizeof(long_stats));	//initialize statistics array
 	for (i = 0; i < 65536; i++) {
 		//write a random numbers to original array
-		if (!RAND_bytes((unsigned char *)orig_array, size))
+		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
     		OpenSSL_error();
     	
    		//let orig_array contain numbers from -100 to -1 distributed uniformly
@@ -217,7 +222,7 @@ extern int main(void)
 		    		OpenSSL_error();
 				}
 			}
-
+		
 		encode_int8_uniform(orig_array, encoded_array, size, -100, -1);
 		stats_uint16_array(encoded_array, size, long_stats);
 		}
@@ -257,17 +262,17 @@ extern int main(void)
 	
 	
 	//random encoding and decoding-----------------------------------------------------------------
-	for (i = 1; i <= UINT8_MAX; i++) {
+	for (size = 1; size <= UINT8_MAX; size++) {
 		//write a random numbers to original array
-		if (!RAND_bytes((unsigned char *)orig_array, i))
+		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
     		OpenSSL_error();
-    	get_int8_minmax(orig_array, i, &min, &max);
-		encode_int8_uniform(orig_array, encoded_array, i, min, max);
-    	decode_int8_uniform(encoded_array, decoded_array, i, min, max);
-    	if (memcmp(orig_array, decoded_array, i)) {
+    	get_int8_minmax(orig_array, size, &min, &max);
+		encode_int8_uniform(orig_array, encoded_array, size, min, max);
+    	decode_int8_uniform(encoded_array, decoded_array, size, min, max);
+    	if (memcmp(orig_array, decoded_array, size)) {
     		error("orig_array and decoded_array are not the same");
-			print_int8_array(orig_array, i);
-			print_int8_array(decoded_array, i);
+			print_int8_array(orig_array, size);
+			print_int8_array(decoded_array, size);
 			test_error();
 			}
 		}
@@ -373,8 +378,9 @@ extern int main(void)
 	
 	
 	
+	#undef BYTESIZE
 	test_deinit();
-
+	
 	return 0;
 	
 }

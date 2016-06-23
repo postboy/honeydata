@@ -10,7 +10,6 @@ extern int encrypt(const unsigned char *plaintext, const size_t plaintext_len,
 	const unsigned char *key, const unsigned char *iv, unsigned char *ciphertext)
 {
 	EVP_CIPHER_CTX *ctx;
-
 	int len, ciphertext_len;
 
 	//create and initialise the context
@@ -50,9 +49,8 @@ extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
 	const unsigned char *key, const unsigned char *iv, unsigned char *plaintext)
 {
 	EVP_CIPHER_CTX *ctx;
-
 	int len, plaintext_len;
-
+	
 	//create and initialise the context
 	if (!(ctx = EVP_CIPHER_CTX_new()))
 		OpenSSL_error();
@@ -63,26 +61,28 @@ extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
 	if (EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv) != 1)
 		OpenSSL_error();
 	EVP_CIPHER_CTX_set_padding(ctx, 0);	//disable padding
-
+	
 	/*Provide the message to be decrypted, and obtain the plaintext output. EVP_DecryptUpdate can
 	be called multiple times if necessary.*/
 	if (EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len) != 1)
 		OpenSSL_error();
 	plaintext_len = len;
-
+	
 	//Finalise the decryption. Further plaintext bytes may be written at this stage.
 	if (EVP_DecryptFinal_ex(ctx, plaintext + len, &len) != 1)
 		OpenSSL_error();
 	plaintext_len += len;
-
+	
 	//clean up
 	EVP_CIPHER_CTX_free(ctx);
-
+	
 	return plaintext_len;
 }
 
 //parameters in following generic functions:
 //itype - type of input elements
+//min - minimum value of current type
+//format - format string for printf()
 
 //generic function for getting a number of occurences of different elements in integer array
 #define STATS_INT_ARRAY(itype, min) \
@@ -122,6 +122,9 @@ extern int8_t stats_int8_array
 extern int8_t stats_uint16_array
 	STATS_INT_ARRAY(uint16_t, 0)
 
+extern int8_t stats_int16_array
+	STATS_INT_ARRAY(int16_t, INT16_MIN)
+
 #undef STATS_INT_ARRAY
 
 //generic function for printing a numeric array
@@ -154,6 +157,12 @@ extern int8_t print_int8_array
 
 extern int8_t print_uint16_array
 	PRINT_ARRAY(uint16_t, "%"PRIu16" ")
+
+extern int8_t print_int16_array
+	PRINT_ARRAY(int16_t, "%"PRIi16" ")
+
+extern int8_t print_uint32_array
+	PRINT_ARRAY(uint32_t, "%"PRIu32" ")
 
 #undef PRINT_ARRAY
 
