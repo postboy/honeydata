@@ -20,13 +20,15 @@ extern int main(void)
 	unsigned char ciphertext[512];
 	size_t decryptedtext_len, ciphertext_len;	//their lengths
 	
-	int32_t i, j;							//cycle counters					
-	size_t size;							//current and maximum array sizes (1MB)
-	const size_t maxsize = 1048576/sizeof(uint8_t);
-	#define BYTESIZE (size*sizeof(uint8_t))	//current input array size in bytes
+	int32_t i, j;									//cycle counters					
+	size_t size;									//current array size
+	#define TYPE uint8_t							//type for testing in this test unit
+	#define PRI PRIu8								//macros for printing it
+	#define BYTESIZE (size*sizeof(TYPE))			//current input array size in bytes
+	const size_t maxsize = 1048576/sizeof(TYPE);	//maximum array size (1MB)
 	//statistics on pseudorandom and output arrays
 	uint64_t in_stats[256] = {0}, out_stats[256] = {0}, long_stats[65536] = {0};
-	uint8_t min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
+	TYPE min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
 	uint16_t encoded_array[maxsize];
 	FILE *fp;						//file variable
 	
@@ -43,14 +45,14 @@ extern int main(void)
 	size = 256;
 	//write a random numbers to original array
 	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-    	OpenSSL_error();
+		OpenSSL_error();
 	
-    //let orig_array contain numbers from 100 to 200
+	//let orig_array contain numbers from 100 to 200
 	for (i = 0; i < size; i++) {
 		//write a fresh random element to this position until it will be between 0 and 201
 		while (orig_array[i] > 201) {
-			if ( !RAND_bytes((unsigned char *)(orig_array+i), sizeof(uint8_t)) )
-	    		OpenSSL_error();
+			if ( !RAND_bytes((unsigned char *)(orig_array+i), sizeof(TYPE)) )
+				OpenSSL_error();
 			}
 		
 		orig_array[i] = (orig_array[i] % 101) + 100;
@@ -65,7 +67,7 @@ extern int main(void)
 	//compare result of decryption and original array
 	if ( memcmp(orig_array, decoded_array, BYTESIZE) || (decryptedtext_len != 2*BYTESIZE) ) {
 		error("orig_array and decoded_array are not the same");
-		printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
+		printf("size = %zu, decryptedtext_len = %zu\n", size, decryptedtext_len);
 		print_uint8_array(orig_array, size);
 		print_uint8_array(decoded_array, size);
 		test_error();
@@ -94,18 +96,18 @@ extern int main(void)
 		decode_uint8_uniform(encoded_array, decoded_array, size, 100, 200);
 		if (decryptedtext_len != 2*BYTESIZE) {
 			error("wrong decryptedtext_len value");
-			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
+			printf("size = %zu, decryptedtext_len = %zu\n", size, decryptedtext_len);
 			test_error();
 			}
 		//get a statistics on current bruteforce iteration
-	    stats_uint8_array(decoded_array, size, out_stats);
+		stats_uint8_array(decoded_array, size, out_stats);
 		/*
 		for (j=0; j < 32; j++) {				//print current key
 			printf("%02x", big_key[j]);			//output format is HEX-code
 			if ( (j+1) % 4 == 0) printf(" ");	//place a space every 2 bytes
 			}
 		printf("\n");
-	    */
+		*/
 		}
 		
 	//write overall bruteforce statistics to file
@@ -125,7 +127,7 @@ extern int main(void)
 	//write two columns to file: actual and ideal distribution for CHITEST
 	for (i = 0; i <= UINT8_MAX; i++) {
 		if ( (i < 100) || (i > 200) ) {
-			if (fprintf(fp, "%i\t%llu\t%i\n", i, out_stats[i], 0) < 0) {
+			if (fprintf(fp, "%i\t%"PRIu64"\t%i\n", i, out_stats[i], 0) < 0) {
 				error("cannot write to 'uint8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -136,7 +138,7 @@ extern int main(void)
 			/*166 111 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
 			elements) / 101 (number of possible array values from 100 to 200) = 16 777 216 (total
 			amount of numbers) / 101 (their possible values) - expected result in out_stats*/
-			if (fprintf(fp,  "%i\t%llu\t%i\n", i, out_stats[i], 166111) < 0) {
+			if (fprintf(fp, "%i\t%"PRIu64"\t%i\n", i, out_stats[i], 166111) < 0) {
 				error("cannot write to 'uint8_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -156,18 +158,18 @@ extern int main(void)
 	size = maxsize;
 	//write a random numbers to original array
 	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-    	OpenSSL_error();
-    memset(in_stats, 0, sizeof(in_stats));			//initialize statistics arrays
-    memset(out_stats, 0, sizeof(out_stats));
-    //get a statistics on a pseudorandom numbers
-    stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
-      
+		OpenSSL_error();
+	memset(in_stats, 0, sizeof(in_stats));			//initialize statistics arrays
+	memset(out_stats, 0, sizeof(out_stats));
+	//get a statistics on a pseudorandom numbers
+	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
+	
 	//let orig_array contain numbers from 100 to 219 distributed uniformly
 	for (j = 0; j < size; j++) {
 		//write a fresh random element to this position until it will be between 0 and 239
 		while (orig_array[j] > 239) {
-			if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(uint8_t)) )
-	    		OpenSSL_error();
+			if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(TYPE)) )
+				OpenSSL_error();
 			}
 				
 		orig_array[j] = (orig_array[j] % 120) + 100;
@@ -200,7 +202,7 @@ extern int main(void)
 		}
 	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
 	for (i = 0; i <= UINT8_MAX; i++) {
-		if (fprintf(fp, "%i\t%llu\t%i\t%llu\t%i\n", i, in_stats[i], BYTESIZE/256, out_stats[i],
+		if (fprintf(fp, "%i\t%"PRIu64"\t%i\t%"PRIu64"\t%i\n", i, in_stats[i], BYTESIZE/256, out_stats[i],
 					BYTESIZE/128) < 0) {
 			error("cannot write to 'uint8_encoding.ods' file");
 			if (fclose(fp) == EOF)
@@ -223,14 +225,14 @@ extern int main(void)
 	for (i = 0; i < 65536; i++) {
 		//write a random numbers to original array
 		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-    		OpenSSL_error();
-    	
-   		//let orig_array contain numbers from 100 to 199 distributed uniformly
+			OpenSSL_error();
+		
+		//let orig_array contain numbers from 100 to 199 distributed uniformly
 		for (j = 0; j < size; j++) {
 			//write a fresh random byte to this position until it will be between 0 and 199
 			while (orig_array[j] > 199) {
-				if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(uint8_t)) )
-		    		OpenSSL_error();
+				if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(TYPE)) )
+					OpenSSL_error();
 				}
 				
 			orig_array[j] = (orig_array[j] % 100) + 100;
@@ -244,7 +246,7 @@ extern int main(void)
 	//try to open file for writing
 	if ((fp = fopen("uint8_encoding2.ods", "w")) == NULL) {
 		error("can't open file 'uint8_encoding2.ods' for writing");
-	    test_error();
+		test_error();
 		}
 		
 	//compare actual vs. ideal distributions of output array
@@ -259,7 +261,7 @@ extern int main(void)
 		/*256 = 65 536 (number of encodings) * 256 (size of each array for encoding) / 65536
 		(number of possible array values from 0 to 65 535) = 16 777 216 (total amount of
 		numbers) / 65536 (their possible values) - expected result in long_stats*/
-		if (fprintf(fp,  "%i\t%llu\t%i\n", i, long_stats[i], 256) < 0) {
+		if (fprintf(fp, "%i\t%"PRIu64"\t%i\n", i, long_stats[i], 256) < 0) {
 			error("cannot write to 'uint8_encoding2.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
@@ -278,12 +280,12 @@ extern int main(void)
 	for (size = 1; size < 256; size++) {
 		//write a random numbers to original array
 		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-    		OpenSSL_error();
-    	get_uint8_minmax(orig_array, size, &min, &max);
+			OpenSSL_error();
+		get_uint8_minmax(orig_array, size, &min, &max);
 		encode_uint8_uniform(orig_array, encoded_array, size, min, max);
-    	decode_uint8_uniform(encoded_array, decoded_array, size, min, max);
-    	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
-    		error("orig_array and decoded_array are not the same");
+		decode_uint8_uniform(encoded_array, decoded_array, size, min, max);
+		if (memcmp(orig_array, decoded_array, BYTESIZE)) {
+			error("orig_array and decoded_array are not the same");
 			print_uint8_array(orig_array, size);
 			print_uint8_array(decoded_array, size);
 			test_error();
@@ -305,7 +307,7 @@ extern int main(void)
 	print_uint8_array(orig_array, size);
 	get_uint8_minmax(orig_array, size, &min, &max);
 	
-	printf("min = %i, max = %i:\n", min, max);
+	printf("min = %"PRI", max = %"PRI":\n", min, max);
 	encode_uint8_uniform(orig_array, encoded_array, size, min, max);
 	print_uint16_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, size, min, max);
@@ -320,7 +322,7 @@ extern int main(void)
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint8_array(decoded_array, size);
 	
-	printf("min = 0, max = %i:\n", UINT8_MAX);
+	printf("min = 0, max = %"PRI":\n", UINT8_MAX);
 	encode_uint8_uniform(orig_array, encoded_array, size, 0, UINT8_MAX);
 	print_uint16_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, size, 0, UINT8_MAX);
@@ -343,14 +345,14 @@ extern int main(void)
 	print_uint8_array(orig_array, size);
 	get_uint8_minmax(orig_array, size, &min, &max);
 	
-	printf("min = %i, max = %i:\n", min, max);
+	printf("min = %"PRI", max = %"PRI":\n", min, max);
 	encode_uint8_uniform(orig_array, encoded_array, size, min, max);
 	print_uint16_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, size, min, max);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint8_array(decoded_array, size);
 	
-	printf("min = 0, max = %i:\n", UINT8_MAX);
+	printf("min = 0, max = %"PRI":\n", UINT8_MAX);
 	encode_uint8_uniform(orig_array, encoded_array, size, 0, UINT8_MAX);
 	print_uint16_array(encoded_array, size);
 	decode_uint8_uniform(encoded_array, decoded_array, size, 0, UINT8_MAX);

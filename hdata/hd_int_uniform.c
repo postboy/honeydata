@@ -105,7 +105,7 @@ extern int8_t get_int32_minmax
 	itype ielt;	/*current processing element before and after type promotion*/ \
 	otype oelt; \
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
-	const otype group_size = max - min + 1; \
+	const otype group_size = (otype)max - min + 1; \
 	/*number of elements in the last group or 0 if the last group is full, from 0 to ISPACE-1. \
 	original formula was OSPACE % group_size, but it didn't work for uint64_t: \
 	UINT64_MAX + 1 = 0 because of integer overflow. modular arithmetic used here: \
@@ -119,17 +119,17 @@ extern int8_t get_int32_minmax
 		memcpy(out_array, in_array, size*sizeof(itype)); \
 		/*follow it by random numbers to create a second half*/ \
 		if (!RAND_bytes( (unsigned char *)out_array + size*sizeof(itype), size*sizeof(itype) )) { \
-    		ERR_print_errors_fp(stderr); \
-    		return 5; \
-    		} \
+			ERR_print_errors_fp(stderr); \
+			return 5; \
+			} \
 		return 0; \
 		} \
 	\
 	/*write a random numbers to output array*/ \
 	if (!RAND_bytes( (unsigned char *)out_array, 2*size*sizeof(itype) )) { \
-    	ERR_print_errors_fp(stderr); \
-    	return 6; \
-    	} \
+		ERR_print_errors_fp(stderr); \
+		return 6; \
+		} \
 	\
 	/*if only one value is possible then use a random number for encoding each number*/ \
 	if (group_size == 1) { \
@@ -199,11 +199,11 @@ extern int8_t encode_int16_uniform
 
 extern int8_t encode_uint32_uniform
 	ENCODE_INT_UNIFORM(uint32_t, uint32_t, uint64_t,
-						( (uint64_t)UINT32_MAX+1 ), (UINT64_MAX) )
+						( (uint64_t)UINT32_MAX+1 ), (uint64_t)UINT64_MAX )
 
 extern int8_t encode_int32_uniform
 	ENCODE_INT_UNIFORM(int32_t, uint32_t, uint64_t,
-						( (uint64_t)UINT32_MAX+1 ), (UINT64_MAX) )
+						( (uint64_t)UINT32_MAX+1 ), (uint64_t)UINT64_MAX )
 
 #undef ENCODE_INT_UNIFORM
 
@@ -233,7 +233,7 @@ extern int8_t encode_int32_uniform
 	otype oelt; /*current processing element before and after type regression*/ \
 	itype ielt;	\
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
-	const otype group_size = max - min + 1; \
+	const otype group_size = (otype)max - min + 1; \
 	\
 	/*if every value is possible then just copy first half of input array to output array*/ \
 	if (group_size == (ISPACE) ) { \

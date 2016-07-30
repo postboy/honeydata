@@ -36,7 +36,7 @@ extern int encrypt(const unsigned char *plaintext, const size_t plaintext_len,
 	//Finalise the encryption. Further ciphertext bytes may be written at this stage.
 	if (EVP_EncryptFinal_ex(ctx, ciphertext + len, &len) != 1)
 		OpenSSL_error();
-  	ciphertext_len += len;
+	ciphertext_len += len;
 
 	//clean up
 	EVP_CIPHER_CTX_free(ctx);
@@ -183,7 +183,7 @@ extern void test_init(void)
 	//OPENSSL_config(NULL);
 	if (!RAND_status()) {
 		error("PRNG hasn't been seeded with enough data");
-    	exit(1);
+		exit(1);
 		}
 }
 

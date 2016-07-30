@@ -26,7 +26,7 @@ extern int main(void)
 			goto end;
 			}
 		}
-	printf("Tests for 8-bit integers passed\n");
+	printf("Tests for 8-bit integers successfully passed\n");
 
 	for (i = 1; i <= (uint32_t)UINT16_MAX+1; i++) {
 		uint32_t v1, v2;
@@ -37,7 +37,7 @@ extern int main(void)
 			goto end;
 			}
 		}
-	printf("Tests for 16-bit integers passed\n");
+	printf("Tests for 16-bit integers successfully passed\n");
 	
 	//warning: slow!
 	for (i = 1; i <= (uint64_t)UINT32_MAX+1; i++) {
@@ -53,7 +53,7 @@ extern int main(void)
 			if (i % 1000000 == 0)
 				printf("%"PRIu64"\n", i);*/
 		}
-	printf("Tests for 32-bit integers passed\n");
+	printf("Tests for 32-bit integers successfully passed\n");
 
 	end:
 	return 0;

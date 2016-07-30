@@ -20,15 +20,17 @@ extern int main(void)
 	unsigned char ciphertext[1024];
 	size_t decryptedtext_len, ciphertext_len;	//their lengths
 	
-	int32_t i, j;								//cycle counters					
-	size_t size;								//current and maximum array sizes (1MB)
-	const size_t maxsize = 1048576/sizeof(uint16_t);
-	#define BYTESIZE (size*sizeof(uint16_t))	//current input array size in bytes
+	int32_t i, j;									//cycle counters					
+	size_t size;									//current array size
+	#define TYPE uint16_t							//type for testing in this test unit
+	#define PRI PRIu16								//macros for printing it
+	#define BYTESIZE (size*sizeof(TYPE))			//current input array size in bytes
+	const size_t maxsize = 1048576/sizeof(TYPE);	//maximum array size (1MB)
 	//statistics on pseudorandom and output arrays
 	uint64_t in_stats[256] = {0}, out_stats[256] = {0}, long_stats[65536] = {0};
-	uint16_t min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
+	TYPE min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
 	uint32_t encoded_array[maxsize];
-	FILE *fp;						//file variable
+	FILE *fp;					//file variable
 	
 	//variables for bruteforce test
 	uint16_t bfkey;				//current iteration number
@@ -43,14 +45,14 @@ extern int main(void)
 	size = 256;
 	//write a random numbers to original array
 	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-    	OpenSSL_error();
+		OpenSSL_error();
 	
-    //let orig_array contain numbers from 1000 to 1999
+	//let orig_array contain numbers from 1000 to 1999
 	for (i = 0; i < size; i++) {
 		//write a fresh random element to this position until it will be between 0 and 64999
 		while (orig_array[i] > 64999) {
-			if ( !RAND_bytes( (unsigned char *)(orig_array+i), sizeof(uint16_t)) )
-	    		OpenSSL_error();
+			if ( !RAND_bytes( (unsigned char *)(orig_array+i), sizeof(TYPE)) )
+				OpenSSL_error();
 			}
 		
 		orig_array[i] = (orig_array[i] % 1000) + 1000;
@@ -65,7 +67,7 @@ extern int main(void)
 	//compare result of decryption and original array
 	if ( memcmp(orig_array, decoded_array, BYTESIZE) || (decryptedtext_len != 2*BYTESIZE) ) {
 		error("orig_array and decoded_array are not the same");
-		printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
+		printf("size = %zu, decryptedtext_len = %zu\n", size, decryptedtext_len);
 		print_uint16_array(orig_array, size);
 		print_uint16_array(decoded_array, size);
 		test_error();
@@ -94,18 +96,18 @@ extern int main(void)
 		decode_uint16_uniform(encoded_array, decoded_array, size, 1000, 1999);
 		if (decryptedtext_len != 2*BYTESIZE) {
 			error("wrong decryptedtext_len value");
-			printf("size = %i, decryptedtext_len = %i\n", size, decryptedtext_len);
+			printf("size = %zu, decryptedtext_len = %zu\n", size, decryptedtext_len);
 			test_error();
 			}
 		//get a statistics on current bruteforce iteration
-	    stats_uint16_array(decoded_array, size, long_stats);
+		stats_uint16_array(decoded_array, size, long_stats);
 		/*
 		for (j=0; j < 32; j++) {				//print current key
 			printf("%02x", big_key[j]);			//output format is HEX-code
 			if ( (j+1) % 4 == 0) printf(" ");	//place a space every 2 bytes
 			}
 		printf("\n");
-	    */
+		*/
 		}
 		
 	//write overall bruteforce statistics to file
@@ -125,7 +127,7 @@ extern int main(void)
 	//write two columns to file: actual and ideal distribution for CHITEST
 	for (i = 990; i <= 2010; i++) {
 		if ( (i < 1000) || (i > 1999) ) {
-			if (fprintf(fp, "%i\t%llu\t%i\n", i, long_stats[i], 0) < 0) {
+			if (fprintf(fp, "%i\t%"PRIu64"\t%i\n", i, long_stats[i], 0) < 0) {
 				error("cannot write to 'uint16_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -136,7 +138,7 @@ extern int main(void)
 			/*16 777 = 65 536 (number of keys in brutforce) * 256 (size of each decrypted text in
 			elements) / 1000 (number of possible array values from 1000 to 1999) = 16 777 216 (total
 			amount of numbers) / 1000 (their possible values) - expected result in long_stats*/
-			if (fprintf(fp,  "%i\t%llu\t%i\n", i, long_stats[i], 16777) < 0) {
+			if (fprintf(fp, "%i\t%"PRIu64"\t%i\n", i, long_stats[i], 16777) < 0) {
 				error("cannot write to 'uint16_bruteforce.ods' file");
 				if (fclose(fp) == EOF)
 					perror("test: fclose error");
@@ -156,18 +158,18 @@ extern int main(void)
 	size = maxsize;
 	//write a random numbers to original array
 	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-    	OpenSSL_error();
-    memset(in_stats, 0, sizeof(in_stats));			//initialize statistics arrays
-    memset(out_stats, 0, sizeof(out_stats));
-    //get a statistics on a pseudorandom numbers
-    stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
-      
+		OpenSSL_error();
+	memset(in_stats, 0, sizeof(in_stats));			//initialize statistics arrays
+	memset(out_stats, 0, sizeof(out_stats));
+	//get a statistics on a pseudorandom numbers
+	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
+	
 	//let orig_array contain numbers from 11000 to 20999 distributed uniformly
 	for (j = 0; j < size; j++) {
 		//write a fresh random element to this position until it will be between 0 and 59999
 		while (orig_array[j] > 59999) {
-			if ( !RAND_bytes( (unsigned char *)(orig_array+j), sizeof(uint16_t)) )
-	    		OpenSSL_error();
+			if ( !RAND_bytes( (unsigned char *)(orig_array+j), sizeof(TYPE)) )
+				OpenSSL_error();
 			}
 				
 		orig_array[j] = (orig_array[j] % 10000) + 11000;
@@ -200,7 +202,7 @@ extern int main(void)
 		}
 	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
 	for (i = 0; i <= UINT8_MAX; i++) {
-		if (fprintf(fp, "%i\t%llu\t%i\t%llu\t%i\n", i, in_stats[i], BYTESIZE/256, out_stats[i],
+		if (fprintf(fp, "%i\t%"PRIu64"\t%i\t%"PRIu64"\t%i\n", i, in_stats[i], BYTESIZE/256, out_stats[i],
 					BYTESIZE/128) < 0) {
 			error("cannot write to 'uint16_encoding.ods' file");
 			if (fclose(fp) == EOF)
@@ -220,12 +222,12 @@ extern int main(void)
 	for (size = 1; size < 256; size++) {
 		//write a random numbers to original array
 		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-    		OpenSSL_error();
-    	get_uint16_minmax(orig_array, size, &min, &max);
+			OpenSSL_error();
+		get_uint16_minmax(orig_array, size, &min, &max);
 		encode_uint16_uniform(orig_array, encoded_array, size, min, max);
-    	decode_uint16_uniform(encoded_array, decoded_array, size, min, max);
-    	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
-    		error("orig_array and decoded_array are not the same");
+		decode_uint16_uniform(encoded_array, decoded_array, size, min, max);
+		if (memcmp(orig_array, decoded_array, BYTESIZE)) {
+			error("orig_array and decoded_array are not the same");
 			print_uint16_array(orig_array, size);
 			print_uint16_array(decoded_array, size);
 			test_error();
@@ -247,7 +249,7 @@ extern int main(void)
 	print_uint16_array(orig_array, size);
 	get_uint16_minmax(orig_array, size, &min, &max);
 	
-	printf("min = %i, max = %i:\n", min, max);
+	printf("min = %"PRI", max = %"PRI":\n", min, max);
 	encode_uint16_uniform(orig_array, encoded_array, size, min, max);
 	print_uint32_array(encoded_array, size);
 	decode_uint16_uniform(encoded_array, decoded_array, size, min, max);
@@ -262,7 +264,7 @@ extern int main(void)
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint16_array(decoded_array, size);
 	
-	printf("min = 0, max = %i:\n", UINT16_MAX);
+	printf("min = 0, max = %"PRI":\n", UINT16_MAX);
 	encode_uint16_uniform(orig_array, encoded_array, size, 0, UINT16_MAX);
 	print_uint32_array(encoded_array, size);
 	decode_uint16_uniform(encoded_array, decoded_array, size, 0, UINT16_MAX);
@@ -285,14 +287,14 @@ extern int main(void)
 	print_uint16_array(orig_array, size);
 	get_uint16_minmax(orig_array, size, &min, &max);
 	
-	printf("min = %i, max = %i:\n", min, max);
+	printf("min = %"PRI", max = %"PRI":\n", min, max);
 	encode_uint16_uniform(orig_array, encoded_array, size, min, max);
 	print_uint32_array(encoded_array, size);
 	decode_uint16_uniform(encoded_array, decoded_array, size, min, max);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint16_array(decoded_array, size);
 	
-	printf("min = 0, max = %i:\n", UINT16_MAX);
+	printf("min = 0, max = %"PRI":\n", UINT16_MAX);
 	encode_uint16_uniform(orig_array, encoded_array, size, 0, UINT16_MAX);
 	print_uint32_array(encoded_array, size);
 	decode_uint16_uniform(encoded_array, decoded_array, size, 0, UINT16_MAX);
@@ -330,10 +332,6 @@ extern int main(void)
 	
 	print_uint16_array(NULL, 0);
 	print_uint16_array(orig_array, 0);
-	printf("\n");
-	
-	print_uint32_array(NULL, 0);
-	print_uint32_array(encoded_array, 0);
 	
 	
 	
