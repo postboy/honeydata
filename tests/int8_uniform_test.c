@@ -176,6 +176,8 @@ extern int main(void)
 	decode_int8_uniform(encoded_array, decoded_array, size, -100, 19);
 	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 		error("orig_array and decoded_array are not the same");
+		print_int8_array(orig_array, size);
+		print_int8_array(decoded_array, size);
 		test_error();
 		}
 	
