@@ -1,4 +1,3 @@
-#exclude a compiled programs, result tables and temporary files
-/build
+#exclude result tables and temporary files
 ~.ods
 *~
