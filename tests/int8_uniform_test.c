@@ -305,7 +305,7 @@ extern int main(void)
 	encode_int8_uniform(orig_array, encoded_array, size, min, max);
 	print_uint16_array(encoded_array, size);
 	decode_int8_uniform(encoded_array, decoded_array, size, min, max);
-	//if original and decoded arrays is not equal then print a decoded array too
+	//if original and decoded arrays are not equal then print a decoded array too
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_int8_array(decoded_array, size);
 	

@@ -13,4 +13,6 @@ gcc tests/int16_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o bui
 	-lcrypto -lm -g -Wall &&
 gcc tests/uint32_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o build/uint32_test \
 	-lcrypto -lm -g -Wall &&
+gcc tests/int32_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o build/int32_test \
+	-lcrypto -lm -g -Wall &&
 gcc tests/math_test.c -o build/math_test -lm -g -Wall
