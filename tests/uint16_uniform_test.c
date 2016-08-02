@@ -14,12 +14,6 @@ extern int main(void)
 	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";	//a 256 bit key
 	unsigned char *iv = (unsigned char *)"01234567890123456";					//a 128 bit IV
 	
-	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
-	longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC mode we need
-	one extra block)*/
-	unsigned char ciphertext[1024];
-	size_t decryptedtext_len, ciphertext_len;	//their lengths
-	
 	int32_t i, j;									//cycle counters					
 	size_t size;									//current array size
 	#define TYPE uint16_t							//type for testing in this test unit
@@ -31,6 +25,12 @@ extern int main(void)
 	TYPE min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
 	uint32_t encoded_array[maxsize];
 	FILE *fp;					//file variable
+	
+	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
+	longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC mode we need
+	one extra block)*/
+	unsigned char ciphertext[2*256*sizeof(TYPE)];
+	size_t decryptedtext_len, ciphertext_len;		//their lengths
 	
 	//variables for bruteforce test
 	uint16_t bfkey;				//current iteration number
@@ -68,8 +68,8 @@ extern int main(void)
 	if ( memcmp(orig_array, decoded_array, BYTESIZE) || (decryptedtext_len != 2*BYTESIZE) ) {
 		error("orig_array and decoded_array are not the same");
 		printf("size = %zu, decryptedtext_len = %zu\n", size, decryptedtext_len);
-		print_uint16_array(orig_array, size);
-		print_uint16_array(decoded_array, size);
+		print_uint16_array(orig_array, 10);
+		print_uint16_array(decoded_array, 10);
 		test_error();
 		}
 	
@@ -163,6 +163,11 @@ extern int main(void)
 	memset(out_stats, 0, sizeof(out_stats));
 	//get a statistics on a pseudorandom numbers
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
+	/*write a fresh random numbers to original array and get a statistics on them again for fair
+	comparsion with 2*BYTESIZE encoded bytes below*/
+	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
+		OpenSSL_error();
+	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
 	//let orig_array contain numbers from 11000 to 20999 distributed uniformly
 	for (j = 0; j < size; j++) {
@@ -181,8 +186,8 @@ extern int main(void)
 	decode_uint16_uniform(encoded_array, decoded_array, size, 11000, 20999);
 	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 		error("orig_array and decoded_array are not the same");
-		print_uint16_array(orig_array, size);
-		print_uint16_array(decoded_array, size);
+		print_uint16_array(orig_array, 10);
+		print_uint16_array(decoded_array, 10);
 		test_error();
 		}
 	
@@ -202,8 +207,8 @@ extern int main(void)
 		}
 	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
 	for (i = 0; i <= UINT8_MAX; i++) {
-		if (fprintf(fp, "%i\t%"PRIu64"\t%i\t%"PRIu64"\t%i\n", i, in_stats[i], BYTESIZE/256, out_stats[i],
-					BYTESIZE/128) < 0) {
+		if (fprintf(fp, "%i\t%"PRIu64"\t%i\t%"PRIu64"\t%i\n", i, in_stats[i], BYTESIZE/128,
+					out_stats[i], BYTESIZE/128) < 0) {
 			error("cannot write to 'uint16_encoding.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
@@ -228,8 +233,8 @@ extern int main(void)
 		decode_uint16_uniform(encoded_array, decoded_array, size, min, max);
 		if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 			error("orig_array and decoded_array are not the same");
-			print_uint16_array(orig_array, size);
-			print_uint16_array(decoded_array, size);
+			print_uint16_array(orig_array, 10);
+			print_uint16_array(decoded_array, 10);
 			test_error();
 			}
 		}

@@ -48,7 +48,8 @@ License: BSD 2-Clause
 		if (array[i] > tmpmax)		/*then it's the new maximum*/ \
 			tmpmax = array[i]; \
 		/*we don't break a cycle if ((tmpmin == itype_MIN) && (tmpmax == itype_MAX)) because it \
-		can be used for timing attack*/ \
+		can be used for timing attack; same with not proceeding to next iteration if we found a \
+		new minimum (same element can't be both minimum and maximum if it is not the first)*/ \
 		} \
 	\
 	/*finally copy results to output buffers*/ \
@@ -80,7 +81,7 @@ extern int8_t get_int32_minmax
 #undef GET_ARRAY_MINMAX
 
 //generic DTE function for integer arrays----------------------------------------------------------
-#define ENCODE_INT_UNIFORM(itype, utype, otype, ISPACE, OTYPE_MAX) \
+#define ENCODE_INT_UNIFORM(itype, utype, otype, UTYPE_MAX, OTYPE_MAX) \
 (const itype *in_array, otype *out_array, const size_t size, const itype min, const itype max) \
 { \
 	/*check the arguments*/ \
@@ -109,12 +110,14 @@ extern int8_t get_int32_minmax
 	/*number of elements in the last group or 0 if the last group is full, from 0 to ISPACE-1. \
 	original formula was OSPACE % group_size, but it didn't work for uint64_t: \
 	UINT64_MAX + 1 = 0 because of integer overflow. modular arithmetic used here: \
-	(a + b) mod c = ( (a mod c) + (b mod c) ) mod c, but since c => 2 where last_group_size is \
+	(a + b) mod c = ( (a mod c) + (b mod c) ) mod c, but since c >= 2 where last_group_size is \
 	used, then 1 mod c = 1.*/\
 	const utype last_group_size = ( (OTYPE_MAX) % group_size + 1 ) % group_size; \
 	\
 	/*if every value is possible*/ \
-	if (group_size == (ISPACE) ) { \
+	/*note the type promotion here: (max_type_number+1) can become 0 without it because of\
+	integer overflow!*/ \
+	if (group_size == ( (otype)(UTYPE_MAX)+1 ) ) { \
 		/*then just copy input array to output array to create a first half*/ \
 		memcpy(out_array, in_array, size*sizeof(itype)); \
 		/*follow it by random numbers to create a second half*/ \
@@ -148,10 +151,10 @@ extern int8_t get_int32_minmax
 		return 0; \
 		} \
 	\
-	/*number of groups (from ISPACE+1 to OSPACE/2), so they will have values in interval \
-	[0; group_num-1]. original formula was ceill( (OSPACE) / (long double)group_size), but this \
-	formula is much faster. see math_test.c for equivalence proof.*/ \
-	const otype group_num = OTYPE_MAX / group_size + 1; \
+	/*total number of groups (from ISPACE+1 to OSPACE/2), so they will have indexes in interval \
+	[0; group_num-1]. original formula was ceill( (long double)OSPACE / group_size), but this \
+	formula is faster, more portable and reliable. see /tests/math_test.c for equivalence proof.*/ \
+	const otype group_num = (OTYPE_MAX) / group_size + 1; \
 	\
 	/*else encode each number using random numbers from out_array for group selection*/ \
 	for (i = 0; i < size; i++) { \
@@ -164,8 +167,8 @@ extern int8_t get_int32_minmax
 			error("wrong max value"); \
 			return 10; \
 			} \
-		oelt = ielt; 		/*make type promotion to begin encoding*/ \
-		oelt = oelt - min;	/*normalize current element*/ \
+		/*note otype promotion here: algorithm don't work right without it on e.g. int32_test*/ \
+		oelt = ielt - (otype)min; 		/*normalize current element and make type promotion*/ \
 		\
 		/*if we can place a current element in any group (including the last one) then do it*/ \
 		if ( (oelt < last_group_size) || (last_group_size == 0) ) \
@@ -180,35 +183,28 @@ extern int8_t get_int32_minmax
 	return 0; \
 }
 
-//note the type promotions here: (max_type_number+1) can become 0 without them because of overflow!
 extern int8_t encode_uint8_uniform
-	ENCODE_INT_UNIFORM(uint8_t, uint8_t, uint16_t,
-						( (uint16_t)UINT8_MAX+1 ), (uint32_t)UINT16_MAX )
+	ENCODE_INT_UNIFORM(uint8_t, uint8_t, uint16_t, UINT8_MAX, UINT16_MAX)
 
 extern int8_t encode_int8_uniform
-	ENCODE_INT_UNIFORM(int8_t, uint8_t, uint16_t,
-						( (uint16_t)UINT8_MAX+1 ), (uint32_t)UINT16_MAX )
+	ENCODE_INT_UNIFORM(int8_t, uint8_t, uint16_t, UINT8_MAX, UINT16_MAX)
 
 extern int8_t encode_uint16_uniform
-	ENCODE_INT_UNIFORM(uint16_t, uint16_t, uint32_t,
-						( (uint32_t)UINT16_MAX+1 ), (uint64_t)UINT32_MAX )
+	ENCODE_INT_UNIFORM(uint16_t, uint16_t, uint32_t, UINT16_MAX, UINT32_MAX)
 
 extern int8_t encode_int16_uniform
-	ENCODE_INT_UNIFORM(int16_t, uint16_t, uint32_t,
-						( (uint32_t)UINT16_MAX+1 ), (uint64_t)UINT32_MAX )
+	ENCODE_INT_UNIFORM(int16_t, uint16_t, uint32_t, UINT16_MAX, UINT32_MAX)
 
 extern int8_t encode_uint32_uniform
-	ENCODE_INT_UNIFORM(uint32_t, uint32_t, uint64_t,
-						( (uint64_t)UINT32_MAX+1 ), (uint64_t)UINT64_MAX )
+	ENCODE_INT_UNIFORM(uint32_t, uint32_t, uint64_t, UINT32_MAX, UINT64_MAX)
 
 extern int8_t encode_int32_uniform
-	ENCODE_INT_UNIFORM(int32_t, uint32_t, uint64_t,
-						( (uint64_t)UINT32_MAX+1 ), (uint64_t)UINT64_MAX )
+	ENCODE_INT_UNIFORM(int32_t, uint32_t, uint64_t, UINT32_MAX, UINT64_MAX)
 
 #undef ENCODE_INT_UNIFORM
 
 //generic DTD function for integer arrays----------------------------------------------------------
-#define DECODE_INT_UNIFORM(itype, otype, ISPACE) \
+#define DECODE_INT_UNIFORM(itype, otype, UTYPE_MAX) \
 (const otype *in_array, itype *out_array, const size_t size, const itype min, const itype max) \
 { \
 	/*check the arguments*/ \
@@ -236,7 +232,9 @@ extern int8_t encode_int32_uniform
 	const otype group_size = (otype)max - min + 1; \
 	\
 	/*if every value is possible then just copy first half of input array to output array*/ \
-	if (group_size == (ISPACE) ) { \
+	/*note the type promotion here: (max_type_number+1) can become 0 without it because of \
+	integer overflow!*/ \
+	if (group_size == ( (otype)(UTYPE_MAX)+1 ) ) { \
 		memcpy(out_array, in_array, size*sizeof(itype)); \
 		return 0; \
 		} \
@@ -270,23 +268,22 @@ extern int8_t encode_int32_uniform
 	return 0; \
 }
 
-//note the type promotions here: (max_type_number+1) can become 0 without them because of overflow!
 extern int8_t decode_uint8_uniform
-	DECODE_INT_UNIFORM(uint8_t, uint16_t, ( (uint16_t)UINT8_MAX+1 ) )
+	DECODE_INT_UNIFORM(uint8_t, uint16_t, UINT8_MAX)
 
 extern int8_t decode_int8_uniform
-	DECODE_INT_UNIFORM(int8_t, uint16_t, ( (uint16_t)UINT8_MAX+1 ) )
+	DECODE_INT_UNIFORM(int8_t, uint16_t, UINT8_MAX)
 
 extern int8_t decode_uint16_uniform
-	DECODE_INT_UNIFORM(uint16_t, uint32_t, ( (uint32_t)UINT16_MAX+1 ) )
+	DECODE_INT_UNIFORM(uint16_t, uint32_t, UINT16_MAX)
 
 extern int8_t decode_int16_uniform
-	DECODE_INT_UNIFORM(int16_t, uint32_t, ( (uint32_t)UINT16_MAX+1 ) )
+	DECODE_INT_UNIFORM(int16_t, uint32_t, UINT16_MAX)
 
 extern int8_t decode_uint32_uniform
-	DECODE_INT_UNIFORM(uint32_t, uint64_t, ( (uint64_t)UINT32_MAX+1 ) )
+	DECODE_INT_UNIFORM(uint32_t, uint64_t, UINT32_MAX)
 
 extern int8_t decode_int32_uniform
-	DECODE_INT_UNIFORM(int32_t, uint64_t, ( (uint64_t)UINT32_MAX+1 ) )
+	DECODE_INT_UNIFORM(int32_t, uint64_t, UINT32_MAX)
 
 #undef DECODE_INT_UNIFORM

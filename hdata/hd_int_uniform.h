@@ -9,7 +9,6 @@ License: BSD 2-Clause
 #include <stdio.h>
 #include <inttypes.h>
 #include <string.h>
-#include <math.h>
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
