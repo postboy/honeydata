@@ -59,7 +59,7 @@ License: BSD 2-Clause
 	return 0; \
 }
 
-//it's concretizations
+//its concretizations
 extern int8_t get_uint8_minmax
 	GET_ARRAY_MINMAX(uint8_t)
 
@@ -249,7 +249,7 @@ extern int8_t encode_int32_uniform
 	/*else decode each number*/ \
 	for (i = 0; i < size; i++) { \
 		oelt = in_array[i];	/*read current element*/ \
-		/*get it's value in first group, denormalize it, do a type regression*/ \
+		/*get its value in first group, denormalize it, do a type regression*/ \
 		ielt = (oelt % group_size) + min; \
 		\
 		/*if algorithm works right, this errors should never be thrown*/ \
