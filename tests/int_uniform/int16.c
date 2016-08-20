@@ -1,11 +1,10 @@
 /*
-int16_uniform_test.c - test program for honeydata library
-License: BSD 2-Clause
+test program for honeydata library
+license: BSD 2-Clause
 */
 
-#include <openssl/conf.h>
-
-#include "test_common.h"
+#include "../t_common.h"
+#include "../../hdata/hd_int_uniform.h"
 
 extern int main(void)
 {

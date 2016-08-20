@@ -2,8 +2,8 @@
 #compilation and testing of program with valgrind
 
 ./make.sh &&
-cd build &&
+cd build/int_uniform &&
 valgrind --tool=memcheck --trace-children=yes --show-reachable=yes --track-fds=yes \
-	--memcheck:leak-check=yes --memcheck:leak-resolution=high --max-stackframe=4194352 ./int32_test
-#int32_test uint32_test int16_test uint16_test int8_test uint8_test
-cd ..
+	--memcheck:leak-check=yes --memcheck:leak-resolution=high --max-stackframe=4194352 ./int32
+#int32 uint32 int16 uint16 int8 uint8
+cd ../..

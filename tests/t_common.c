@@ -1,9 +1,9 @@
 /*
-test_common.c - common code for test programs for honeydata library
-License: BSD 2-Clause
+common code for test programs for honeydata library
+license: BSD 2-Clause
 */
 
-#include "test_common.h"
+#include "t_common.h"
 
 //encrypt a message
 extern int encrypt(const unsigned char *plaintext, const size_t plaintext_len,

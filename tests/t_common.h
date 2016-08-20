@@ -1,12 +1,13 @@
 /*
-test_common.h - common code for test programs for honeydata library
-License: BSD 2-Clause
+common code for test programs for honeydata library
+license: BSD 2-Clause
 */
 
 #ifndef TEST_COMMON_H
 #define TEST_COMMON_H
 
-#include "../hdata/hd_int_uniform.h"
+#include "../hdata/hd_common.h"
+//#include <openssl/conf.h>
 
 //encrypt and decrypt a message
 extern int encrypt(const unsigned char *plaintext, const size_t plaintext_len,

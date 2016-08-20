@@ -1,6 +1,6 @@
 /*
-math_test.c - tests for some neat optimization trick in hd_int_uniform.c
-License: BSD 2-Clause
+tests for some neat optimization trick in hd_int_uniform.c
+license: BSD 2-Clause
 */
 
 #include <stdio.h>

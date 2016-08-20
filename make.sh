@@ -2,18 +2,19 @@
 #build all tests
 
 #lcrypto is for linking against OpenSSL crypto library, lm - against math library
-#g to produce debug information, Wall to see all compiler warnings
-gcc tests/uint8_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o build/uint8_test \
-	-lcrypto -g -Wall &&
-gcc tests/int8_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o build/int8_test \
-	-lcrypto -g -Wall &&
-gcc tests/uint16_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o build/uint16_test \
-	-lcrypto -g -Wall &&
-gcc tests/int16_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o build/int16_test \
-	-lcrypto -g -Wall &&
-gcc tests/uint32_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o build/uint32_test \
-	-lcrypto -g -Wall &&
-gcc tests/int32_uniform_test.c tests/test_common.c hdata/hd_int_uniform.c -o build/int32_test \
-	-lcrypto -g -Wall &&
-gcc tests/math_test.c -o build/math_test -lm -Wall &&
-gcc tests/float_test.c -o build/float_test -Wall
+#Wall to see all compiler warnings, g to produce debug information
+gcc tests/int_uniform/uint8.c tests/t_common.c hdata/hd_int_uniform.c hdata/hd_common.c -o \
+	build/int_uniform/uint8 -lcrypto -Wall &&
+gcc tests/int_uniform/int8.c tests/t_common.c hdata/hd_int_uniform.c hdata/hd_common.c -o \
+	build/int_uniform/int8 -lcrypto -Wall &&
+gcc tests/int_uniform/uint16.c tests/t_common.c hdata/hd_int_uniform.c hdata/hd_common.c -o \
+	build/int_uniform/uint16 -lcrypto -Wall &&
+gcc tests/int_uniform/int16.c tests/t_common.c hdata/hd_int_uniform.c hdata/hd_common.c -o \
+	build/int_uniform/int16 -lcrypto -Wall &&
+gcc tests/int_uniform/uint32.c tests/t_common.c hdata/hd_int_uniform.c hdata/hd_common.c -o \
+	build/int_uniform/uint32 -lcrypto -Wall &&
+gcc tests/int_uniform/int32.c tests/t_common.c hdata/hd_int_uniform.c hdata/hd_common.c -o \
+	build/int_uniform/int32 -lcrypto -Wall &&
+gcc tests/int_uniform/math.c -o build/int_uniform/math -lm -Wall &&
+
+gcc tests/fp_uniform/compatibility.c -o build/fp_uniform/compatibility -Wall

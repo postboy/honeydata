@@ -1,6 +1,6 @@
 /*
-float_test.c - tests for consistency with floating-point numbers processing in library
-License: BSD 2-Clause
+tests for compatibility with floating-point numbers processing in library
+license: BSD 2-Clause
 */
 
 #include <stdio.h>

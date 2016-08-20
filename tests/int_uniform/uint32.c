@@ -1,11 +1,10 @@
 /*
-int32_uniform_test.c - test program for honeydata library
-License: BSD 2-Clause
+test program for honeydata library
+license: BSD 2-Clause
 */
 
-#include <openssl/conf.h>
-
-#include "test_common.h"
+#include "../t_common.h"
+#include "../../hdata/hd_int_uniform.h"
 
 extern int main(void)
 {
@@ -16,8 +15,8 @@ extern int main(void)
 	
 	int32_t i, j;									//cycle counters					
 	size_t size;									//current array size
-	#define TYPE int32_t							//type for testing in this test unit
-	#define PRI PRIi32								//macros for printing it
+	#define TYPE uint32_t							//type for testing in this test unit
+	#define PRI PRIu32								//macros for printing it
 	#define BYTESIZE (size*sizeof(TYPE))			//current input array size in bytes
 	const size_t maxsize = 1048576/sizeof(TYPE);	//maximum array size (1MB)
 	//statistics on pseudorandom and output arrays
@@ -43,28 +42,29 @@ extern int main(void)
 	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
 		OpenSSL_error();
 	
-	//let orig_array contain numbers from -1000000000 to 1000000000
+	//let orig_array contain numbers from 3500000000 to 3999999999
 	for (i = 0; i < size; i++) {
-		/*write a fresh random element to this position until it will be between -1000000000 and
-		1000000000*/
-		while ( (orig_array[i] < -1000000000) || (orig_array[i] > 1000000000) ) {
-			if ( !RAND_bytes((unsigned char *)(orig_array+i), sizeof(TYPE)) )
+		//write a fresh random element to this position until it will be between 0 and 3999999999
+		while (orig_array[i] > 3999999999) {
+			if ( !RAND_bytes( (unsigned char *)(orig_array+i), sizeof(TYPE)) )
 				OpenSSL_error();
 			}
+		
+		orig_array[i] = (orig_array[i] % 500000000) + 3500000000;
 		}
 	
-	get_int32_minmax(orig_array, size, &min, &max);
-	encode_int32_uniform(orig_array, encoded_array, size, min, max);
+	get_uint32_minmax(orig_array, size, &min, &max);
+	encode_uint32_uniform(orig_array, encoded_array, size, min, max);
 	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*BYTESIZE, key, iv, ciphertext);
 	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, (unsigned char *)encoded_array);
-	decode_int32_uniform(encoded_array, decoded_array, size, min, max);
+	decode_uint32_uniform(encoded_array, decoded_array, size, min, max);
 	
 	//compare result of decryption and original array
 	if ( memcmp(orig_array, decoded_array, BYTESIZE) || (decryptedtext_len != 2*BYTESIZE) ) {
 		error("orig_array and decoded_array are not the same");
 		printf("size = %zu, decryptedtext_len = %zu\n", size, decryptedtext_len);
-		print_int32_array(orig_array, 10);
-		print_int32_array(decoded_array, 10);
+		print_uint32_array(orig_array, 10);
+		print_uint32_array(decoded_array, 10);
 		test_error();
 		}
 	
@@ -86,36 +86,38 @@ extern int main(void)
 		OpenSSL_error();
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
-	//let orig_array contain numbers from -2000000000 to 1000000000 distributed uniformly
+	//let orig_array contain numbers from 2000000000 to 2999999999 distributed uniformly
 	for (j = 0; j < size; j++) {
-		//write a fresh random element to this position until it will be between -19990 and 10000
-		while ( (orig_array[j] < -2000000000) || (orig_array[j] > 1000000000) ) {
-			if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(TYPE)) )
+		//write a fresh random element to this position until it will be between 0 and 3999999999
+		while (orig_array[j] > 3999999999) {
+			if ( !RAND_bytes( (unsigned char *)(orig_array+j), sizeof(TYPE)) )
 				OpenSSL_error();
 			}
+				
+		orig_array[j] = (orig_array[j] % 1000000000) + 2000000000;
 		}
 	
-	encode_int32_uniform(orig_array, encoded_array, size, -2000000000, 1000000000);
+	encode_uint32_uniform(orig_array, encoded_array, size, 2000000000, 2999999999);
 	//get a statistics on an encoded array
 	stats_uint8_array((uint8_t *)encoded_array, 2*BYTESIZE, out_stats);
-	decode_int32_uniform(encoded_array, decoded_array, size, -2000000000, 1000000000);
+	decode_uint32_uniform(encoded_array, decoded_array, size, 2000000000, 2999999999);
 	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 		error("orig_array and decoded_array are not the same");
-		print_int32_array(orig_array, 10);
-		print_int32_array(decoded_array, 10);
+		print_uint32_array(orig_array, 10);
+		print_uint32_array(decoded_array, 10);
 		test_error();
 		}
 	
 	//write statistics to file
 	//try to open file for writing
-	if ((fp = fopen("int32_encoding.ods", "w")) == NULL) {	
-		error("can't open file 'int32_encoding.ods' for writing");
+	if ((fp = fopen("uint32_encoding.ods", "w")) == NULL) {	
+		error("can't open file 'uint32_encoding.ods' for writing");
 		test_error();
 		}
 	
 	//compare pseudorandom vs. ideal, actual vs. ideal distributions
 	if (fprintf(fp, "\t=CHITEST(B2:B257;C2:C257)\t\t=CHITEST(D2:D257;E2:E257)\n") < 0) {
-		error("cannot write to 'int32_encoding.ods' file");
+		error("cannot write to 'uint32_encoding.ods' file");
 		if (fclose(fp) == EOF)
 			perror("test: fclose error");
 		test_error();
@@ -124,7 +126,7 @@ extern int main(void)
 	for (i = 0; i <= UINT8_MAX; i++) {
 		if (fprintf(fp, "%i\t%"PRIu64"\t%i\t%"PRIu64"\t%i\n", i, in_stats[i], BYTESIZE/128,
 					out_stats[i], BYTESIZE/128) < 0) {
-			error("cannot write to 'int32_encoding.ods' file");
+			error("cannot write to 'uint32_encoding.ods' file");
 			if (fclose(fp) == EOF)
 				perror("test: fclose error");
 			test_error();
@@ -143,13 +145,13 @@ extern int main(void)
 		//write a random numbers to original array
 		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
 			OpenSSL_error();
-		get_int32_minmax(orig_array, size, &min, &max);
-		encode_int32_uniform(orig_array, encoded_array, size, min, max);
-		decode_int32_uniform(encoded_array, decoded_array, size, min, max);
+		get_uint32_minmax(orig_array, size, &min, &max);
+		encode_uint32_uniform(orig_array, encoded_array, size, min, max);
+		decode_uint32_uniform(encoded_array, decoded_array, size, min, max);
 		if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 			error("orig_array and decoded_array are not the same");
-			print_int32_array(orig_array, 10);
-			print_int32_array(decoded_array, 10);
+			print_uint32_array(orig_array, 10);
+			print_uint32_array(decoded_array, 10);
 			test_error();
 			}
 		}
@@ -159,37 +161,37 @@ extern int main(void)
 	//fixed general cases--------------------------------------------------------------------------
 	
 	size = 5;
-	orig_array[0] = -2000000000;
-	orig_array[1] = -1900000000;
-	orig_array[2] = -1700000000;
-	orig_array[3] = -1200000000;
-	orig_array[4] = -1000000000;
+	orig_array[0] = 3100000000;
+	orig_array[1] = 3200000000;
+	orig_array[2] = 3300000000;
+	orig_array[3] = 3400000000;
+	orig_array[4] = 3500000000;
 	
 	printf("Original array:\n");	//print it
-	print_int32_array(orig_array, size);
-	get_int32_minmax(orig_array, size, &min, &max);
+	print_uint32_array(orig_array, size);
+	get_uint32_minmax(orig_array, size, &min, &max);
 	
 	printf("min = %"PRI", max = %"PRI":\n", min, max);
-	encode_int32_uniform(orig_array, encoded_array, size, min, max);
+	encode_uint32_uniform(orig_array, encoded_array, size, min, max);
 	print_uint64_array(encoded_array, size);
-	decode_int32_uniform(encoded_array, decoded_array, size, min, max);
+	decode_uint32_uniform(encoded_array, decoded_array, size, min, max);
 	//if original and decoded arrays are not equal then print a decoded array too
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
-		print_int32_array(decoded_array, size);
+		print_uint32_array(decoded_array, size);
 	
-	printf("min = -2100000000, max = -800000000:\n");
-	encode_int32_uniform(orig_array, encoded_array, size, -2100000000, -800000000);
+	printf("min = 1000000000, max = 4000000000:\n");
+	encode_uint32_uniform(orig_array, encoded_array, size, 1000000000, 4000000000);
 	print_uint64_array(encoded_array, size);
-	decode_int32_uniform(encoded_array, decoded_array, size, -2100000000, -800000000);
+	decode_uint32_uniform(encoded_array, decoded_array, size, 1000000000, 4000000000);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
-		print_int32_array(decoded_array, size);
+		print_uint32_array(decoded_array, size);
 	
-	printf("min = %"PRI", max = %"PRI":\n", INT32_MIN, INT32_MAX);
-	encode_int32_uniform(orig_array, encoded_array, size, INT32_MIN, INT32_MAX);
+	printf("min = 0, max = %"PRI":\n", UINT32_MAX);
+	encode_uint32_uniform(orig_array, encoded_array, size, 0, UINT32_MAX);
 	print_uint64_array(encoded_array, size);
-	decode_int32_uniform(encoded_array, decoded_array, size, INT32_MIN, INT32_MAX);
+	decode_uint32_uniform(encoded_array, decoded_array, size, 0, UINT32_MAX);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
-		print_int32_array(decoded_array, size);
+		print_uint32_array(decoded_array, size);
 	printf("\n");
 	
 	
@@ -197,56 +199,60 @@ extern int main(void)
 	//fixed special cases--------------------------------------------------------------------------
 	
 	size = 5;
-	orig_array[0] = -2000000000;
-	orig_array[1] = -2000000000;
-	orig_array[2] = -2000000000;
-	orig_array[3] = -2000000000;
-	orig_array[4] = -2000000000;
+	orig_array[0] = 1600000000;
+	orig_array[1] = 1600000000;
+	orig_array[2] = 1600000000;
+	orig_array[3] = 1600000000;
+	orig_array[4] = 1600000000;
 	
 	printf("Original array:\n");
-	print_int32_array(orig_array, size);
-	get_int32_minmax(orig_array, size, &min, &max);
+	print_uint32_array(orig_array, size);
+	get_uint32_minmax(orig_array, size, &min, &max);
 	
 	printf("min = %"PRI", max = %"PRI":\n", min, max);
-	encode_int32_uniform(orig_array, encoded_array, size, min, max);
+	encode_uint32_uniform(orig_array, encoded_array, size, min, max);
 	print_uint64_array(encoded_array, size);
-	decode_int32_uniform(encoded_array, decoded_array, size, min, max);
+	decode_uint32_uniform(encoded_array, decoded_array, size, min, max);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
-		print_int32_array(decoded_array, size);
+		print_uint32_array(decoded_array, size);
 	
-	printf("min = %"PRI", max = %"PRI":\n", INT32_MIN, INT32_MAX);
-	encode_int32_uniform(orig_array, encoded_array, size, INT32_MIN, INT32_MAX);
+	printf("min = 0, max = %"PRI":\n", UINT32_MAX);
+	encode_uint32_uniform(orig_array, encoded_array, size, 0, UINT32_MAX);
 	print_uint64_array(encoded_array, size);
-	decode_int32_uniform(encoded_array, decoded_array, size, INT32_MIN, INT32_MAX);
+	decode_uint32_uniform(encoded_array, decoded_array, size, 0, UINT32_MAX);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
-		print_int32_array(decoded_array, size);
+		print_uint32_array(decoded_array, size);
 	printf("\n");
 	
 	
 	
 	//wrong parameters-----------------------------------------------------------------------------
-	get_int32_minmax(NULL, 0, NULL, NULL);
-	get_int32_minmax(orig_array, 0, NULL, NULL);
-	get_int32_minmax(orig_array, 1, NULL, NULL);
-	get_int32_minmax(orig_array, 1, &min, NULL);
+	get_uint32_minmax(NULL, 0, NULL, NULL);
+	get_uint32_minmax(orig_array, 0, NULL, NULL);
+	get_uint32_minmax(orig_array, 1, NULL, NULL);
+	get_uint32_minmax(orig_array, 1, &min, NULL);
 	printf("\n");
 	
-	encode_int32_uniform(NULL, NULL, 0, 0, 0);
-	encode_int32_uniform(orig_array, NULL, 0, 0, 0);
-	encode_int32_uniform(orig_array, encoded_array, 0, 0, 0);
-	encode_int32_uniform(orig_array, encoded_array, 1, 2, 1);
-	encode_int32_uniform(orig_array, encoded_array, size, -1900000000, 0);
-	encode_int32_uniform(orig_array, encoded_array, size, -2140000000, -2100000000);
+	encode_uint32_uniform(NULL, NULL, 0, 0, 0);
+	encode_uint32_uniform(orig_array, NULL, 0, 0, 0);
+	encode_uint32_uniform(orig_array, encoded_array, 0, 0, 0);
+	encode_uint32_uniform(orig_array, encoded_array, 1, 2, 1);
+	encode_uint32_uniform(orig_array, encoded_array, size, 2600000000, 2700000000);
+	encode_uint32_uniform(orig_array, encoded_array, size, 0, 1500000000);
 	printf("\n");
 	
-	decode_int32_uniform(NULL, NULL, 0, 0, 0);
-	decode_int32_uniform(encoded_array, NULL, 0, 0, 0);
-	decode_int32_uniform(encoded_array, orig_array, 0, 0, 0);
-	decode_int32_uniform(encoded_array, orig_array, 1, 2, 1);
+	decode_uint32_uniform(NULL, NULL, 0, 0, 0);
+	decode_uint32_uniform(encoded_array, NULL, 0, 0, 0);
+	decode_uint32_uniform(encoded_array, orig_array, 0, 0, 0);
+	decode_uint32_uniform(encoded_array, orig_array, 1, 2, 1);
 	printf("\n");
 	
-	print_int32_array(NULL, 0);
-	print_int32_array(orig_array, 0);
+	print_uint32_array(NULL, 0);
+	print_uint32_array(orig_array, 0);
+	printf("\n");
+	
+	print_uint64_array(NULL, 0);
+	print_uint64_array(encoded_array, 0);
 	
 	
 	
