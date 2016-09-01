@@ -5,6 +5,137 @@ license: BSD 2-Clause
 
 #include "t_common.h"
 
+//parameters in following generic functions:
+//itype - type of input elements
+//min - minimum value of current type
+//format - format string for printf()
+
+//generic function for getting a number of occurences of different elements in integer array
+#define STATS_INT_ARRAY(itype, min) \
+(const itype *in_array, const size_t size, uint64_t *stats) \
+{ \
+	/*check the arguments*/ \
+	if (in_array == NULL) { \
+		error("in_array = NULL"); \
+		return 1; \
+		} \
+	if (size == 0) { \
+		error("size = 0"); \
+		return 2; \
+		} \
+	if (stats == NULL) { \
+		error("stats = NULL"); \
+		return 3; \
+		} \
+	\
+	itype elt;	/*current processing element*/ \
+	size_t i; \
+	\
+	for (i = 0; i < size; i++) { \
+		elt = in_array[i];	/*read a current element*/ \
+		++stats[elt - min];	/*increment the corresponding number in output array*/ \
+		} \
+	\
+	return 0; \
+}
+
+extern int8_t stats_uint8_array
+	STATS_INT_ARRAY(uint8_t, 0)
+
+extern int8_t stats_int8_array
+	STATS_INT_ARRAY(int8_t, INT8_MIN)
+
+extern int8_t stats_uint16_array
+	STATS_INT_ARRAY(uint16_t, 0)
+
+extern int8_t stats_int16_array
+	STATS_INT_ARRAY(int16_t, INT16_MIN)
+
+#undef STATS_INT_ARRAY
+
+//generic function for printing a numeric array
+#define PRINT_ARRAY(itype, format) \
+(const itype *array, const size_t size) \
+{ \
+	/*check the arguments*/ \
+	if (array == NULL) { \
+		error("array = NULL"); \
+		return 1; \
+		} \
+	if (size == 0) { \
+		error("size = 0"); \
+		return 2; \
+		} \
+	\
+	size_t i; \
+	\
+	for (i = 0; i < size; i++) \
+		printf( (format), array[i]); \
+	printf("\n"); \
+	return 0; \
+}
+
+extern int8_t print_uint8_array
+	PRINT_ARRAY(uint8_t, "%"PRIu8" ")
+
+extern int8_t print_int8_array
+	PRINT_ARRAY(int8_t, "%"PRIi8" ")
+
+extern int8_t print_uint16_array
+	PRINT_ARRAY(uint16_t, "%"PRIu16" ")
+
+extern int8_t print_int16_array
+	PRINT_ARRAY(int16_t, "%"PRIi16" ")
+
+extern int8_t print_uint32_array
+	PRINT_ARRAY(uint32_t, "%"PRIu32" ")
+
+extern int8_t print_int32_array
+	PRINT_ARRAY(int32_t, "%"PRIi32" ")
+
+extern int8_t print_uint64_array
+	PRINT_ARRAY(uint64_t, "%"PRIu64" ")
+
+extern int8_t print_int64_array
+	PRINT_ARRAY(int64_t, "%"PRIi64" ")
+
+extern int8_t print_float_array
+	PRINT_ARRAY(float, "%f ")
+
+#undef PRINT_ARRAY
+
+extern void test_init(void)
+{
+	//initialise the crypto library
+	ERR_load_crypto_strings();
+	OpenSSL_add_all_algorithms();
+	//OPENSSL_config(NULL);
+	if (!RAND_status()) {
+		error("PRNG hasn't been seeded with enough data");
+		exit(1);
+		}
+}
+
+extern void test_deinit(void)
+{
+	//clean up
+	RAND_cleanup();
+	EVP_cleanup();
+	ERR_free_strings();
+}
+
+extern void OpenSSL_error(void)
+{
+	ERR_print_errors_fp(stderr);
+	test_error();
+}
+
+extern void test_error(void)
+{
+	test_deinit();
+	exit(1);
+}
+
 //encrypt a message
 extern int encrypt(const unsigned char *plaintext, const size_t plaintext_len,
 	const unsigned char *key, const unsigned char *iv, unsigned char *ciphertext)
@@ -77,132 +208,4 @@ extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
 	EVP_CIPHER_CTX_free(ctx);
 	
 	return plaintext_len;
-}
-
-//parameters in following generic functions:
-//itype - type of input elements
-//min - minimum value of current type
-//format - format string for printf()
-
-//generic function for getting a number of occurences of different elements in integer array
-#define STATS_INT_ARRAY(itype, min) \
-(const itype *in_array, const size_t size, uint64_t *stats) \
-{ \
-	/*check the arguments*/ \
-	if (in_array == NULL) { \
-		error("in_array = NULL"); \
-		return 1; \
-		} \
-	if (size == 0) { \
-		error("size = 0"); \
-		return 2; \
-		} \
-	if (stats == NULL) { \
-		error("stats = NULL"); \
-		return 3; \
-		} \
-	\
-	size_t i; \
-	itype elt;	/*current processing element*/ \
-	\
-	for (i = 0; i < size; i++) { \
-		elt = in_array[i];	/*read a current element*/ \
-		++stats[elt - min];	/*increment the corresponding number in output array*/ \
-		} \
-	\
-	return 0; \
-}
-
-extern int8_t stats_uint8_array
-	STATS_INT_ARRAY(uint8_t, 0)
-
-extern int8_t stats_int8_array
-	STATS_INT_ARRAY(int8_t, INT8_MIN)
-
-extern int8_t stats_uint16_array
-	STATS_INT_ARRAY(uint16_t, 0)
-
-extern int8_t stats_int16_array
-	STATS_INT_ARRAY(int16_t, INT16_MIN)
-
-#undef STATS_INT_ARRAY
-
-//generic function for printing a numeric array
-#define PRINT_ARRAY(itype, format) \
-(const itype *array, const size_t size) \
-{ \
-	/*check the arguments*/ \
-	if (array == NULL) { \
-		error("array = NULL"); \
-		return 1; \
-		} \
-	if (size == 0) { \
-		error("size = 0"); \
-		return 2; \
-		} \
-	\
-	size_t i; \
-	\
-	for (i = 0; i < size; i++) \
-		printf( (format), array[i]); \
-	printf("\n"); \
-	return 0; \
-}
-
-extern int8_t print_uint8_array
-	PRINT_ARRAY(uint8_t, "%"PRIu8" ")
-
-extern int8_t print_int8_array
-	PRINT_ARRAY(int8_t, "%"PRIi8" ")
-
-extern int8_t print_uint16_array
-	PRINT_ARRAY(uint16_t, "%"PRIu16" ")
-
-extern int8_t print_int16_array
-	PRINT_ARRAY(int16_t, "%"PRIi16" ")
-
-extern int8_t print_uint32_array
-	PRINT_ARRAY(uint32_t, "%"PRIu32" ")
-
-extern int8_t print_int32_array
-	PRINT_ARRAY(int32_t, "%"PRIi32" ")
-
-extern int8_t print_uint64_array
-	PRINT_ARRAY(uint64_t, "%"PRIu64" ")
-
-extern int8_t print_int64_array
-	PRINT_ARRAY(int64_t, "%"PRIi64" ")
-
-#undef PRINT_ARRAY
-
-extern void test_init(void)
-{
-	//initialise the crypto library
-	ERR_load_crypto_strings();
-	OpenSSL_add_all_algorithms();
-	//OPENSSL_config(NULL);
-	if (!RAND_status()) {
-		error("PRNG hasn't been seeded with enough data");
-		exit(1);
-		}
-}
-
-extern void test_deinit(void)
-{
-	//clean up
-	RAND_cleanup();
-	EVP_cleanup();
-	ERR_free_strings();
-}
-
-extern void OpenSSL_error(void)
-{
-	ERR_print_errors_fp(stderr);
-	test_error();
-}
-
-extern void test_error(void)
-{
-	test_deinit();
-	exit(1);
 }

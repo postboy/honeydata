@@ -3,17 +3,11 @@ common code for test programs for honeydata library
 license: BSD 2-Clause
 */
 
-#ifndef TEST_COMMON_H
-#define TEST_COMMON_H
+#ifndef T_COMMON_H
+#define T_COMMON_H
 
 #include "../hdata/hd_common.h"
 //#include <openssl/conf.h>
-
-//encrypt and decrypt a message
-extern int encrypt(const unsigned char *plaintext, const size_t plaintext_len,
-	const unsigned char *key, const unsigned char *iv, unsigned char *ciphertext);
-extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
-	const unsigned char *key, const unsigned char *iv, unsigned char *plaintext);
 
 //functions for unsigned and signed 8 bit integers
 //get a number of occurences of different elements in array, print a numeric array
@@ -38,10 +32,19 @@ extern int8_t print_int32_array(const int32_t *array, const size_t size);
 extern int8_t print_uint64_array(const uint64_t *array, const size_t size);
 extern int8_t print_int64_array(const int64_t *array, const size_t size);
 
+//for float floating-point numbers
+extern int8_t print_float_array(const float *array, const size_t size);
+
 extern void test_init(void);
 extern void test_deinit(void);
 
 extern void OpenSSL_error(void);
 extern void test_error(void);
+
+//encrypt and decrypt a message
+extern int encrypt(const unsigned char *plaintext, const size_t plaintext_len,
+	const unsigned char *key, const unsigned char *iv, unsigned char *ciphertext);
+extern int decrypt(const unsigned char *ciphertext, const size_t ciphertext_len,
+	const unsigned char *key, const unsigned char *iv, unsigned char *plaintext);
 
 #endif

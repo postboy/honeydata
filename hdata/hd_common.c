@@ -55,7 +55,6 @@ license: BSD 2-Clause
 	return 0; \
 }
 
-//its concretizations
 extern int8_t get_uint8_minmax
 	GET_ARRAY_MINMAX(uint8_t)
 
@@ -73,5 +72,8 @@ extern int8_t get_uint32_minmax
 
 extern int8_t get_int32_minmax
 	GET_ARRAY_MINMAX(int32_t)
+
+extern int8_t get_float_minmax
+	GET_ARRAY_MINMAX(float)
 
 #undef GET_ARRAY_MINMAX

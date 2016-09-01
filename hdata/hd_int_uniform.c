@@ -34,7 +34,6 @@ license: BSD 2-Clause
 		return 4; \
 		} \
 	\
-	size_t i; \
 	itype ielt;	/*current processing element before and after type promotion*/ \
 	otype oelt; \
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
@@ -45,6 +44,7 @@ license: BSD 2-Clause
 	(a + b) mod c = ( (a mod c) + (b mod c) ) mod c, but since c >= 2 where last_group_size is \
 	used, then 1 mod c = 1.*/\
 	const utype last_group_size = ( (OTYPE_MAX) % group_size + 1 ) % group_size; \
+	size_t i; \
 	\
 	/*if every value is possible*/ \
 	/*note the type promotion here: (max_type_number+1) can become 0 without it because of\
@@ -157,11 +157,11 @@ extern int8_t encode_int32_uniform
 		return 4; \
 		} \
 	\
-	size_t i; \
 	otype oelt; /*current processing element before and after type regression*/ \
 	itype ielt;	\
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	const otype group_size = (otype)max - min + 1; \
+	size_t i; \
 	\
 	/*if every value is possible then just copy first half of input array to output array*/ \
 	/*note the type promotion here: (max_type_number+1) can become 0 without it because of \
