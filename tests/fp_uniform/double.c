@@ -11,13 +11,13 @@ extern int main(void)
 	
 	int32_t i;
 	size_t size;										//current array size
-	#define TYPE float									//type for testing in this test unit
+	#define TYPE double									//type for testing in this test unit
 	#define PRI "%g"									//macro for printing it
 	#define BYTESIZE (size*sizeof(TYPE))				//current input array size in bytes
 	const size_t maxsize = 5000;						//maximum array size
 	TYPE orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
-	uint32_t encoded_array[maxsize];
-	//uint8_t bad[] = {1, 0, 128, 255};		//signaling NaN
+	uint64_t encoded_array[maxsize];
+	//uint8_t bad[] = {1, 0, 0, 0, 0, 0, 240, 255};	//signaling NaN
 	
 	test_init();
 	
@@ -32,14 +32,14 @@ extern int main(void)
 		/*memcpy(orig_array, bad, sizeof(TYPE));
 		print_uint8_array((uint8_t *)orig_array, sizeof(TYPE));*/
 		//convert signaling NaNs (if any) to quiet NaNs to avoid errors with comparsion
-		float_to_quiet_nans(orig_array, orig_array, size);
+		double_to_quiet_nans(orig_array, orig_array, size);
 		//print_uint8_array((uint8_t *)orig_array, sizeof(TYPE));
-		float_to_uint32(orig_array, encoded_array, size);
-		uint32_to_float(encoded_array, decoded_array, size);
+		double_to_uint64(orig_array, encoded_array, size);
+		uint64_to_double(encoded_array, decoded_array, size);
 		if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 			error("orig_array and decoded_array are not the same");
-			print_float_array(orig_array, size);
-			print_float_array(decoded_array, size);
+			print_double_array(orig_array, size);
+			print_double_array(decoded_array, size);
 			print_uint8_array((uint8_t *)orig_array, BYTESIZE);
 			print_uint8_array((uint8_t *)decoded_array, BYTESIZE);
 			test_error();
@@ -71,23 +71,23 @@ extern int main(void)
 	
 	//wrong parameters-----------------------------------------------------------------------------
 	
-	float_to_uint32(NULL, NULL, 0);
-	float_to_uint32(orig_array, NULL, 0);
-	float_to_uint32(orig_array, encoded_array, 0);
+	double_to_uint64(NULL, NULL, 0);
+	double_to_uint64(orig_array, NULL, 0);
+	double_to_uint64(orig_array, encoded_array, 0);
 	printf("\n");
 	
-	uint32_to_float(NULL, NULL, 0);
-	uint32_to_float(encoded_array, NULL, 0);
-	uint32_to_float(encoded_array, orig_array, 0);
+	uint64_to_double(NULL, NULL, 0);
+	uint64_to_double(encoded_array, NULL, 0);
+	uint64_to_double(encoded_array, orig_array, 0);
 	printf("\n");
 	
-	float_to_quiet_nans(NULL, NULL, 0);
-	float_to_quiet_nans(orig_array, NULL, 0);
-	float_to_quiet_nans(orig_array, decoded_array, 0);
+	double_to_quiet_nans(NULL, NULL, 0);
+	double_to_quiet_nans(orig_array, NULL, 0);
+	double_to_quiet_nans(orig_array, decoded_array, 0);
 	printf("\n");
 	
-	print_float_array(NULL, 0);
-	print_float_array(orig_array, 0);
+	print_double_array(NULL, 0);
+	print_double_array(orig_array, 0);
 	
 	
 	

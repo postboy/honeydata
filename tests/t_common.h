@@ -33,7 +33,16 @@ extern int8_t print_uint64_array(const uint64_t *array, const size_t size);
 extern int8_t print_int64_array(const int64_t *array, const size_t size);
 
 //for float floating-point numbers
+//convert signaling NaNs to quiet NaNs in array, print a numeric array
 extern int8_t print_float_array(const float *array, const size_t size);
+extern int8_t float_to_quiet_nans(const float *in_array, float *out_array, const size_t size);
+
+//for double floating-point numbers
+extern int8_t print_double_array(const double *array, const size_t size);
+extern int8_t double_to_quiet_nans(const double *in_array, double *out_array, const size_t size);
+
+//for long double floating-point numbers
+extern int8_t print_longd_array(const long double *array, const size_t size);
 
 extern void test_init(void);
 extern void test_deinit(void);

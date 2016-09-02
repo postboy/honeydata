@@ -9,6 +9,7 @@ license: BSD 2-Clause
 //itype - type of input elements
 
 //generic function for finding minimum and maximum in array----------------------------------------
+
 #define GET_ARRAY_MINMAX(itype) \
 (const itype *array, const size_t size, itype *min, itype *max) \
 { \
@@ -43,7 +44,7 @@ license: BSD 2-Clause
 			tmpmin = array[i]; \
 		if (array[i] > tmpmax)		/*then it's the new maximum*/ \
 			tmpmax = array[i]; \
-		/*we don't break a cycle if ((tmpmin == itype_MIN) && (tmpmax == itype_MAX)) because it \
+		/*we don't break the cycle if ((tmpmin == itype_MIN) && (tmpmax == itype_MAX)) because it \
 		can be used for timing attack; same with not proceeding to next iteration if we found a \
 		new minimum (same element can't be both minimum and maximum if it is not the first)*/ \
 		} \
@@ -73,7 +74,19 @@ extern int8_t get_uint32_minmax
 extern int8_t get_int32_minmax
 	GET_ARRAY_MINMAX(int32_t)
 
+extern int8_t get_uint64_minmax
+	GET_ARRAY_MINMAX(uint64_t)
+
+extern int8_t get_int64_minmax
+	GET_ARRAY_MINMAX(int64_t)
+
 extern int8_t get_float_minmax
 	GET_ARRAY_MINMAX(float)
+
+extern int8_t get_double_minmax
+	GET_ARRAY_MINMAX(double)
+
+extern int8_t get_longd_minmax
+	GET_ARRAY_MINMAX(long double)
 
 #undef GET_ARRAY_MINMAX

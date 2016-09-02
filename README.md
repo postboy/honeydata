@@ -1,8 +1,10 @@
-## Honeydata 0.07 — honey encryption library for numeric data
+## Honeydata 0.08 — honey encryption library for numeric data
 [Honey encryption] (https://en.wikipedia.org/wiki/Honey_Encryption) is a novel type of data encryption. This library provides honey encryption primitives for various numeric data types. Licence: [BSD 2-clause] (http://opensource.org/licenses/bsd-license.php) with public domain parts.
 
 ## Supported data types
-* (u)int8_t, (u)int16_t, (u)int32_t subsets distributed uniformly
+* **integer:** (u)int8_t, (u)int16_t, (u)int32_t subsets distributed uniformly
+* **floating point:** float subsets distributed uniformly
+* some drafts for double, long double, (u)int64_t
 * more is cooking...
 
 ## Warnings

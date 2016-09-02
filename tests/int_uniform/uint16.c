@@ -13,22 +13,23 @@ extern int main(void)
 	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";	//a 256 bit key
 	unsigned char *iv = (unsigned char *)"01234567890123456";					//a 128 bit IV
 	
-	int32_t i, j;									//cycle counters					
+	int32_t i, j;
 	size_t size;									//current array size
-	#define TYPE uint16_t							//type for testing in this test unit
-	#define PRI PRIu16								//macros for printing it
-	#define BYTESIZE (size*sizeof(TYPE))			//current input array size in bytes
-	const size_t maxsize = 1048576/sizeof(TYPE);	//maximum array size (1MB)
+	#define ITYPE uint16_t							//type for testing in this test unit
+	#define OTYPE uint32_t							//type of container in this test unit
+	#define PRI PRIu16								//macro for printing it
+	#define BYTESIZE (size*sizeof(ITYPE))			//current input array size in bytes
+	const size_t maxsize = 1048576/sizeof(ITYPE);	//maximum array size (1MB)
 	//statistics on pseudorandom and output arrays
 	uint64_t in_stats[256] = {0}, out_stats[256] = {0}, long_stats[65536] = {0};
-	TYPE min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
-	uint32_t encoded_array[maxsize];
+	ITYPE min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
+	OTYPE encoded_array[maxsize];
 	FILE *fp;					//file variable
 	
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC mode we need
 	one extra block)*/
-	unsigned char ciphertext[2*256*sizeof(TYPE)];
+	unsigned char ciphertext[2*256*sizeof(ITYPE)];
 	size_t decryptedtext_len, ciphertext_len;		//their lengths
 	
 	//variables for bruteforce test
@@ -50,7 +51,7 @@ extern int main(void)
 	for (i = 0; i < size; i++) {
 		//write a fresh random element to this position until it will be between 0 and 64999
 		while (orig_array[i] > 64999) {
-			if ( !RAND_bytes( (unsigned char *)(orig_array+i), sizeof(TYPE)) )
+			if ( !RAND_bytes( (unsigned char *)(orig_array+i), sizeof(ITYPE)) )
 				OpenSSL_error();
 			}
 		
@@ -172,7 +173,7 @@ extern int main(void)
 	for (j = 0; j < size; j++) {
 		//write a fresh random element to this position until it will be between 0 and 59999
 		while (orig_array[j] > 59999) {
-			if ( !RAND_bytes( (unsigned char *)(orig_array+j), sizeof(TYPE)) )
+			if ( !RAND_bytes( (unsigned char *)(orig_array+j), sizeof(ITYPE)) )
 				OpenSSL_error();
 			}
 				
@@ -223,6 +224,7 @@ extern int main(void)
 	
 	
 	//random encoding and decoding-----------------------------------------------------------------
+	
 	for (size = 1; size < 256; size++) {
 		//write a random numbers to original array
 		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
@@ -309,6 +311,7 @@ extern int main(void)
 	
 	
 	//wrong parameters-----------------------------------------------------------------------------
+	
 	get_uint16_minmax(NULL, 0, NULL, NULL);
 	get_uint16_minmax(orig_array, 0, NULL, NULL);
 	get_uint16_minmax(orig_array, 1, NULL, NULL);
@@ -339,6 +342,9 @@ extern int main(void)
 	
 	
 	
+	#undef ITYPE
+	#undef OTYPE
+	#undef PRI
 	#undef BYTESIZE
 	test_deinit();
 	

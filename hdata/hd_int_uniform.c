@@ -9,10 +9,12 @@ license: BSD 2-Clause
 //itype - type of input elements
 //utype - unsigned type of same size as input type
 //otype - type of output elements (always unsigned, size is twice larger than size of itype)
+//UTYPE_MAX, OTYPE_MAX - maximum possible values of utype and otype, respectively
 //ISPACE - size of itype and utype code space (equals UTYPE_MAX + 1)
 //OSPACE - size of otype code space (equals OTYPE_MAX + 1)
 
 //generic DTE function for integer arrays----------------------------------------------------------
+
 #define ENCODE_INT_UNIFORM(itype, utype, otype, UTYPE_MAX, OTYPE_MAX) \
 (const itype *in_array, otype *out_array, const size_t size, const itype min, const itype max) \
 { \
@@ -102,7 +104,7 @@ license: BSD 2-Clause
 		/*note otype promotion here: algorithm don't work right without it on e.g. int32_test*/ \
 		oelt = ielt - (otype)min; 		/*normalize current element and make type promotion*/ \
 		\
-		/*if we can place a current element in any group (including the last one) then do it*/ \
+		/*if we can place the current element in any group (including the last one) then do it*/ \
 		if ( (oelt < last_group_size) || (last_group_size == 0) ) \
 			oelt += (out_array[i] % group_num) * group_size; \
 		/*else place it in any group excluding the last one*/ \
@@ -136,6 +138,7 @@ extern int8_t encode_int32_uniform
 #undef ENCODE_INT_UNIFORM
 
 //generic DTD function for integer arrays----------------------------------------------------------
+
 #define DECODE_INT_UNIFORM(itype, otype, UTYPE_MAX) \
 (const otype *in_array, itype *out_array, const size_t size, const itype min, const itype max) \
 { \
