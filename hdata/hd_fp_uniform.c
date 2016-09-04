@@ -14,9 +14,10 @@ license: BSD 2-Clause
 //generic function for converting fp arrays to integer arrays--------------------------------------
 
 /*convert fp number to integer and back such way that each integer value will contain a number of
-corresponding fp number in sequence of all possible fp numbers. it means that negative float with
-lowest possible exponent and fraction will become 0 integer, and positive float with highest
-possible exponent and fraction will become maximum integer for given type.*/
+corresponding fp number in sequence of all possible fp numbers of this type. it means that negative
+fp number with highest possible exponent and fraction will become 0 integer, and positive fp number
+with highest possible exponent and fraction will become maximum value for corresponding integer
+type.*/
 
 #define FP_TO_UINT(itype, otype, MIDDLE, END) \
 (const itype *in_array, otype *out_array, const size_t size) \

@@ -9,9 +9,9 @@ license: BSD 2-Clause
 #include "hd_common.h"
 
 //functions for float type arrays
-/*convert fp number to integer and back such way that if (fl1 < fl2) then (int1 < int2), if
-(fl1 = fl2) then (int1 = int2), if (fl1 > fl2) then (int1 > int2), i.e. each integer value will
-contain a number of corresponding fp number in sequence of all possible fp numbers*/
+/*convert fp number to integer and back such way that if (fp1 < fp2) then (int1 < int2), if
+(fp1 = fp2) then (int1 = int2), if (fp1 > fp2) then (int1 > int2), i.e. each integer value will
+contain a number of corresponding fp number in sequence of all possible fp numbers of this type*/
 extern int8_t float_to_uint32(const float *in_array, uint32_t *out_array, const size_t size);
 extern int8_t uint32_to_float(const uint32_t *in_array, float *out_array, const size_t size);
 
