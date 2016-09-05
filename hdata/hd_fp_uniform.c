@@ -107,28 +107,28 @@ extern int8_t double_to_uint64
 		return 3; \
 		} \
 	\
-	otype ielt;	/*current processing element before conversion*/ \
+	otype oelt;	/*current processing element before conversion*/ \
 	/*current processing element after conversion. we use union notation here for access to \
 	bitwise and integer arithmetic operations.*/ \
 	union { \
 		itype fp; \
 		otype i; \
-		} oelt; \
+		} ielt; \
 	size_t i; \
 	\
 	for (i = 0; i < size; i++) { \
-		ielt = in_array[i];			/*read the current element*/ \
+		oelt = in_array[i];			/*read the current element*/ \
 		\
-		if (ielt >= (MIDDLE) ) 		/*if it has a positive value as fp number*/ \
-			oelt.i = ielt - (MIDDLE); \
+		if (oelt >= (MIDDLE) ) 		/*if it has a positive value as fp number*/ \
+			ielt.i = oelt - (MIDDLE); \
 		else \
-			oelt.i = ~ielt; \
+			ielt.i = ~oelt; \
 		\
 		/*if we process NaN then assign 1 to its is_quiet bit*/ \
-		if (isnan(oelt.fp)) \
-			oelt.i = oelt.i | (MASK); \
+		if (isnan(ielt.fp)) \
+			ielt.i = ielt.i | (MASK); \
 		\
-		out_array[i] = oelt.fp; \
+		out_array[i] = ielt.fp; \
 		} \
 	\
 	return 0; \

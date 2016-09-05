@@ -49,13 +49,14 @@ license: BSD 2-Clause
 	size_t i; \
 	\
 	/*if every value is possible*/ \
-	/*note the type promotion here: (max_type_number+1) can become 0 without it because of\
+	/*note the type promotion here: (max_type_number+1) can become 0 without it because of \
 	integer overflow!*/ \
 	if (group_size == ( (otype)(UTYPE_MAX)+1 ) ) { \
-		/*then just copy input array to output array to create a first half*/ \
+		/*then just copy input array to output array to create a first part*/ \
 		memcpy(out_array, in_array, size*sizeof(itype)); \
-		/*follow it by random numbers to create a second half*/ \
-		if (!RAND_bytes( (unsigned char *)out_array + size*sizeof(itype), size*sizeof(itype) )) { \
+		/*follow it by random numbers to create a second part*/ \
+		if (!RAND_bytes( (unsigned char *)out_array + size*sizeof(itype), \
+				size*(sizeof(otype) - sizeof(itype)) )) { \
 			ERR_print_errors_fp(stderr); \
 			return 5; \
 			} \
@@ -63,7 +64,7 @@ license: BSD 2-Clause
 		} \
 	\
 	/*write a random numbers to output array*/ \
-	if (!RAND_bytes( (unsigned char *)out_array, 2*size*sizeof(itype) )) { \
+	if (!RAND_bytes( (unsigned char *)out_array, size*sizeof(otype) )) { \
 		ERR_print_errors_fp(stderr); \
 		return 6; \
 		} \
@@ -101,7 +102,7 @@ license: BSD 2-Clause
 			error("wrong max value"); \
 			return 10; \
 			} \
-		/*note otype promotion here: algorithm don't work right without it on e.g. int32_test*/ \
+		/*note type promotion here: algorithm don't work right without it on e.g. int32 tests*/ \
 		oelt = ielt - (otype)min; 		/*normalize current element and make type promotion*/ \
 		\
 		/*if we can place the current element in any group (including the last one) then do it*/ \
@@ -166,7 +167,7 @@ extern int8_t encode_int32_uniform
 	const otype group_size = (otype)max - min + 1; \
 	size_t i; \
 	\
-	/*if every value is possible then just copy first half of input array to output array*/ \
+	/*if every value is possible then just copy first part of input array to output array*/ \
 	/*note the type promotion here: (max_type_number+1) can become 0 without it because of \
 	integer overflow!*/ \
 	if (group_size == ( (otype)(UTYPE_MAX)+1 ) ) { \
