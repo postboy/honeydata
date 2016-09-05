@@ -87,7 +87,7 @@ license: BSD 2-Clause
 	\
 	/*total number of groups (from ISPACE+1 to OSPACE/2), so they will have indexes in interval \
 	[0; group_num-1]. original formula was ceill( (long double)OSPACE / group_size), but this \
-	formula is faster, more portable and reliable. see /tests/math_test.c for equivalence proof.*/ \
+	formula is faster, more portable and reliable. see math.c for equivalence proof.*/ \
 	const otype group_num = (OTYPE_MAX) / group_size + 1; \
 	\
 	/*else encode each number using random numbers from out_array for group selection*/ \

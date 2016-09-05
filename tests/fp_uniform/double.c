@@ -17,7 +17,7 @@ extern int main(void)
 	const size_t maxsize = 5000;						//maximum array size
 	TYPE orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
 	uint64_t encoded_array[maxsize];
-	//uint8_t bad[] = {1, 0, 0, 0, 0, 0, 240, 255};	//signaling NaN
+	//uint8_t bad[] = {1, 0, 0, 0, 0, 0, 240, 255};		//signaling NaN
 	
 	test_init();
 	
@@ -31,8 +31,8 @@ extern int main(void)
 			OpenSSL_error();
 		/*memcpy(orig_array, bad, sizeof(TYPE));
 		print_uint8_array((uint8_t *)orig_array, sizeof(TYPE));*/
-		//convert signaling NaNs (if any) to quiet NaNs to avoid errors with comparsion
-		double_to_quiet_nans(orig_array, orig_array, size);
+		//convert signaling NaNs to quiet NaNs to avoid errors with comparsion
+		to_quiet_nans_double(orig_array, orig_array, size);
 		//print_uint8_array((uint8_t *)orig_array, sizeof(TYPE));
 		double_to_uint64(orig_array, encoded_array, size);
 		uint64_to_double(encoded_array, decoded_array, size);
@@ -81,9 +81,9 @@ extern int main(void)
 	uint64_to_double(encoded_array, orig_array, 0);
 	printf("\n");
 	
-	double_to_quiet_nans(NULL, NULL, 0);
-	double_to_quiet_nans(orig_array, NULL, 0);
-	double_to_quiet_nans(orig_array, decoded_array, 0);
+	to_quiet_nans_double(NULL, NULL, 0);
+	to_quiet_nans_double(orig_array, NULL, 0);
+	to_quiet_nans_double(orig_array, decoded_array, 0);
 	printf("\n");
 	
 	print_double_array(NULL, 0);

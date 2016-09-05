@@ -36,7 +36,7 @@ license: BSD 2-Clause
 	\
 	for (i = 0; i < size; i++) { \
 		elt = in_array[i];	/*read the current element*/ \
-		++stats[elt - MIN];	/*increment the corresponding number in output array*/ \
+		++stats[elt - (MIN)];	/*increment the corresponding number in output array*/ \
 		} \
 	\
 	return 0; \
@@ -173,7 +173,7 @@ NaN is quieted by clearing this sixth bit.*/
 		/*if current element is NaN then set is_quiet bit and copy it, else just copy it*/ \
 		if (isnan(in_array[i])) { \
 			ielt.fp = in_array[i]; \
-			ielt.i = ielt.i | MASK; \
+			ielt.i = ielt.i | (MASK); \
 			out_array[i] = ielt.fp; \
 			} \
 		else \
@@ -182,10 +182,10 @@ NaN is quieted by clearing this sixth bit.*/
 	return 0; \
 }
 
-extern int8_t float_to_quiet_nans
+extern int8_t to_quiet_nans_float
 	TO_QUIET_NANS(float, uint32_t, 0x00400000)
 
-extern int8_t double_to_quiet_nans
+extern int8_t to_quiet_nans_double
 	TO_QUIET_NANS(double, uint64_t, 0x0008000000000000)
 
 #undef TO_QUIET_NANS

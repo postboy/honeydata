@@ -17,7 +17,7 @@ extern int main(void)
 	const size_t maxsize = 5000;						//maximum array size
 	TYPE orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
 	uint32_t encoded_array[maxsize];
-	//uint8_t bad[] = {1, 0, 128, 255};		//signaling NaN
+	//uint8_t bad[] = {1, 0, 128, 255};					//signaling NaN
 	
 	test_init();
 	
@@ -32,7 +32,7 @@ extern int main(void)
 		/*memcpy(orig_array, bad, sizeof(TYPE));
 		print_uint8_array((uint8_t *)orig_array, sizeof(TYPE));*/
 		//convert signaling NaNs (if any) to quiet NaNs to avoid errors with comparsion
-		float_to_quiet_nans(orig_array, orig_array, size);
+		to_quiet_nans_float(orig_array, orig_array, size);
 		//print_uint8_array((uint8_t *)orig_array, sizeof(TYPE));
 		float_to_uint32(orig_array, encoded_array, size);
 		uint32_to_float(encoded_array, decoded_array, size);
@@ -81,9 +81,9 @@ extern int main(void)
 	uint32_to_float(encoded_array, orig_array, 0);
 	printf("\n");
 	
-	float_to_quiet_nans(NULL, NULL, 0);
-	float_to_quiet_nans(orig_array, NULL, 0);
-	float_to_quiet_nans(orig_array, decoded_array, 0);
+	to_quiet_nans_float(NULL, NULL, 0);
+	to_quiet_nans_float(orig_array, NULL, 0);
+	to_quiet_nans_float(orig_array, decoded_array, 0);
 	printf("\n");
 	
 	print_float_array(NULL, 0);
