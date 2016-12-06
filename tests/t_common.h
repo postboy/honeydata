@@ -11,38 +11,38 @@ license: BSD 2-Clause
 
 //functions for unsigned and signed 8 bit integers
 //get a number of occurences of different elements in array, print a numeric array
-extern int8_t stats_uint8_array(const uint8_t *in_array, const size_t size, uint64_t *stats);
-extern int8_t print_uint8_array(const uint8_t *array, const size_t size);
+extern int stats_uint8_array(const uint8_t *in_array, const size_t size, uint64_t *stats);
+extern int print_uint8_array(const uint8_t *array, const size_t size);
 
-extern int8_t stats_int8_array(const int8_t *in_array, const size_t size, uint64_t *stats);
-extern int8_t print_int8_array(const int8_t *array, const size_t size);
+extern int stats_int8_array(const int8_t *in_array, const size_t size, uint64_t *stats);
+extern int print_int8_array(const int8_t *array, const size_t size);
 
 //for unsigned and signed 16 bit integers
-extern int8_t stats_uint16_array(const uint16_t *in_array, const size_t size, uint64_t *stats);
-extern int8_t print_uint16_array(const uint16_t *array, const size_t size);
+extern int stats_uint16_array(const uint16_t *in_array, const size_t size, uint64_t *stats);
+extern int print_uint16_array(const uint16_t *array, const size_t size);
 
-extern int8_t stats_int16_array(const int16_t *in_array, const size_t size, uint64_t *stats);
-extern int8_t print_int16_array(const int16_t *array, const size_t size);
+extern int stats_int16_array(const int16_t *in_array, const size_t size, uint64_t *stats);
+extern int print_int16_array(const int16_t *array, const size_t size);
 
 //for unsigned and signed 32 bit integers
-extern int8_t print_uint32_array(const uint32_t *array, const size_t size);
-extern int8_t print_int32_array(const int32_t *array, const size_t size);
+extern int print_uint32_array(const uint32_t *array, const size_t size);
+extern int print_int32_array(const int32_t *array, const size_t size);
 
 //for unsigned and signed 64 bit integers
-extern int8_t print_uint64_array(const uint64_t *array, const size_t size);
-extern int8_t print_int64_array(const int64_t *array, const size_t size);
+extern int print_uint64_array(const uint64_t *array, const size_t size);
+extern int print_int64_array(const int64_t *array, const size_t size);
 
 //for float floating-point numbers
 //convert signaling NaNs to quiet NaNs in array, print a numeric array
-extern int8_t print_float_array(const float *array, const size_t size);
-extern int8_t to_quiet_nans_float(const float *in_array, float *out_array, const size_t size);
+extern int print_float_array(const float *array, const size_t size);
+extern int to_quiet_nans_float(const float *in_array, float *out_array, const size_t size);
 
 //for double floating-point numbers
-extern int8_t print_double_array(const double *array, const size_t size);
-extern int8_t to_quiet_nans_double(const double *in_array, double *out_array, const size_t size);
+extern int print_double_array(const double *array, const size_t size);
+extern int to_quiet_nans_double(const double *in_array, double *out_array, const size_t size);
 
 //for long double floating-point numbers
-extern int8_t print_longd_array(const long double *array, const size_t size);
+extern int print_longd_array(const long double *array, const size_t size);
 
 extern void test_init(void);
 extern void test_deinit(void);

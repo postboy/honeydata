@@ -118,22 +118,22 @@ license: BSD 2-Clause
 	return 0; \
 }
 
-extern int8_t encode_uint8_uniform
+extern int encode_uint8_uniform
 	ENCODE_INT_UNIFORM(uint8_t, uint8_t, uint16_t, UINT8_MAX, UINT16_MAX)
 
-extern int8_t encode_int8_uniform
+extern int encode_int8_uniform
 	ENCODE_INT_UNIFORM(int8_t, uint8_t, uint16_t, UINT8_MAX, UINT16_MAX)
 
-extern int8_t encode_uint16_uniform
+extern int encode_uint16_uniform
 	ENCODE_INT_UNIFORM(uint16_t, uint16_t, uint32_t, UINT16_MAX, UINT32_MAX)
 
-extern int8_t encode_int16_uniform
+extern int encode_int16_uniform
 	ENCODE_INT_UNIFORM(int16_t, uint16_t, uint32_t, UINT16_MAX, UINT32_MAX)
 
-extern int8_t encode_uint32_uniform
+extern int encode_uint32_uniform
 	ENCODE_INT_UNIFORM(uint32_t, uint32_t, uint64_t, UINT32_MAX, UINT64_MAX)
 
-extern int8_t encode_int32_uniform
+extern int encode_int32_uniform
 	ENCODE_INT_UNIFORM(int32_t, uint32_t, uint64_t, UINT32_MAX, UINT64_MAX)
 
 #undef ENCODE_INT_UNIFORM
@@ -204,22 +204,22 @@ extern int8_t encode_int32_uniform
 	return 0; \
 }
 
-extern int8_t decode_uint8_uniform
+extern int decode_uint8_uniform
 	DECODE_INT_UNIFORM(uint8_t, uint16_t, UINT8_MAX)
 
-extern int8_t decode_int8_uniform
+extern int decode_int8_uniform
 	DECODE_INT_UNIFORM(int8_t, uint16_t, UINT8_MAX)
 
-extern int8_t decode_uint16_uniform
+extern int decode_uint16_uniform
 	DECODE_INT_UNIFORM(uint16_t, uint32_t, UINT16_MAX)
 
-extern int8_t decode_int16_uniform
+extern int decode_int16_uniform
 	DECODE_INT_UNIFORM(int16_t, uint32_t, UINT16_MAX)
 
-extern int8_t decode_uint32_uniform
+extern int decode_uint32_uniform
 	DECODE_INT_UNIFORM(uint32_t, uint64_t, UINT32_MAX)
 
-extern int8_t decode_int32_uniform
+extern int decode_int32_uniform
 	DECODE_INT_UNIFORM(int32_t, uint64_t, UINT32_MAX)
 
 #undef DECODE_INT_UNIFORM

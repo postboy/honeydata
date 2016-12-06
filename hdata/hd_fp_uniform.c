@@ -80,10 +80,10 @@ may be enough to convert all signaling NaNs to quiet NaNs, but it may be not por
 	return 0; \
 }
 
-extern int8_t float_to_uint32
+extern int float_to_uint32
 	FP_TO_UINT(float, uint32_t, 0x80000000, 0x00400000)
 
-extern int8_t double_to_uint64
+extern int double_to_uint64
 	FP_TO_UINT(double, uint64_t, 0x8000000000000000, 0x0008000000000000)
 
 #undef FP_TO_UINT
@@ -134,9 +134,9 @@ extern int8_t double_to_uint64
 	return 0; \
 }
 
-extern int8_t uint32_to_float
+extern int uint32_to_float
 	UINT_TO_FP(float, uint32_t, 0x80000000, 0x00400000)
-extern int8_t uint64_to_double
+extern int uint64_to_double
 	UINT_TO_FP(double, uint64_t, 0x8000000000000000, 0x0008000000000000)
 
 #undef UINT_TO_FP

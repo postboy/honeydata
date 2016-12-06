@@ -42,16 +42,16 @@ license: BSD 2-Clause
 	return 0; \
 }
 
-extern int8_t stats_uint8_array
+extern int stats_uint8_array
 	STATS_INT_ARRAY(uint8_t, 0)
 
-extern int8_t stats_int8_array
+extern int stats_int8_array
 	STATS_INT_ARRAY(int8_t, INT8_MIN)
 
-extern int8_t stats_uint16_array
+extern int stats_uint16_array
 	STATS_INT_ARRAY(uint16_t, 0)
 
-extern int8_t stats_int16_array
+extern int stats_int16_array
 	STATS_INT_ARRAY(int16_t, INT16_MIN)
 
 #undef STATS_INT_ARRAY
@@ -79,37 +79,37 @@ extern int8_t stats_int16_array
 	return 0; \
 }
 
-extern int8_t print_uint8_array
+extern int print_uint8_array
 	PRINT_ARRAY(uint8_t, "%"PRIu8" ")
 
-extern int8_t print_int8_array
+extern int print_int8_array
 	PRINT_ARRAY(int8_t, "%"PRIi8" ")
 
-extern int8_t print_uint16_array
+extern int print_uint16_array
 	PRINT_ARRAY(uint16_t, "%"PRIu16" ")
 
-extern int8_t print_int16_array
+extern int print_int16_array
 	PRINT_ARRAY(int16_t, "%"PRIi16" ")
 
-extern int8_t print_uint32_array
+extern int print_uint32_array
 	PRINT_ARRAY(uint32_t, "%"PRIu32" ")
 
-extern int8_t print_int32_array
+extern int print_int32_array
 	PRINT_ARRAY(int32_t, "%"PRIi32" ")
 
-extern int8_t print_uint64_array
+extern int print_uint64_array
 	PRINT_ARRAY(uint64_t, "%"PRIu64" ")
 
-extern int8_t print_int64_array
+extern int print_int64_array
 	PRINT_ARRAY(int64_t, "%"PRIi64" ")
 
-extern int8_t print_float_array
+extern int print_float_array
 	PRINT_ARRAY(float, "%e ")
 
-extern int8_t print_double_array
+extern int print_double_array
 	PRINT_ARRAY(double, "%e ")
 
-extern int8_t print_longd_array
+extern int print_longd_array
 	PRINT_ARRAY(long double, "%Le ")
 
 #undef PRINT_ARRAY
@@ -182,10 +182,10 @@ NaN is quieted by clearing this sixth bit.*/
 	return 0; \
 }
 
-extern int8_t to_quiet_nans_float
+extern int to_quiet_nans_float
 	TO_QUIET_NANS(float, uint32_t, 0x00400000)
 
-extern int8_t to_quiet_nans_double
+extern int to_quiet_nans_double
 	TO_QUIET_NANS(double, uint64_t, 0x0008000000000000)
 
 #undef TO_QUIET_NANS

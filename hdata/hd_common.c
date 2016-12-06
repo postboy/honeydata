@@ -56,37 +56,37 @@ license: BSD 2-Clause
 	return 0; \
 }
 
-extern int8_t get_uint8_minmax
+extern int get_uint8_minmax
 	GET_ARRAY_MINMAX(uint8_t)
 
-extern int8_t get_int8_minmax
+extern int get_int8_minmax
 	GET_ARRAY_MINMAX(int8_t)
 
-extern int8_t get_uint16_minmax
+extern int get_uint16_minmax
 	GET_ARRAY_MINMAX(uint16_t)
 
-extern int8_t get_int16_minmax
+extern int get_int16_minmax
 	GET_ARRAY_MINMAX(int16_t)
 
-extern int8_t get_uint32_minmax
+extern int get_uint32_minmax
 	GET_ARRAY_MINMAX(uint32_t)
 
-extern int8_t get_int32_minmax
+extern int get_int32_minmax
 	GET_ARRAY_MINMAX(int32_t)
 
-extern int8_t get_uint64_minmax
+extern int get_uint64_minmax
 	GET_ARRAY_MINMAX(uint64_t)
 
-extern int8_t get_int64_minmax
+extern int get_int64_minmax
 	GET_ARRAY_MINMAX(int64_t)
 
-extern int8_t get_float_minmax
+extern int get_float_minmax
 	GET_ARRAY_MINMAX(float)
 
-extern int8_t get_double_minmax
+extern int get_double_minmax
 	GET_ARRAY_MINMAX(double)
 
-extern int8_t get_longd_minmax
+extern int get_longd_minmax
 	GET_ARRAY_MINMAX(long double)
 
 #undef GET_ARRAY_MINMAX
