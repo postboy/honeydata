@@ -141,6 +141,10 @@ extern int uint64_to_double
 
 #undef UINT_TO_FP
 
+/*optimization notes:
+1. 2^0 + ... + 2^n = 2^(n+1) - 1
+2. logical operations are faster than arithmetical ones, so we should use former when we can*/
+
 extern int container_float_uniform(const float min, const float max)
 {
 	/*check the arguments*/
@@ -154,26 +158,25 @@ extern int container_float_uniform(const float min, const float max)
 	uint16_t minexp, maxexp;
 	uint32_t minfrac, maxfrac;
 	
-	/*number of used groups, weight of current group, number of additional
-	elements*/
+	/*number of used groups, weight of current group, number of additional elements*/
 	uint64_t used_groups, weight, remainder, i;
 	
 	/*we use this union for logical operations on fp numbers*/
 	union {
-		float fl;
+		float f;
 		uint32_t i;
-		} hfloat;
+		} fpint;
 	
 	/*get components of minimum and maximum*/
-	hfloat.fl = min;
-	minsign = (hfloat.i >> 31 ) ? false : true;
-	minexp = (hfloat.i >> 23) & 0xFF;
-	minfrac = hfloat.i & 0x007FFFFF;
+	fpint.f = min;
+	minsign = (fpint.i >> 31 ) ? false : true;
+	minexp = (fpint.i >> 23) & 0xFF;
+	minfrac = fpint.i & 0x007FFFFF;
 	
-	hfloat.fl = max;
-	maxsign = (hfloat.i >> 31 ) ? false : true;
-	maxexp = (hfloat.i >> 23) & 0xFF;
-	maxfrac = hfloat.i & 0x007FFFFF;
+	fpint.f = max;
+	maxsign = (fpint.i >> 31 ) ? false : true;
+	maxexp = (fpint.i >> 23) & 0xFF;
+	maxfrac = fpint.i & 0x007FFFFF;
 	
 	/*if both minimum and maximum have same sign*/
 	if (minsign == maxsign) {
@@ -191,41 +194,95 @@ extern int container_float_uniform(const float min, const float max)
 			maxfrac = tmpfrac;
 			}
 		
-		/*count number of fully used groups*/
+		/*get number of fully used groups*/
 		used_groups = 0;
-		weight = 2;
-		/*this fragment can be greatly optimized using fact that
-		(2^0 + ... + 2^n) = (2^(n+1) - 1)*/
+		/*if minimum belongs to denormal numbers then second group will have same weight, else
+		it's weight will be two times larger*/
+		if (minexp == 0)
+			weight = 1;
+		else
+			weight = 2;
 		for (i = minexp + 1; i < maxexp; i++) {
 			used_groups += weight;
 			weight <<= 1;
+			/*check if overflow happened*/
+			if (weight == 0)
+				return TOO_LONG;
 			}
 		
 		/*count all additional elements*/
-		if (minexp == maxexp)
-			remainder = maxfrac - minfrac;
+		if (minexp == maxexp) {
+			remainder = maxfrac - minfrac + 1;
+			/*maybe there is some full groups in remainder now?*/
+			used_groups += remainder >> 23;
+			remainder &= 0x007FFFFF;
+			}
 		else {
-			/*this actions can be optimized by converting operations from
-			arithmetical to logical*/
+			/*if maximum belongs to NaNs then last group will have smallest weight*/
+			if (maxexp == 0xFF)
+				weight = 1;
 			/*first part of remainder is contained in maxfrac*/
-			remainder = maxfrac*weight;
-			/*maybe there is some more groups in remainder now?*/
+			remainder = (maxfrac + 1)*weight;
+			/*maybe there is some full groups in remainder now?*/
 			used_groups += remainder >> 23;
 			remainder &= 0x007FFFFF;
 			/*second part of remainder is contained in minfrac*/
-			remainder += 0x007FFFFF - minfrac;
-			/*maybe there is some more groups in remainder now?*/
+			remainder += 0x007FFFFF + 1 - minfrac;
+			/*maybe there is some full groups in remainder now?*/
 			used_groups += remainder >> 23;
 			remainder &= 0x007FFFFF;
 			}
 		
 		/*if we need to use one more group then use it*/
 		if (remainder != 0)
-			used_groups++;		
+			used_groups++;
 		}
 	/*if minimum is negative and maximum is positive*/
 	else {
-		/*smallest_exponent = 1;*/
+		
+		/*get number of fully used groups*/
+		used_groups = 0;
+		weight = 1;
+		for (i = 0; i < minexp; i++) {
+			used_groups += weight;
+			/*denormal numbers has the same weight as first group of normalized ones*/
+			if (i != 0)
+				weight <<= 1;
+			/*check if overflow happened*/
+			if (weight == 0)
+				return TOO_LONG;
+			}
+		/*count additional negative elements*/
+		/*if maximum belongs to NaNs then last group will have smallest weight*/
+		if (minexp == 0xFF)
+			weight = 1;
+		remainder = (minfrac + 1)*weight;
+		/*maybe there is some full groups in remainder now?*/
+		used_groups += remainder >> 23;
+		remainder &= 0x007FFFFF;
+		
+		weight = 1;
+		for (i = 0; i < maxexp; i++) {
+			used_groups += weight;
+			/*denormal numbers has the same weight as first group of normalized ones*/
+			if (i != 0)
+				weight <<= 1;
+			/*check if overflow happened*/
+			if (weight == 0)
+				return TOO_LONG;
+			}
+		/*count additional positive elements*/
+		/*if maximum belongs to NaNs then last group will have smallest weight*/
+		if (maxexp == 0xFF)
+			weight = 1;
+		remainder += (maxfrac + 1)*weight;
+		/*maybe there is some full groups in remainder now?*/
+		used_groups += remainder >> 23;
+		remainder &= 0x007FFFFF;
+		
+		/*if we need to use one more group then use it*/
+		if (remainder != 0)
+			used_groups++;
 		}
 	
 	if (used_groups < 512)					/*2^9*/
