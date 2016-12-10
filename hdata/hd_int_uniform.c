@@ -55,19 +55,13 @@ license: BSD 2-Clause
 		/*then just copy input array to output array to create a first part*/ \
 		memcpy(out_array, in_array, size*sizeof(itype)); \
 		/*follow it by random numbers to create a second part*/ \
-		if (!RAND_bytes( (unsigned char *)out_array + size*sizeof(itype), \
-				size*(sizeof(otype) - sizeof(itype)) )) { \
-			ERR_print_errors_fp(stderr); \
-			return 5; \
-			} \
+		randombytes( (unsigned char *)out_array + size*sizeof(itype), \
+				size*(sizeof(otype) - sizeof(itype)) ); \
 		return 0; \
 		} \
 	\
 	/*write a random numbers to output array*/ \
-	if (!RAND_bytes( (unsigned char *)out_array, size*sizeof(otype) )) { \
-		ERR_print_errors_fp(stderr); \
-		return 6; \
-		} \
+	randombytes( (unsigned char *)out_array, size*sizeof(otype) ); \
 	\
 	/*if only one value is possible then use a random number for encoding each number*/ \
 	if (group_size == 1) { \

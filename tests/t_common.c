@@ -196,16 +196,11 @@ extern void test_init(void)
 	ERR_load_crypto_strings();
 	OpenSSL_add_all_algorithms();
 	//OPENSSL_config(NULL);
-	if (!RAND_status()) {
-		error("PRNG hasn't been seeded with enough data");
-		exit(1);
-		}
 }
 
 extern void test_deinit(void)
 {
 	//clean up
-	RAND_cleanup();
 	EVP_cleanup();
 	ERR_free_strings();
 }

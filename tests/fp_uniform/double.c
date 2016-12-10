@@ -27,15 +27,14 @@ extern int main(void)
 	
 	for (size = 1; size < maxsize; size++) {
 		//write a random numbers to original array
-		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-			OpenSSL_error();
+		randombytes((unsigned char *)orig_array, BYTESIZE);
 		/*memcpy(orig_array, bad, sizeof(TYPE));
 		print_uint8_array((uint8_t *)orig_array, sizeof(TYPE));*/
 		//convert signaling NaNs to quiet NaNs to avoid errors with comparsion
 		to_quiet_nans_double(orig_array, orig_array, size);
 		//print_uint8_array((uint8_t *)orig_array, sizeof(TYPE));
-		double_to_uint64(orig_array, encoded_array, size);
-		uint64_to_double(encoded_array, decoded_array, size);
+		double_to_uint64_uniform(orig_array, encoded_array, size);
+		uint64_to_double_uniform(encoded_array, decoded_array, size);
 		if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 			error("orig_array and decoded_array are not the same");
 			print_double_array(orig_array, size);
@@ -71,14 +70,14 @@ extern int main(void)
 	
 	//wrong parameters-----------------------------------------------------------------------------
 	
-	double_to_uint64(NULL, NULL, 0);
-	double_to_uint64(orig_array, NULL, 0);
-	double_to_uint64(orig_array, encoded_array, 0);
+	double_to_uint64_uniform(NULL, NULL, 0);
+	double_to_uint64_uniform(orig_array, NULL, 0);
+	double_to_uint64_uniform(orig_array, encoded_array, 0);
 	printf("\n");
 	
-	uint64_to_double(NULL, NULL, 0);
-	uint64_to_double(encoded_array, NULL, 0);
-	uint64_to_double(encoded_array, orig_array, 0);
+	uint64_to_double_uniform(NULL, NULL, 0);
+	uint64_to_double_uniform(encoded_array, NULL, 0);
+	uint64_to_double_uniform(encoded_array, orig_array, 0);
 	printf("\n");
 	
 	to_quiet_nans_double(NULL, NULL, 0);

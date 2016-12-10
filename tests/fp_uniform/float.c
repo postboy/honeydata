@@ -27,15 +27,14 @@ extern int main(void)
 	
 	for (size = 1; size < maxsize; size++) {
 		//write a random numbers to original array
-		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-			OpenSSL_error();
+		randombytes((unsigned char *)orig_array, BYTESIZE);
 		/*memcpy(orig_array, bad, sizeof(TYPE));
 		print_uint8_array((uint8_t *)orig_array, sizeof(TYPE));*/
 		//convert signaling NaNs (if any) to quiet NaNs to avoid errors with comparsion
 		to_quiet_nans_float(orig_array, orig_array, size);
 		//print_uint8_array((uint8_t *)orig_array, sizeof(TYPE));
-		float_to_uint32(orig_array, encoded_array, size);
-		uint32_to_float(encoded_array, decoded_array, size);
+		float_to_uint32_uniform(orig_array, encoded_array, size);
+		uint32_to_float_uniform(encoded_array, decoded_array, size);
 		if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 			error("orig_array and decoded_array are not the same");
 			print_float_array(orig_array, size);
@@ -71,14 +70,14 @@ extern int main(void)
 	
 	//wrong parameters-----------------------------------------------------------------------------
 	
-	float_to_uint32(NULL, NULL, 0);
-	float_to_uint32(orig_array, NULL, 0);
-	float_to_uint32(orig_array, encoded_array, 0);
+	float_to_uint32_uniform(NULL, NULL, 0);
+	float_to_uint32_uniform(orig_array, NULL, 0);
+	float_to_uint32_uniform(orig_array, encoded_array, 0);
 	printf("\n");
 	
-	uint32_to_float(NULL, NULL, 0);
-	uint32_to_float(encoded_array, NULL, 0);
-	uint32_to_float(encoded_array, orig_array, 0);
+	uint32_to_float_uniform(NULL, NULL, 0);
+	uint32_to_float_uniform(encoded_array, NULL, 0);
+	uint32_to_float_uniform(encoded_array, orig_array, 0);
 	printf("\n");
 	
 	to_quiet_nans_float(NULL, NULL, 0);

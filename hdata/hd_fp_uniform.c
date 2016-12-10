@@ -52,10 +52,7 @@ may be enough to convert all signaling NaNs to quiet NaNs, but it may be not por
 	size_t i; \
 	\
 	/*write a random numbers to output array*/ \
-	if (!RAND_bytes( (unsigned char *)out_array, size*sizeof(itype) )) { \
-		ERR_print_errors_fp(stderr); \
-		return 4; \
-		} \
+	randombytes( (unsigned char *)out_array, size*sizeof(itype) ); \
 	\
 	for (i = 0; i < size; i++) { \
 		ielt.fp = in_array[i];		/*read the current element*/ \
@@ -80,10 +77,10 @@ may be enough to convert all signaling NaNs to quiet NaNs, but it may be not por
 	return 0; \
 }
 
-extern int float_to_uint32
+extern int float_to_uint32_uniform
 	FP_TO_UINT(float, uint32_t, 0x80000000, 0x00400000)
 
-extern int double_to_uint64
+extern int double_to_uint64_uniform
 	FP_TO_UINT(double, uint64_t, 0x8000000000000000, 0x0008000000000000)
 
 #undef FP_TO_UINT
@@ -134,9 +131,9 @@ extern int double_to_uint64
 	return 0; \
 }
 
-extern int uint32_to_float
+extern int uint32_to_float_uniform
 	UINT_TO_FP(float, uint32_t, 0x80000000, 0x00400000)
-extern int uint64_to_double
+extern int uint64_to_double_uniform
 	UINT_TO_FP(double, uint64_t, 0x8000000000000000, 0x0008000000000000)
 
 #undef UINT_TO_FP

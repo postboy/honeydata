@@ -44,16 +44,13 @@ extern int main(void)
 	
 	size = 256;
 	//write a random numbers to original array
-	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-		OpenSSL_error();
+	randombytes((unsigned char *)orig_array, BYTESIZE);
 	
 	//let orig_array contain numbers from -50 to 50
 	for (i = 0; i < size; i++) {
 		//write a fresh random element to this position until it will be between -50 and 50
-		while ( (orig_array[i] < -50) || (orig_array[i] > 50) ) {
-			if ( !RAND_bytes((unsigned char *)(orig_array+i), sizeof(ITYPE)) )
-				OpenSSL_error();
-			}
+		while ( (orig_array[i] < -50) || (orig_array[i] > 50) )
+			randombytes((unsigned char *)(orig_array+i), sizeof(ITYPE));
 		}
 	
 	get_int8_minmax(orig_array, size, &min, &max);
@@ -156,25 +153,21 @@ extern int main(void)
 	
 	size = maxsize;
 	//write a random numbers to original array
-	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-		OpenSSL_error();
+	randombytes((unsigned char *)orig_array, BYTESIZE);
 	memset(in_stats, 0, sizeof(in_stats));		//initialize statistics arrays
 	memset(out_stats, 0, sizeof(out_stats));
 	//get a statistics on a pseudorandom numbers
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	/*write a fresh random numbers to original array and get a statistics on them again for fair
 	comparsion with 2*BYTESIZE encoded bytes below*/
-	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-		OpenSSL_error();
+	randombytes((unsigned char *)orig_array, BYTESIZE);
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
 	//let orig_array contain numbers from -100 to 19 distributed uniformly
 	for (j = 0; j < size; j++) {
 		//write a fresh random element to this position until it will be between -100 and 19
-		while ( (orig_array[j] < -100) || (orig_array[j] > 19) ) {
-			if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(ITYPE)) )
-				OpenSSL_error();
-			}
+		while ( (orig_array[j] < -100) || (orig_array[j] > 19) )
+			randombytes((unsigned char *)(orig_array+j), sizeof(ITYPE));
 		}
 	
 	encode_int8_uniform(orig_array, encoded_array, size, -100, 19);
@@ -226,15 +219,12 @@ extern int main(void)
 	memset(long_stats, 0, sizeof(long_stats));	//initialize statistics array
 	for (i = 0; i < 65536; i++) {
 		//write a random numbers to original array
-		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-			OpenSSL_error();
+		randombytes((unsigned char *)orig_array, BYTESIZE);
 		
 		//let orig_array contain numbers from -100 to -1 distributed uniformly
 		for (j = 0; j < size; j++) {
-			while ( (orig_array[j] < -100) || (orig_array[j] > -1) ) {
-				if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(ITYPE)) )
-					OpenSSL_error();
-				}
+			while ( (orig_array[j] < -100) || (orig_array[j] > -1) )
+				randombytes((unsigned char *)(orig_array+j), sizeof(ITYPE));
 			}
 		
 		encode_int8_uniform(orig_array, encoded_array, size, -100, -1);
@@ -279,8 +269,7 @@ extern int main(void)
 	
 	for (size = 1; size < 256; size++) {
 		//write a random numbers to original array
-		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-			OpenSSL_error();
+		randombytes((unsigned char *)orig_array, BYTESIZE);
 		get_int8_minmax(orig_array, size, &min, &max);
 		encode_int8_uniform(orig_array, encoded_array, size, min, max);
 		decode_int8_uniform(encoded_array, decoded_array, size, min, max);

@@ -11,6 +11,8 @@ license: BSD 2-Clause
 #include <string.h>
 #include <stdbool.h>
 #include <math.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -50,5 +52,8 @@ extern int get_double_minmax(const double *array, const size_t size,
 	double *min, double *max);
 extern int get_longd_minmax(const long double *array, const size_t size,
 	long double *min, long double *max);
+
+//random number generation
+extern void randombytes(unsigned char *x, unsigned long long xlen);
 
 #endif

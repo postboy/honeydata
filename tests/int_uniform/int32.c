@@ -40,17 +40,14 @@ extern int main(void)
 	
 	size = 256;
 	//write a random numbers to original array
-	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-		OpenSSL_error();
+	randombytes((unsigned char *)orig_array, BYTESIZE);
 	
 	//let orig_array contain numbers from -1000000000 to 1000000000
 	for (i = 0; i < size; i++) {
 		/*write a fresh random element to this position until it will be between -1000000000 and
 		1000000000*/
-		while ( (orig_array[i] < -1000000000) || (orig_array[i] > 1000000000) ) {
-			if ( !RAND_bytes((unsigned char *)(orig_array+i), sizeof(ITYPE)) )
-				OpenSSL_error();
-			}
+		while ( (orig_array[i] < -1000000000) || (orig_array[i] > 1000000000) )
+			randombytes((unsigned char *)(orig_array+i), sizeof(ITYPE));
 		}
 	
 	get_int32_minmax(orig_array, size, &min, &max);
@@ -74,25 +71,21 @@ extern int main(void)
 	
 	size = maxsize;
 	//write a random numbers to original array
-	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-		OpenSSL_error();
+	randombytes((unsigned char *)orig_array, BYTESIZE);
 	memset(in_stats, 0, sizeof(in_stats));			//initialize statistics arrays
 	memset(out_stats, 0, sizeof(out_stats));
 	//get a statistics on a pseudorandom numbers
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	/*write a fresh random numbers to original array and get a statistics on them again for fair
 	comparsion with 2*BYTESIZE encoded bytes below*/
-	if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-		OpenSSL_error();
+	randombytes((unsigned char *)orig_array, BYTESIZE);
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
 	//let orig_array contain numbers from -2000000000 to 1000000000 distributed uniformly
 	for (j = 0; j < size; j++) {
 		//write a fresh random element to this position until it will be between -19990 and 10000
-		while ( (orig_array[j] < -2000000000) || (orig_array[j] > 1000000000) ) {
-			if ( !RAND_bytes((unsigned char *)(orig_array+j), sizeof(ITYPE)) )
-				OpenSSL_error();
-			}
+		while ( (orig_array[j] < -2000000000) || (orig_array[j] > 1000000000) )
+			randombytes((unsigned char *)(orig_array+j), sizeof(ITYPE));
 		}
 	
 	encode_int32_uniform(orig_array, encoded_array, size, -2000000000, 1000000000);
@@ -142,8 +135,7 @@ extern int main(void)
 	
 	for (size = 1; size < 256; size++) {
 		//write a random numbers to original array
-		if (!RAND_bytes((unsigned char *)orig_array, BYTESIZE))
-			OpenSSL_error();
+		randombytes((unsigned char *)orig_array, BYTESIZE);
 		get_int32_minmax(orig_array, size, &min, &max);
 		encode_int32_uniform(orig_array, encoded_array, size, min, max);
 		decode_int32_uniform(encoded_array, decoded_array, size, min, max);
