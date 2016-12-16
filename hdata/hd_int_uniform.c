@@ -60,21 +60,16 @@ license: BSD 2-Clause
 		return 0; \
 		} \
 	\
-	/*write a random numbers to output array*/ \
+	/*write the random numbers to output array*/ \
 	randombytes( (unsigned char *)out_array, size*sizeof(otype) ); \
 	\
 	/*if only one value is possible then use a random number for encoding each number*/ \
 	if (group_size == 1) { \
 		/*we're already done with random numbers, but we should check an input array*/ \
 		for (i = 0; i < size; i++) { \
-			ielt = in_array[i]; \
-			if (ielt < min) { \
-				error("wrong min value"); \
+			if (in_array[i] != min) { \
+				error("wrong min or max value"); \
 				return 5; \
-				} \
-			else if (ielt > max) { \
-				error("wrong max value"); \
-				return 6; \
 				} \
 			} \
 		return 0; \
@@ -90,11 +85,11 @@ license: BSD 2-Clause
 		ielt = in_array[i]; \
 		if (ielt < min) { \
 			error("wrong min value"); \
-			return 7; \
+			return 6; \
 			} \
 		else if (ielt > max) { \
 			error("wrong max value"); \
-			return 8; \
+			return 7; \
 			} \
 		/*note type promotion here: algorithm don't work right without it on e.g. int32 tests*/ \
 		oelt = ielt - (otype)min; 		/*normalize current element and make type promotion*/ \
@@ -160,14 +155,21 @@ extern int encode_uint64_uniform
 	itype ielt;	/*current processing element before and after type promotion*/
 	mpz_t oelt;
 	
-	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1), temporary variable for
-	last_group_size computing.*/
-	mpz_t group_size, tmp_lgs;
+	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/
+	mpz_t group_size;
+	/*temporary variable for last_group_size computing*/
+	mpz_t tmp_lgs;
+	/*total number of groups (from ISPACE+1 to OSPACE/2), so they will have indexes in interval
+	[0; group_num-1]. original formula was	ceil(OSPACE / group_size), but this formula is
+	faster, more portable and reliable. see math.c for equivalence proof for smaller types.*/
+	mpz_t group_num;
 	/*number of elements in the last group or 0	if the last group is full, from	0 to ISPACE-1.*/
 	uint64_t last_group_size;
+	/*store for random bytes*/
+	unsigned char *rand_data;
 	size_t i;
 	
-	mpz_inits(group_size, tmp_lgs, NULL);
+	mpz_inits(group_size, tmp_lgs, group_num, NULL);
 	
 	/*group_size = max - min + 1;*/
 	mpz_set_ui(group_size, max - min);
@@ -177,44 +179,47 @@ extern int encode_uint64_uniform
 	= (UINT32_MAX + 1)^2, then last_group_size = (UINT32_MAX + 1)^4 % group_size*/
 	mpz_set_ui(tmp_lgs, UINT32_MAX);
 	mpz_add_ui(tmp_lgs, tmp_lgs, 1);
-	mpz_powm_ui(tmp_lgs, tmp_lgs, 4, group_size);
+	mpz_pow_ui(tmp_lgs, tmp_lgs, 4);
+	/*save this intermediate result for group_num computation*/
+	mpz_set(group_num, tmp_lgs);
+	/*note: mpz_tdiv and mpz_fdiv function families will return the same results in	this
+	algorithm, since n >= 0. it means that we can use fdiv here, if it will be beneficial for
+	some reason. however, usage of tdiv should be more obvious for reader.*/
+	mpz_tdiv_q(tmp_lgs, tmp_lgs, group_size);
 	last_group_size = mpz_get_ui(tmp_lgs);
 	
-	#if 0
-	/*if every value is possible*/
-	if ((min == ITYPE_MIN) && (max == ITYPE_MAX)) {
-		/*then just copy input array to output array to create a first part*/
-		//memcpy(out_array, in_array, size*sizeof(itype));
-		/*follow it by random numbers to create a second part*/
-		//randombytes( (unsigned char *)out_array + size*sizeof(itype),
-				//size*(sizeof(otype) - sizeof(itype)) );
-		goto success;
-		}
+	/*group_num = OTYPE_MAX / group_size + 1, where OTYPE_MAX = OSPACE - 1 =
+	= (UINT32_MAX + 1)^4 - 1*/
+	mpz_sub_ui(group_num, group_num, 1);
+	mpz_tdiv_q(group_num, group_num, group_size);
+	mpz_add_ui(group_num, group_num, 1);
 	
-	/*write a random numbers to output array*/
-	randombytes( (unsigned char *)out_array, size*sizeof(otype) );
+	/*write the random numbers to temporary array*/
+	if ( (rand_data = malloc(size*8)) == NULL ) {
+		error("couldn't allocate memory for rand_data");
+		return 5;
+		}
+	randombytes(rand_data, size*8);
 	
 	/*if only one value is possible then use a random number for encoding each number*/
-	if (group_size == 1) {
-		/*we're already done with random numbers, but we should check an input array*/
+	if (min == max) {
+		/*first, we should check an input array*/
 		for (i = 0; i < size; i++) {
-			ielt = in_array[i];
-			if (ielt < min) {
-				error("wrong min value");
-				return 5;
-				}
-			else if (ielt > max) {
-				error("wrong max value");
+			if (in_array[i] != min) {
+				error("wrong min or max value");
 				return 6;
 				}
 			}
+		/*copy random numbers to output array*/
+		for (i = 0; i < size; i++)
+			/*maybe parameters of this call can be optimized for simplification of mpz_import()'s
+			job. we can't use mpz_urandomb() here because without subtle seed handling it won't
+			produce cryptographically secure results.*/
+			mpz_import(out_array[i], 8/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*8);
 		goto success;
 		}
 	
-	/*total number of groups (from ISPACE+1 to OSPACE/2), so they will have indexes in interval
-	[0; group_num-1]. original formula was ceill( (long double)OSPACE / group_size), but this
-	formula is faster, more portable and reliable. see math.c for equivalence proof.*/
-	const otype group_num = (OTYPE_MAX) / group_size + 1;
+	
 	
 	/*else encode each number using random numbers from out_array for group selection*/
 	for (i = 0; i < size; i++) {
@@ -227,7 +232,8 @@ extern int encode_uint64_uniform
 			error("wrong max value");
 			return 8;
 			}
-		/*note type promotion here: algorithm don't work right without it on e.g. int32 tests*/
+		
+		#if 0
 		oelt = ielt - (otype)min; 		/*normalize current element and make type promotion*/
 		
 		/*if we can place the current element in any group (including the last one) then do it*/
@@ -237,12 +243,14 @@ extern int encode_uint64_uniform
 		else
 			oelt += ( out_array[i] % (group_num-1) ) * group_size;
 		
-		out_array[i] = oelt;	/*finally write it to buffer*/
+		mpz_set(out_array[i], oelt);	/*finally write it to buffer*/
+		#endif
 		}
-	#endif
+	
 	
 	success:
-	mpz_clears(group_size, tmp_lgs, NULL);
+	free(rand_data);
+	mpz_clears(group_size, tmp_lgs, group_num, NULL);
 	return 0;
 }
 

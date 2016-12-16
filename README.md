@@ -18,6 +18,7 @@
 
 ## Dependencies
 OpenSSL: `openssl libssl libssl-dev` packages. Tested on 1.0.2g-fips version.
+GNU MP: `libgmp10 libgmp-dev` packages. Tested on 6.1.0 version.
 
 ## Contributors
 Developer: Zuboff Ivan // anotherdiskmag on gooooooogle mail
