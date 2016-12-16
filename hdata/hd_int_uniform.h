@@ -7,6 +7,7 @@ license: BSD 2-Clause
 #define HD_INT_UNIFORM_H
 
 #include "hd_common.h"
+#include <gmp.h>
 
 //DTE and DTD for unsigned and signed 8, 16 and 32 bit integer arrays
 extern int encode_uint8_uniform(const uint8_t *in_array, uint16_t *out_array,
