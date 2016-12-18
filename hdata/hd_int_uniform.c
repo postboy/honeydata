@@ -36,7 +36,7 @@ license: BSD 2-Clause
 		return 4; \
 		} \
 	\
-	itype ielt;	/*current processing element before and after type promotion*/ \
+	/*current processing element after type promotion*/ \
 	otype oelt; \
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	const otype group_size = (otype)max - min + 1; \
@@ -82,17 +82,16 @@ license: BSD 2-Clause
 	\
 	/*else encode each number using random numbers from out_array for group selection*/ \
 	for (i = 0; i < size; i++) { \
-		ielt = in_array[i]; \
-		if (ielt < min) { \
+		if (in_array[i] < min) { \
 			error("wrong min value"); \
 			return 6; \
 			} \
-		else if (ielt > max) { \
+		else if (in_array[i] > max) { \
 			error("wrong max value"); \
 			return 7; \
 			} \
 		/*note type promotion here: algorithm don't work right without it on e.g. int32 tests*/ \
-		oelt = ielt - (otype)min; 		/*normalize current element and make type promotion*/ \
+		oelt = in_array[i] - (otype)min; 		/*normalize current element and make type promotion*/ \
 		\
 		/*if we can place the current element in any group (including the last one) then do it*/ \
 		if ( (oelt < last_group_size) || (last_group_size == 0) ) \
@@ -128,8 +127,6 @@ extern int encode_int32_uniform
 #undef ENCODE_INT_UNIFORM
 
 #define itype uint64_t
-#define ITYPE_MIN 0
-#define ITYPE_MAX UINT64_MAX
 
 extern int encode_uint64_uniform
 (const itype *in_array, mpz_t *out_array, const size_t size, const itype min, const itype max)
@@ -152,9 +149,8 @@ extern int encode_uint64_uniform
 		return 4;
 		}
 	
-	itype ielt;	/*current processing element before and after type promotion*/
+	/*current processing element after type promotion*/
 	mpz_t oelt;
-	
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/
 	mpz_t group_size;
 	/*temporary variable for last_group_size computing*/
@@ -162,16 +158,45 @@ extern int encode_uint64_uniform
 	/*total number of groups (from ISPACE+1 to OSPACE/2), so they will have indexes in interval
 	[0; group_num-1]. original formula was	ceil(OSPACE / group_size), but this formula is
 	faster, more portable and reliable. see math.c for equivalence proof for smaller types.*/
-	mpz_t group_num;
+	mpz_t group_num, group_num_minus_1;
 	/*number of elements in the last group or 0	if the last group is full, from	0 to ISPACE-1.*/
 	uint64_t last_group_size;
+	/*normalized value of current element*/
+	uint64_t normalized;
 	/*store for random bytes*/
 	unsigned char *rand_data;
 	size_t i;
 	
-	mpz_inits(group_size, tmp_lgs, group_num, NULL);
+	/*write the random numbers to temporary array*/
+	if ( (rand_data = malloc(size*8)) == NULL ) {
+		error("couldn't allocate memory for rand_data");
+		return 5;
+		}
+	randombytes(rand_data, size*8);
 	
-	/*group_size = max - min + 1;*/
+	/*if only one value is possible then use a random number for encoding each number*/
+	if (min == max) {
+		/*first, we should check an input array*/
+		for (i = 0; i < size; i++) {
+			if (in_array[i] != min) {
+				error("wrong min or max value");
+				return 6;
+				}
+			}
+		/*copy random numbers to output array*/
+		for (i = 0; i < size; i++)
+			/*maybe parameters of such calls can be optimized for simplification of
+			mpz_import()'s job. we can't use mpz_urandomb() here because without subtle seed
+			handling it won't produce cryptographically secure results.*/
+			mpz_import(out_array[i], 8/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*8);
+		
+		free(rand_data);
+		return 0;
+		}
+	
+	mpz_inits(oelt, group_size, tmp_lgs, group_num, group_num_minus_1, NULL);
+	
+	/*group_size = max - min + 1*/
 	mpz_set_ui(group_size, max - min);
 	mpz_add_ui(group_size, group_size, 1);
 	
@@ -192,71 +217,53 @@ extern int encode_uint64_uniform
 	= (UINT32_MAX + 1)^4 - 1*/
 	mpz_sub_ui(group_num, group_num, 1);
 	mpz_tdiv_q(group_num, group_num, group_size);
+	/*save this intermediate result for future computations*/
+	mpz_set(group_num_minus_1, group_num);
 	mpz_add_ui(group_num, group_num, 1);
-	
-	/*write the random numbers to temporary array*/
-	if ( (rand_data = malloc(size*8)) == NULL ) {
-		error("couldn't allocate memory for rand_data");
-		return 5;
-		}
-	randombytes(rand_data, size*8);
-	
-	/*if only one value is possible then use a random number for encoding each number*/
-	if (min == max) {
-		/*first, we should check an input array*/
-		for (i = 0; i < size; i++) {
-			if (in_array[i] != min) {
-				error("wrong min or max value");
-				return 6;
-				}
-			}
-		/*copy random numbers to output array*/
-		for (i = 0; i < size; i++)
-			/*maybe parameters of this call can be optimized for simplification of mpz_import()'s
-			job. we can't use mpz_urandomb() here because without subtle seed handling it won't
-			produce cryptographically secure results.*/
-			mpz_import(out_array[i], 8/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*8);
-		goto success;
-		}
-	
-	
 	
 	/*else encode each number using random numbers from out_array for group selection*/
 	for (i = 0; i < size; i++) {
-		ielt = in_array[i];
-		if (ielt < min) {
+		if (in_array[i] < min) {
 			error("wrong min value");
 			return 7;
 			}
-		else if (ielt > max) {
+		else if (in_array[i] > max) {
 			error("wrong max value");
 			return 8;
 			}
 		
-		#if 0
-		oelt = ielt - (otype)min; 		/*normalize current element and make type promotion*/
+		/*normalize current element and make type promotion: oelt = in_array[i] - min*/
+		normalized = in_array[i] - min;
+		/*load second half, then first half: oelt = second_half << 32 + first_half. we do this
+		because long int type can have size of 4 bytes, while our itype has size of 8 bytes.*/
+		mpz_set_ui(oelt, normalized >> 32);
+		mpz_mul_2exp(oelt, oelt, 32);
+		mpz_add_ui(oelt, oelt, normalized & 0xFFFFFFFF);	
 		
 		/*if we can place the current element in any group (including the last one) then do it*/
-		if ( (oelt < last_group_size) || (last_group_size == 0) )
-			oelt += (out_array[i] % group_num) * group_size;
+		if ( (normalized < last_group_size) || (last_group_size == 0) ) {
+			/*oelt += (out_array[i] % group_num) * group_size*/
+			mpz_import(out_array[i], 8/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*8);
+			mpz_tdiv_q(out_array[i], out_array[i], group_num);
+			mpz_mul(out_array[i], out_array[i], group_size);
+			mpz_add(out_array[i], out_array[i], oelt);
+			}
 		/*else place it in any group excluding the last one*/
-		else
-			oelt += ( out_array[i] % (group_num-1) ) * group_size;
-		
-		mpz_set(out_array[i], oelt);	/*finally write it to buffer*/
-		#endif
+		else {
+			/*oelt += ( out_array[i] % (group_num-1) ) * group_size*/
+			mpz_import(out_array[i], 8/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*8);
+			mpz_tdiv_q(out_array[i], out_array[i], group_num_minus_1);
+			mpz_mul(out_array[i], out_array[i], group_size);
+			mpz_add(out_array[i], out_array[i], oelt);
+			}		
 		}
 	
-	
-	success:
 	free(rand_data);
-	mpz_clears(group_size, tmp_lgs, group_num, NULL);
+	mpz_clears(oelt, group_size, tmp_lgs, group_num, group_num_minus_1, NULL);
 	return 0;
 }
 
 #undef itype
-#undef ITYPE_MIN
-#undef ITYPE_MAX
 
 //generic DTD function for integer arrays----------------------------------------------------------
 
@@ -281,8 +288,6 @@ extern int encode_uint64_uniform
 		return 4; \
 		} \
 	\
-	otype oelt; /*current processing element before and after type regression*/ \
-	itype ielt;	\
 	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	const otype group_size = (otype)max - min + 1; \
 	size_t i; \
@@ -304,21 +309,18 @@ extern int encode_uint64_uniform
 	\
 	/*else decode each number*/ \
 	for (i = 0; i < size; i++) { \
-		oelt = in_array[i];	/*read current element*/ \
 		/*get its value in first group, denormalize it, do a type regression*/ \
-		ielt = (oelt % group_size) + min; \
+		out_array[i] = (in_array[i] % group_size) + min; \
 		\
 		/*if algorithm works right, this errors should never be thrown*/ \
-		if (ielt < min) { \
+		if (out_array[i] < min) { \
 			error("algorithm error: wrong value < min"); \
 			return 5; \
 			} \
-		else if (ielt > max) { \
+		else if (out_array[i] > max) { \
 			error("algorithm error: wrong value > max"); \
 			return 6; \
 			} \
-		\
-		out_array[i] = ielt;	/*finally write it to buffer*/ \
 		} \
 	\
 	return 0; \
@@ -343,3 +345,78 @@ extern int decode_int32_uniform
 	DECODE_INT_UNIFORM(int32_t, uint64_t, UINT32_MAX)
 
 #undef DECODE_INT_UNIFORM
+
+#define itype uint64_t
+
+extern int decode_uint64_uniform
+(const mpz_t *in_array, itype *out_array, const size_t size, const itype min, const itype max)
+{
+	/*check the arguments*/
+	if (in_array == NULL) {
+		error("in_array = NULL");
+		return 1;
+		}
+	if (out_array == NULL) {
+		error("out_array = NULL");
+		return 2;
+		}
+	if (size == 0) {
+		error("size = 0");
+		return 3;
+		}
+	if (min > max) {
+		error("min > max");
+		return 4;
+		}
+	
+	/*current processing element before type promotion*/
+	mpz_t ielt;
+	/*second half (i.e. it's most significant 4 bytes) of ielt after number of transformations*/
+	mpz_t second_half;
+	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/
+	mpz_t group_size;
+	size_t i;
+	
+	/*if only one value is possible then fill output array with this value*/
+	if (min == max) {
+		for (i = 0; i < size; i++)
+			out_array[i] = min;
+		return 0;
+		}
+	
+	mpz_inits(ielt, second_half, group_size, NULL);
+	
+	/*group_size = max - min + 1*/
+	mpz_set_ui(group_size, max - min);
+	mpz_add_ui(group_size, group_size, 1);
+	
+	/*else decode each number*/
+	for (i = 0; i < size; i++) {
+		/*get its value in first group, denormalize it, do a type regression*/
+		/*out_array[i] = (in_array[i] % group_size) + min*/
+		mpz_set(ielt, in_array[i]);
+		mpz_tdiv_q(ielt, ielt, group_size);
+		mpz_tdiv_q_2exp(second_half, ielt, 32);
+		mpz_tdiv_r_2exp(ielt, ielt, 32);
+		
+		out_array[i] = mpz_get_ui(second_half);
+		out_array[i] <<= 32;
+		out_array[i] += mpz_get_ui(ielt);
+		out_array[i] += min;
+		
+		/*if algorithm works right, this errors should never be thrown*/
+		if (out_array[i] < min) {
+			error("algorithm error: wrong value < min");
+			return 5;
+			}
+		else if (out_array[i] > max) {
+			error("algorithm error: wrong value > max");
+			return 6;
+			}
+		}
+	
+	mpz_clears(ielt, second_half, group_size, NULL);
+	return 0;
+}
+
+#undef itype

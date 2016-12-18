@@ -48,7 +48,6 @@ may be enough to convert all signaling NaNs to quiet NaNs, but it may be not por
 		itype fp; \
 		otype i; \
 		} ielt; \
-	otype oelt;	/*current processing element after conversion*/ \
 	size_t i; \
 	\
 	/*write a random numbers to output array*/ \
@@ -67,11 +66,9 @@ may be enough to convert all signaling NaNs to quiet NaNs, but it may be not por
 			} \
 		\
 		if (ielt.i < MIDDLE)		/*if it has a positive value as fp number*/ \
-			oelt = ielt.i + (MIDDLE); \
+			out_array[i] = ielt.i + (MIDDLE); \
 		else \
-			oelt = ~ielt.i; \
-		\
-		out_array[i] = oelt; \
+			out_array[i] = ~ielt.i; \
 		} \
 	\
 	return 0; \
@@ -104,7 +101,6 @@ extern int double_to_uint64_uniform
 		return 3; \
 		} \
 	\
-	otype oelt;	/*current processing element before conversion*/ \
 	/*current processing element after conversion. we use union notation here for access to \
 	bitwise and integer arithmetic operations.*/ \
 	union { \
@@ -114,12 +110,10 @@ extern int double_to_uint64_uniform
 	size_t i; \
 	\
 	for (i = 0; i < size; i++) { \
-		oelt = in_array[i];			/*read the current element*/ \
-		\
-		if (oelt >= (MIDDLE) ) 		/*if it has a positive value as fp number*/ \
-			ielt.i = oelt - (MIDDLE); \
+		if (in_array[i] >= (MIDDLE) ) 		/*if it has a positive value as fp number*/ \
+			ielt.i = in_array[i] - (MIDDLE); \
 		else \
-			ielt.i = ~oelt; \
+			ielt.i = ~in_array[i]; \
 		\
 		/*if we process NaN then assign 1 to its is_quiet bit*/ \
 		if (isnan(ielt.fp)) \
