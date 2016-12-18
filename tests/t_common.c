@@ -58,7 +58,7 @@ extern int stats_int16_array
 
 //generic function for printing a numeric array----------------------------------------------------
 
-#define PRINT_ARRAY(itype, FORMAT) \
+#define PRINT_ARRAY(itype, COMMAND) \
 (const itype *array, const size_t size) \
 { \
 	/*check the arguments*/ \
@@ -73,44 +73,49 @@ extern int stats_int16_array
 	\
 	size_t i; \
 	\
-	for (i = 0; i < size; i++) \
-		printf( (FORMAT), array[i]); \
+	for (i = 0; i < size; i++) {\
+		COMMAND; \
+		printf(" "); \
+		} \
 	printf("\n"); \
 	return 0; \
 }
 
 extern int print_uint8_array
-	PRINT_ARRAY(uint8_t, "%"PRIu8" ")
+	PRINT_ARRAY(uint8_t, printf("%"PRIu8, array[i]) )
 
 extern int print_int8_array
-	PRINT_ARRAY(int8_t, "%"PRIi8" ")
+	PRINT_ARRAY(int8_t, printf("%"PRIi8, array[i]) )
 
 extern int print_uint16_array
-	PRINT_ARRAY(uint16_t, "%"PRIu16" ")
+	PRINT_ARRAY(uint16_t, printf("%"PRIu16, array[i]) )
 
 extern int print_int16_array
-	PRINT_ARRAY(int16_t, "%"PRIi16" ")
+	PRINT_ARRAY(int16_t, printf("%"PRIi16, array[i]) )
 
 extern int print_uint32_array
-	PRINT_ARRAY(uint32_t, "%"PRIu32" ")
+	PRINT_ARRAY(uint32_t, printf("%"PRIu32, array[i]) )
 
 extern int print_int32_array
-	PRINT_ARRAY(int32_t, "%"PRIi32" ")
+	PRINT_ARRAY(int32_t, printf("%"PRIi32, array[i]) )
 
 extern int print_uint64_array
-	PRINT_ARRAY(uint64_t, "%"PRIu64" ")
+	PRINT_ARRAY(uint64_t, printf("%"PRIu64, array[i]) )
 
 extern int print_int64_array
-	PRINT_ARRAY(int64_t, "%"PRIi64" ")
+	PRINT_ARRAY(int64_t, printf("%"PRIi64, array[i]) )
+
+extern int print_mpz_array
+	PRINT_ARRAY(mpz_t, mpz_out_str(stdout, 16, array[i]) )
 
 extern int print_float_array
-	PRINT_ARRAY(float, "%e ")
+	PRINT_ARRAY(float, printf("%e", array[i]) )
 
 extern int print_double_array
-	PRINT_ARRAY(double, "%e ")
+	PRINT_ARRAY(double, printf("%e", array[i]) )
 
 extern int print_longd_array
-	PRINT_ARRAY(long double, "%Le ")
+	PRINT_ARRAY(long double, printf("%Le", array[i]) )
 
 #undef PRINT_ARRAY
 

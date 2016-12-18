@@ -16,8 +16,8 @@ extern int main(void)
 	int32_t i, j;
 	size_t size;									//current array size
 	#define ITYPE uint8_t							//type for testing in this test unit
-	#define OTYPE uint16_t							//type of container in this test unit
 	#define PRI PRIu8								//macro for printing it
+	#define OTYPE uint16_t							//type of container in this test unit
 	#define BYTESIZE (size*sizeof(ITYPE))			//current input array size in bytes
 	const size_t maxsize = 1048576/sizeof(ITYPE);	//maximum array size (1MB)
 	//statistics on pseudorandom and output arrays

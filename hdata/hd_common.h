@@ -14,6 +14,7 @@ license: BSD 2-Clause
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <gmp.h>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/err.h>

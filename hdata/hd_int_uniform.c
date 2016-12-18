@@ -168,11 +168,11 @@ extern int encode_uint64_uniform
 	size_t i;
 	
 	/*write the random numbers to temporary array*/
-	if ( (rand_data = malloc(size*8)) == NULL ) {
+	if ( (rand_data = malloc(size*16)) == NULL ) {
 		error("couldn't allocate memory for rand_data");
 		return 5;
 		}
-	randombytes(rand_data, size*8);
+	randombytes(rand_data, size*16);
 	
 	/*if only one value is possible then use a random number for encoding each number*/
 	if (min == max) {
@@ -188,7 +188,7 @@ extern int encode_uint64_uniform
 			/*maybe parameters of such calls can be optimized for simplification of
 			mpz_import()'s job. we can't use mpz_urandomb() here because without subtle seed
 			handling it won't produce cryptographically secure results.*/
-			mpz_import(out_array[i], 8/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*8);
+			mpz_import(out_array[i], 16/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*16);
 		
 		free(rand_data);
 		return 0;
@@ -243,7 +243,7 @@ extern int encode_uint64_uniform
 		/*if we can place the current element in any group (including the last one) then do it*/
 		if ( (normalized < last_group_size) || (last_group_size == 0) ) {
 			/*oelt += (out_array[i] % group_num) * group_size*/
-			mpz_import(out_array[i], 8/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*8);
+			mpz_import(out_array[i], 16/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*16);
 			mpz_tdiv_q(out_array[i], out_array[i], group_num);
 			mpz_mul(out_array[i], out_array[i], group_size);
 			mpz_add(out_array[i], out_array[i], oelt);
@@ -251,7 +251,7 @@ extern int encode_uint64_uniform
 		/*else place it in any group excluding the last one*/
 		else {
 			/*oelt += ( out_array[i] % (group_num-1) ) * group_size*/
-			mpz_import(out_array[i], 8/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*8);
+			mpz_import(out_array[i], 16/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*16);
 			mpz_tdiv_q(out_array[i], out_array[i], group_num_minus_1);
 			mpz_mul(out_array[i], out_array[i], group_size);
 			mpz_add(out_array[i], out_array[i], oelt);
