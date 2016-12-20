@@ -22,8 +22,9 @@ type.
 is_quiet bit of all NaNs in array is assigned to random value during encoding, and is assigned to
 1 during decoding.
 
-optimization note: turns out that just running UINT_TO_FP_UNIFORM without explicit setting of is_quite bit
-may be enough to convert all signaling NaNs to quiet NaNs, but it may be not portable.*/
+optimization note: turns out that just running UINT_TO_FP_UNIFORM without explicit setting of
+is_quite bit may be enough to convert all signaling NaNs to quiet NaNs, but it may be not
+portable.*/
 
 #define FP_TO_UINT_UNIFORM(itype, otype, MIDDLE, MASK) \
 (const itype *in_array, otype *out_array, const size_t size) \
