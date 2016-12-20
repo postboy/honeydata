@@ -132,7 +132,7 @@ extern int main(void)
 		test_error();
 		}
 	
-	
+	#endif
 	
 	//random encoding and decoding-----------------------------------------------------------------
 	
@@ -167,7 +167,7 @@ extern int main(void)
 	
 	printf("min = %"PRI", max = %"PRI":\n", min, max);
 	encode_uint64_uniform(orig_array, encoded_array, size, min, max);
-	print_uint64_array(encoded_array, size);
+	print_mpz_array(encoded_array, size);
 	decode_uint64_uniform(encoded_array, decoded_array, size, min, max);
 	//if original and decoded arrays are not equal then print a decoded array too
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
@@ -187,7 +187,6 @@ extern int main(void)
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint64_array(decoded_array, size);
 	printf("\n");
-	#endif
 	
 	
 	//fixed special cases--------------------------------------------------------------------------
@@ -202,14 +201,12 @@ extern int main(void)
 	printf("Original array:\n");
 	print_uint64_array(orig_array, size);
 	get_uint64_minmax(orig_array, size, &min, &max);
-	#if 0
 	printf("min = %"PRI", max = %"PRI":\n", min, max);
 	encode_uint64_uniform(orig_array, encoded_array, size, min, max);
 	print_mpz_array(encoded_array, size);
 	decode_uint64_uniform(encoded_array, decoded_array, size, min, max);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint64_array(decoded_array, size);
-	#endif
 	printf("min = 0, max = %"PRI":\n", UINT64_MAX);
 	encode_uint64_uniform(orig_array, encoded_array, size, 0, UINT64_MAX);
 	print_mpz_array(encoded_array, size);
@@ -219,7 +216,7 @@ extern int main(void)
 	printf("\n");
 	
 	
-	#if 0
+	
 	//wrong parameters-----------------------------------------------------------------------------
 	
 	get_uint64_minmax(NULL, 0, NULL, NULL);
@@ -248,7 +245,7 @@ extern int main(void)
 	
 	print_mpz_array(NULL, 0);
 	print_mpz_array(encoded_array, 0);
-	#endif
+	
 	
 	
 	#undef ITYPE

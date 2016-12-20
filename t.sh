@@ -4,7 +4,7 @@
 #lcrypto is for linking against OpenSSL crypto library, g to produce debug information
 #Wall to see all compiler warnings
 #gcc tests/fp_uniform/double.c tests/t_common.c hdata/hd_fp_uniform.c hdata/hd_common.c \
-#	-o build/fp_uniform/double -O0 -g -lcrypto -lm -Wall -Wpedantic -Wfatal-errors
+#	-o build/fp_uniform/double -O0 -g -lcrypto -lm -Wall -Wfatal-errors
 #cd build/fp_uniform &&
 #./double
 #cd ../..

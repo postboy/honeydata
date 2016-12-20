@@ -38,7 +38,7 @@ license: BSD 2-Clause
 	\
 	/*current processing element after type promotion*/ \
 	otype oelt; \
-	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
+	/*size of full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	const otype group_size = (otype)max - min + 1; \
 	/*number of elements in the last group or 0 if the last group is full, from 0 to ISPACE-1. \
 	original formula was OSPACE % group_size, but it didn't work for uint64_t: \
@@ -151,14 +151,14 @@ extern int encode_uint64_uniform
 	
 	/*current processing element after type promotion*/
 	mpz_t oelt;
-	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/
+	/*size of full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/
 	mpz_t group_size;
-	/*temporary variable for last_group_size computing*/
-	mpz_t tmp_lgs;
 	/*total number of groups (from ISPACE+1 to OSPACE/2), so they will have indexes in interval
 	[0; group_num-1]. original formula was	ceil(OSPACE / group_size), but this formula is
 	faster, more portable and reliable. see math.c for equivalence proof for smaller types.*/
-	mpz_t group_num, group_num_minus_1;
+	mpz_t group_num;
+	/*temporary variable for different computations*/
+	mpz_t tmp;
 	/*number of elements in the last group or 0	if the last group is full, from	0 to ISPACE-1.*/
 	uint64_t last_group_size;
 	/*normalized value of current element*/
@@ -194,31 +194,39 @@ extern int encode_uint64_uniform
 		return 0;
 		}
 	
-	mpz_inits(oelt, group_size, tmp_lgs, group_num, group_num_minus_1, NULL);
+	mpz_inits(oelt, group_size, group_num, tmp, NULL);
 	
 	/*group_size = max - min + 1*/
-	mpz_set_ui(group_size, max - min);
+	/*load second half, then first half: oelt = second_half << 32 + first_half. we do this
+	because long int type can have size of 4 bytes, while our itype has size of 8 bytes.*/
+	mpz_set_ui(group_size, max >> 32);
+	mpz_mul_2exp(group_size, group_size, 32);
+	mpz_add_ui(group_size, group_size, max & 0xFFFFFFFF);
+	mpz_set_ui(tmp, min >> 32);
+	mpz_mul_2exp(tmp, tmp, 32);
+	mpz_add_ui(tmp, tmp, min & 0xFFFFFFFF);
+	mpz_sub(group_size, group_size, tmp);
 	mpz_add_ui(group_size, group_size, 1);
 	
 	/*last_group_size = OSPACE % group_size, where OSPACE = ISPACE^2, ISPACE = UINT64_MAX + 1 =
 	= (UINT32_MAX + 1)^2, then last_group_size = (UINT32_MAX + 1)^4 % group_size*/
-	mpz_set_ui(tmp_lgs, UINT32_MAX);
-	mpz_add_ui(tmp_lgs, tmp_lgs, 1);
-	mpz_pow_ui(tmp_lgs, tmp_lgs, 4);
+	mpz_set_ui(tmp, UINT32_MAX);
+	mpz_add_ui(tmp, tmp, 1);
+	mpz_pow_ui(tmp, tmp, 4);
 	/*save this intermediate result for group_num computation*/
-	mpz_set(group_num, tmp_lgs);
+	mpz_set(group_num, tmp);
 	/*note: mpz_tdiv and mpz_fdiv function families will return the same results in	this
 	algorithm, since n >= 0. it means that we can use fdiv here, if it will be beneficial for
 	some reason. however, usage of tdiv should be more obvious for reader.*/
-	mpz_tdiv_q(tmp_lgs, tmp_lgs, group_size);
-	last_group_size = mpz_get_ui(tmp_lgs);
+	mpz_tdiv_q(tmp, tmp, group_size);
+	last_group_size = mpz_get_ui(tmp);
 	
 	/*group_num = OTYPE_MAX / group_size + 1, where OTYPE_MAX = OSPACE - 1 =
 	= (UINT32_MAX + 1)^4 - 1*/
 	mpz_sub_ui(group_num, group_num, 1);
 	mpz_tdiv_q(group_num, group_num, group_size);
 	/*save this intermediate result for future computations*/
-	mpz_set(group_num_minus_1, group_num);
+	mpz_set(tmp, group_num);
 	mpz_add_ui(group_num, group_num, 1);
 	
 	/*else encode each number using random numbers from out_array for group selection*/
@@ -234,11 +242,9 @@ extern int encode_uint64_uniform
 		
 		/*normalize current element and make type promotion: oelt = in_array[i] - min*/
 		normalized = in_array[i] - min;
-		/*load second half, then first half: oelt = second_half << 32 + first_half. we do this
-		because long int type can have size of 4 bytes, while our itype has size of 8 bytes.*/
 		mpz_set_ui(oelt, normalized >> 32);
 		mpz_mul_2exp(oelt, oelt, 32);
-		mpz_add_ui(oelt, oelt, normalized & 0xFFFFFFFF);	
+		mpz_add_ui(oelt, oelt, normalized & 0xFFFFFFFF);
 		
 		/*if we can place the current element in any group (including the last one) then do it*/
 		if ( (normalized < last_group_size) || (last_group_size == 0) ) {
@@ -252,14 +258,14 @@ extern int encode_uint64_uniform
 		else {
 			/*oelt += ( out_array[i] % (group_num-1) ) * group_size*/
 			mpz_import(out_array[i], 16/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*16);
-			mpz_tdiv_q(out_array[i], out_array[i], group_num_minus_1);
+			mpz_tdiv_q(out_array[i], out_array[i], tmp);
 			mpz_mul(out_array[i], out_array[i], group_size);
 			mpz_add(out_array[i], out_array[i], oelt);
 			}		
 		}
 	
 	free(rand_data);
-	mpz_clears(oelt, group_size, tmp_lgs, group_num, group_num_minus_1, NULL);
+	mpz_clears(oelt, group_size, group_num, tmp, NULL);
 	return 0;
 }
 
@@ -288,7 +294,7 @@ extern int encode_uint64_uniform
 		return 4; \
 		} \
 	\
-	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
+	/*size of full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	const otype group_size = (otype)max - min + 1; \
 	size_t i; \
 	\
@@ -371,10 +377,10 @@ extern int decode_uint64_uniform
 	
 	/*current processing element before type promotion*/
 	mpz_t ielt;
-	/*second half (i.e. it's most significant 4 bytes) of ielt after number of transformations*/
-	mpz_t second_half;
-	/*size of a full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/
+	/*size of full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/
 	mpz_t group_size;
+	/*temporary variable for different computations*/
+	mpz_t tmp;
 	size_t i;
 	
 	/*if only one value is possible then fill output array with this value*/
@@ -384,10 +390,16 @@ extern int decode_uint64_uniform
 		return 0;
 		}
 	
-	mpz_inits(ielt, second_half, group_size, NULL);
+	mpz_inits(ielt, group_size, tmp, NULL);
 	
 	/*group_size = max - min + 1*/
-	mpz_set_ui(group_size, max - min);
+	mpz_set_ui(group_size, max >> 32);
+	mpz_mul_2exp(group_size, group_size, 32);
+	mpz_add_ui(group_size, group_size, max & 0xFFFFFFFF);
+	mpz_set_ui(tmp, min >> 32);
+	mpz_mul_2exp(tmp, tmp, 32);
+	mpz_add_ui(tmp, tmp, min & 0xFFFFFFFF);
+	mpz_sub(group_size, group_size, tmp);
 	mpz_add_ui(group_size, group_size, 1);
 	
 	/*else decode each number*/
@@ -395,11 +407,13 @@ extern int decode_uint64_uniform
 		/*get its value in first group, denormalize it, do a type regression*/
 		/*out_array[i] = (in_array[i] % group_size) + min*/
 		mpz_set(ielt, in_array[i]);
-		mpz_tdiv_q(ielt, ielt, group_size);
-		mpz_tdiv_q_2exp(second_half, ielt, 32);
+		mpz_tdiv_r(ielt, ielt, group_size);
+		/*save second half (i.e. its most significant 4 bytes) of ielt in tmp, first half (i.e.
+		its least significant 4 bytes) in ielt*/
+		mpz_tdiv_q_2exp(tmp, ielt, 32);
 		mpz_tdiv_r_2exp(ielt, ielt, 32);
 		
-		out_array[i] = mpz_get_ui(second_half);
+		out_array[i] = mpz_get_ui(tmp);
 		out_array[i] <<= 32;
 		out_array[i] += mpz_get_ui(ielt);
 		out_array[i] += min;
@@ -415,7 +429,7 @@ extern int decode_uint64_uniform
 			}
 		}
 	
-	mpz_clears(ielt, second_half, group_size, NULL);
+	mpz_clears(ielt, group_size, tmp, NULL);
 	return 0;
 }
 
