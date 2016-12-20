@@ -199,13 +199,10 @@ extern int encode_int32_uniform
 	/*group_size = max - min + 1*/ \
 	/*load second half, then first half: oelt = second_half << 32 + first_half. we do this \
 	because long int type can have size of 4 bytes, while our itype has size of 8 bytes.*/ \
-	mpz_set_ui(group_size, max >> 32); \
+	normalized = max - min; \
+	mpz_set_ui(group_size, normalized >> 32); \
 	mpz_mul_2exp(group_size, group_size, 32); \
-	mpz_add_ui(group_size, group_size, max & 0xFFFFFFFF); \
-	mpz_set_ui(tmp, min >> 32); \
-	mpz_mul_2exp(tmp, tmp, 32); \
-	mpz_add_ui(tmp, tmp, min & 0xFFFFFFFF); \
-	mpz_sub(group_size, group_size, tmp); \
+	mpz_add_ui(group_size, group_size, normalized & 0xFFFFFFFF); \
 	mpz_add_ui(group_size, group_size, 1); \
 	\
 	/*last_group_size = OSPACE % group_size, where OSPACE = ISPACE^2, ISPACE = UINT64_MAX + 1 = \
@@ -401,13 +398,10 @@ extern int decode_int32_uniform
 	mpz_inits(ielt, group_size, tmp, NULL); \
 	\
 	/*group_size = max - min + 1*/ \
-	mpz_set_ui(group_size, max >> 32); \
+	normalized = max - min; \
+	mpz_set_ui(group_size, normalized >> 32); \
 	mpz_mul_2exp(group_size, group_size, 32); \
-	mpz_add_ui(group_size, group_size, max & 0xFFFFFFFF); \
-	mpz_set_ui(tmp, min >> 32); \
-	mpz_mul_2exp(tmp, tmp, 32); \
-	mpz_add_ui(tmp, tmp, min & 0xFFFFFFFF); \
-	mpz_sub(group_size, group_size, tmp); \
+	mpz_add_ui(group_size, group_size, normalized & 0xFFFFFFFF); \
 	mpz_add_ui(group_size, group_size, 1); \
 	\
 	/*else decode each number*/ \

@@ -22,10 +22,10 @@ type.
 is_quiet bit of all NaNs in array is assigned to random value during encoding, and is assigned to
 1 during decoding.
 
-optimization note: turns out that just running UINT_TO_FP without explicit setting of is_quite bit
+optimization note: turns out that just running UINT_TO_FP_UNIFORM without explicit setting of is_quite bit
 may be enough to convert all signaling NaNs to quiet NaNs, but it may be not portable.*/
 
-#define FP_TO_UINT(itype, otype, MIDDLE, MASK) \
+#define FP_TO_UINT_UNIFORM(itype, otype, MIDDLE, MASK) \
 (const itype *in_array, otype *out_array, const size_t size) \
 { \
 	/*check the arguments*/ \
@@ -75,16 +75,16 @@ may be enough to convert all signaling NaNs to quiet NaNs, but it may be not por
 }
 
 extern int float_to_uint32_uniform
-	FP_TO_UINT(float, uint32_t, 0x80000000, 0x00400000)
+	FP_TO_UINT_UNIFORM(float, uint32_t, 0x80000000, 0x00400000)
 
 extern int double_to_uint64_uniform
-	FP_TO_UINT(double, uint64_t, 0x8000000000000000, 0x0008000000000000)
+	FP_TO_UINT_UNIFORM(double, uint64_t, 0x8000000000000000, 0x0008000000000000)
 
-#undef FP_TO_UINT
+#undef FP_TO_UINT_UNIFORM
 
 //generic function for converting integer arrays back to fp arrays---------------------------------
 
-#define UINT_TO_FP(itype, otype, MIDDLE, MASK) \
+#define UINT_TO_FP_UNIFORM(itype, otype, MIDDLE, MASK) \
 (const otype *in_array, itype *out_array, const size_t size) \
 { \
 	/*check the arguments*/ \
@@ -126,11 +126,11 @@ extern int double_to_uint64_uniform
 }
 
 extern int uint32_to_float_uniform
-	UINT_TO_FP(float, uint32_t, 0x80000000, 0x00400000)
+	UINT_TO_FP_UNIFORM(float, uint32_t, 0x80000000, 0x00400000)
 extern int uint64_to_double_uniform
-	UINT_TO_FP(double, uint64_t, 0x8000000000000000, 0x0008000000000000)
+	UINT_TO_FP_UNIFORM(double, uint64_t, 0x8000000000000000, 0x0008000000000000)
 
-#undef UINT_TO_FP
+#undef UINT_TO_FP_UNIFORM
 
 /*optimization notes:
 1. 2^0 + ... + 2^n = 2^(n+1) - 1
