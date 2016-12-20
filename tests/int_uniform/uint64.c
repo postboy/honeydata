@@ -8,7 +8,6 @@ license: BSD 2-Clause
 
 extern int main(void)
 {
-	
 	//Set up the key and IV. Do I need to say to not hard code these in a real application? :-)
 	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";	//a 256 bit key
 	unsigned char *iv = (unsigned char *)"01234567890123456";					//a 128 bit IV
@@ -37,6 +36,7 @@ extern int main(void)
 	for (i = 0; i < maxsize; i++)
 		mpz_init(encoded_array[i]);
 	
+	
 	#if 0
 	//random data encoding, encryption, decryption, decoding---------------------------------------
 	
@@ -46,7 +46,8 @@ extern int main(void)
 	
 	//let orig_array contain numbers from 35000000000000 to 39999999999999
 	for (i = 0; i < size; i++) {
-		//write a fresh random element to this position until it will be between 0 and 39999999999999
+		//write a fresh random element to this position until it will be between 0 and
+		39999999999999*/
 		while (orig_array[i] > 39999999999999)
 			randombytes((unsigned char *)(orig_array+i), sizeof(ITYPE));
 		orig_array[i] = (orig_array[i] % 5000000000000) + 35000000000000;
@@ -201,12 +202,14 @@ extern int main(void)
 	printf("Original array:\n");
 	print_uint64_array(orig_array, size);
 	get_uint64_minmax(orig_array, size, &min, &max);
+	
 	printf("min = %"PRI", max = %"PRI":\n", min, max);
 	encode_uint64_uniform(orig_array, encoded_array, size, min, max);
 	print_mpz_array(encoded_array, size);
 	decode_uint64_uniform(encoded_array, decoded_array, size, min, max);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_uint64_array(decoded_array, size);
+	
 	printf("min = 0, max = %"PRI":\n", UINT64_MAX);
 	encode_uint64_uniform(orig_array, encoded_array, size, 0, UINT64_MAX);
 	print_mpz_array(encoded_array, size);
@@ -249,8 +252,8 @@ extern int main(void)
 	
 	
 	#undef ITYPE
-	#undef OTYPE
 	#undef PRI
+	#undef OTYPE
 	#undef BYTESIZE
 	test_deinit();
 	//deinitialize mpz_t numbers
@@ -258,5 +261,4 @@ extern int main(void)
 		mpz_init(encoded_array[i]);
 	
 	return 0;
-	
 }

@@ -18,6 +18,8 @@ gcc tests/int_uniform/int32.c tests/t_common.c hdata/hd_int_uniform.c hdata/hd_c
 	-o build/int_uniform/int32 -lcrypto -lgmp -Wall &&
 gcc tests/int_uniform/uint64.c tests/t_common.c hdata/hd_int_uniform.c hdata/hd_common.c \
 	-o build/int_uniform/uint64 -lcrypto -lgmp -Wall &&
+gcc tests/int_uniform/int64.c tests/t_common.c hdata/hd_int_uniform.c hdata/hd_common.c \
+	-o build/int_uniform/int64 -lcrypto -lgmp -Wall &&
 
 gcc tests/fp_uniform/compatibility.c -o build/fp_uniform/compatibility -Wall  &&
 gcc tests/fp_uniform/float.c tests/t_common.c hdata/hd_fp_uniform.c hdata/hd_common.c \

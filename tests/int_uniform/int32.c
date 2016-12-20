@@ -8,7 +8,6 @@ license: BSD 2-Clause
 
 extern int main(void)
 {
-	
 	//Set up the key and IV. Do I need to say to not hard code these in a real application? :-)
 	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";	//a 256 bit key
 	unsigned char *iv = (unsigned char *)"01234567890123456";					//a 128 bit IV
@@ -83,7 +82,8 @@ extern int main(void)
 	
 	//let orig_array contain numbers from -2000000000 to 1000000000 distributed uniformly
 	for (j = 0; j < size; j++) {
-		//write a fresh random element to this position until it will be between -19990 and 10000
+		/*write a fresh random element to this position until it will be between -2000000000 and
+		1000000000*/
 		while ( (orig_array[j] < -2000000000) || (orig_array[j] > 1000000000) )
 			randombytes((unsigned char *)(orig_array+j), sizeof(ITYPE));
 		}
@@ -245,11 +245,10 @@ extern int main(void)
 	
 	
 	#undef ITYPE
-	#undef OTYPE
 	#undef PRI
+	#undef OTYPE
 	#undef BYTESIZE
 	test_deinit();
 	
 	return 0;
-	
 }
