@@ -8,29 +8,27 @@ license: BSD 2-Clause
 
 extern int main(void)
 {
+	#if 0
 	//Set up the key and IV. Do I need to say to not hard code these in a real application? :-)
 	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";	//a 256 bit key
 	unsigned char *iv = (unsigned char *)"01234567890123456";					//a 128 bit IV
-	
-	int32_t i, j;
+	#endif
+	int32_t i;
 	size_t size;									//current array size
 	#define ITYPE uint64_t							//type for testing in this test unit
 	#define PRI PRIu64								//macro for printing it
 	#define OTYPE mpz_t								//type of container in this test unit
 	#define BYTESIZE (size*sizeof(ITYPE))			//current input array size in bytes
 	const size_t maxsize = 1048576/sizeof(ITYPE);	//maximum array size (1MB)
-	//statistics on pseudorandom and output arrays
-	uint64_t in_stats[256] = {0}, out_stats[256] = {0};
 	ITYPE min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
 	OTYPE encoded_array[maxsize];
-	FILE *fp;						//file variable
-	
+	#if 0
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC mode we need
 	one extra block)*/
 	unsigned char ciphertext[2*256*sizeof(ITYPE)];
 	size_t decryptedtext_len, ciphertext_len;		//their lengths
-	
+	#endif
 	test_init();
 	//initialize mpz_t numbers
 	for (i = 0; i < maxsize; i++)
@@ -67,73 +65,9 @@ extern int main(void)
 		print_uint64_array(decoded_array, 10);
 		test_error();
 		}
-	
-	
-	
-	//random data encoding and decoding with statistics collection---------------------------------
-	
-	size = maxsize;
-	//write a random numbers to original array
-	randombytes((unsigned char *)orig_array, BYTESIZE);
-	memset(in_stats, 0, sizeof(in_stats));			//initialize statistics arrays
-	memset(out_stats, 0, sizeof(out_stats));
-	//get a statistics on a pseudorandom numbers
-	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
-	/*write a fresh random numbers to original array and get a statistics on them again for fair
-	comparsion with 2*BYTESIZE encoded bytes below*/
-	randombytes((unsigned char *)orig_array, BYTESIZE);
-	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
-	
-	//let orig_array contain numbers from 20000000000000 to 29999999999999 distributed uniformly
-	for (j = 0; j < size; j++) {
-		//write a fresh random element to this position until it will be between 0 and 3999999999
-		while (orig_array[j] > 39999999999999)
-			randombytes((unsigned char *)(orig_array+j), sizeof(ITYPE));	
-		orig_array[j] = (orig_array[j] % 10000000000000) + 20000000000000;
-		}
-	
-	encode_uint64_uniform(orig_array, encoded_array, size, 20000000000000, 29999999999999);
-	//get a statistics on an encoded array
-	stats_uint8_array((uint8_t *)encoded_array, 2*BYTESIZE, out_stats);
-	decode_uint64_uniform(encoded_array, decoded_array, size, 20000000000000, 29999999999999);
-	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
-		error("orig_array and decoded_array are not the same");
-		print_uint64_array(orig_array, 10);
-		print_uint64_array(decoded_array, 10);
-		test_error();
-		}
-	
-	//write statistics to file
-	//try to open file for writing
-	if ((fp = fopen("uint64_encoding.ods", "w")) == NULL) {	
-		error("can't open file 'uint64_encoding.ods' for writing");
-		test_error();
-		}
-	
-	//compare pseudorandom vs. ideal, actual vs. ideal distributions
-	if (fprintf(fp, "\t=CHITEST(B2:B257;C2:C257)\t\t=CHITEST(D2:D257;E2:E257)\n") < 0) {
-		error("cannot write to 'uint64_encoding.ods' file");
-		if (fclose(fp) == EOF)
-			perror("test: fclose error");
-		test_error();
-		}
-	//write four columns to file: pseudorandom and ideal, actual and ideal distributions for CHITEST
-	for (i = 0; i <= UINT8_MAX; i++) {
-		if (fprintf(fp, "%i\t%"PRIu64"\t%i\t%"PRIu64"\t%i\n", i, in_stats[i], BYTESIZE/128,
-					out_stats[i], BYTESIZE/128) < 0) {
-			error("cannot write to 'uint64_encoding.ods' file");
-			if (fclose(fp) == EOF)
-				perror("test: fclose error");
-			test_error();
-			}
-		}
-	//close file
-	if (fclose(fp) == EOF) {
-		perror("test: fclose error");
-		test_error();
-		}
-	
 	#endif
+	
+	
 	
 	//random encoding and decoding-----------------------------------------------------------------
 	
