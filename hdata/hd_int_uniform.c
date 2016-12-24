@@ -156,7 +156,7 @@ extern int encode_int32_uniform
 	/*total number of groups (from ISPACE+1 to OSPACE/2), so they will have indexes in interval \
 	[0; group_num-1]. original formula was	ceil(OSPACE / group_size), but this formula is \
 	faster, more portable and reliable. see math.c for equivalence proof for smaller types.*/ \
-	mpz_t group_num; \
+	mpz_t group_num, group_num_minus_1; \
 	/*temporary variable for different computations*/ \
 	mpz_t tmp; \
 	/*number of elements in the last group or 0	if the last group is full, from	0 to ISPACE-1.*/ \
@@ -168,11 +168,11 @@ extern int encode_int32_uniform
 	size_t i; \
 	\
 	/*write the random numbers to temporary array*/ \
-	if ( (rand_data = malloc(size*16)) == NULL ) { \
+	if ( (rand_data = malloc(16*size)) == NULL ) { \
 		error("couldn't allocate memory for rand_data"); \
 		return 5; \
 		} \
-	randombytes(rand_data, size*16); \
+	randombytes(rand_data, 16*size); \
 	\
 	/*if only one value is possible then use a random number for encoding each number*/ \
 	if (min == max) { \
@@ -188,13 +188,13 @@ extern int encode_int32_uniform
 			/*maybe parameters of such calls can be optimized for simplification of \
 			mpz_import()'s job. we can't use mpz_urandomb() here because without subtle seed \
 			handling it won't produce cryptographically secure results.*/ \
-			mpz_import(out_array[i], 16/sizeof(int), -1, sizeof(int), 0, 0, rand_data+i*16); \
+			mpz_import(out_array[i], 16/sizeof(int), -1, sizeof(int), 0, 0, rand_data+16*i); \
 		\
 		free(rand_data); \
 		return 0; \
 		} \
 	\
-	mpz_inits(oelt, group_size, group_num, tmp, NULL); \
+	mpz_inits(oelt, group_size, group_num, group_num_minus_1, tmp, NULL); \
 	\
 	/*group_size = max - min + 1*/ \
 	/*load second half, then first half: oelt = second_half << 32 + first_half. we do this \
@@ -223,7 +223,7 @@ extern int encode_int32_uniform
 	mpz_sub_ui(group_num, group_num, 1); \
 	mpz_tdiv_q(group_num, group_num, group_size); \
 	/*save this intermediate result for future computations*/ \
-	mpz_set(tmp, group_num); \
+	mpz_set(group_num_minus_1, group_num); \
 	mpz_add_ui(group_num, group_num, 1); \
 	\
 	/*else encode each number using random numbers from out_array for group selection*/ \
@@ -243,26 +243,22 @@ extern int encode_int32_uniform
 		mpz_mul_2exp(oelt, oelt, 32); \
 		mpz_add_ui(oelt, oelt, normalized & 0xFFFFFFFF); \
 		\
-		/*if we can place the current element in any group (including the last one) then do it*/ \
-		if ( (normalized < last_group_size) || (last_group_size == 0) ) { \
-			/*oelt += (out_array[i] % group_num) * group_size*/ \
-			mpz_import(out_array[i], 16/sizeof(int), -1, sizeof(int), 0, 0, rand_data+i*16); \
-			mpz_tdiv_q(out_array[i], out_array[i], group_num); \
-			mpz_mul(out_array[i], out_array[i], group_size); \
-			mpz_add(out_array[i], out_array[i], oelt); \
-			} \
-		/*else place it in any group excluding the last one*/ \
-		else { \
-			/*oelt += ( out_array[i] % (group_num-1) ) * group_size*/ \
-			mpz_import(out_array[i], 16/sizeof(int), -1, sizeof(int), 0, 0, rand_data+i*16); \
-			mpz_tdiv_q(out_array[i], out_array[i], tmp); \
-			mpz_mul(out_array[i], out_array[i], group_size); \
-			mpz_add(out_array[i], out_array[i], oelt); \
-			} \
+		/*if we can place the current element in any group (including the last one) then do it:
+		oelt += (out_array[i] % group_num) * group_size*/ \
+		mpz_import(tmp, 16/sizeof(int), -1, sizeof(int), 0, 0, rand_data+16*i); \
+		if ( (normalized < last_group_size) || (last_group_size == 0) ) \
+			mpz_tdiv_q(tmp, tmp, group_num); \
+		/*else place it in any group excluding the last one:
+		oelt += ( out_array[i] % (group_num-1) ) * group_size*/ \
+		else \
+			mpz_tdiv_q(tmp, tmp, group_num_minus_1); \
+		mpz_mul(tmp, tmp, group_size); \
+		mpz_add(tmp, tmp, oelt); \
+		mpz_set(out_array[i], tmp); \
 		} \
 	\
 	free(rand_data); \
-	mpz_clears(oelt, group_size, group_num, tmp, NULL); \
+	mpz_clears(oelt, group_size, group_num, group_num_minus_1, tmp, NULL); \
 	return 0; \
 }
 

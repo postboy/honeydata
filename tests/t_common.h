@@ -35,6 +35,9 @@ extern int print_int64_array(const int64_t *array, const size_t size);
 //for GNU MP integers
 extern int print_mpz_array(const mpz_t *array, const size_t size);
 
+//for integers saved in 16 bytes
+extern int print_16_bytes_array(const unsigned char *array, const size_t size);
+
 //for float floating-point numbers
 //convert signaling NaNs to quiet NaNs in array, print a numeric array
 extern int print_float_array(const float *array, const size_t size);

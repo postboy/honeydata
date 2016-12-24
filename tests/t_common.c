@@ -108,6 +108,9 @@ extern int print_int64_array
 extern int print_mpz_array
 	PRINT_ARRAY(mpz_t, mpz_out_str(stdout, 16, array[i]) )
 
+extern int print_16_bytes_array
+	PRINT_ARRAY(unsigned char, int j; for (j = 0; j < 16; j++) printf("%02x", array[16*i+j]) )
+
 extern int print_float_array
 	PRINT_ARRAY(float, printf("%e", array[i]) )
 
