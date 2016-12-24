@@ -163,10 +163,10 @@ extern int main(void)
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
 	//let orig_array contain numbers from -100 to 19 distributed uniformly
-	for (j = 0; j < size; j++) {
+	for (i = 0; i < size; i++) {
 		//write a fresh random element to this position until it will be between -100 and 19
-		while ( (orig_array[j] < -100) || (orig_array[j] > 19) )
-			randombytes((unsigned char *)(orig_array+j), sizeof(ITYPE));
+		while ( (orig_array[i] < -100) || (orig_array[i] > 19) )
+			randombytes((unsigned char *)(orig_array+i), sizeof(ITYPE));
 		}
 	
 	encode_int8_uniform(orig_array, encoded_array, size, -100, 19);

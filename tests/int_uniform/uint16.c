@@ -12,7 +12,7 @@ extern int main(void)
 	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";	//a 256 bit key
 	unsigned char *iv = (unsigned char *)"01234567890123456";					//a 128 bit IV
 	
-	int32_t i, j;
+	int32_t i;
 	size_t size;									//current array size
 	#define ITYPE uint16_t							//type for testing in this test unit
 	#define PRI PRIu16								//macro for printing it
@@ -97,7 +97,8 @@ extern int main(void)
 		//get a statistics on current bruteforce iteration
 		stats_uint16_array(decoded_array, size, long_stats);
 		/*
-		for (j=0; j < 32; j++) {				//print current key
+		int32_t j;
+		for (j = 0; j < 32; j++) {				//print current key
 			printf("%02x", big_key[j]);			//output format is HEX-code
 			if ( (j+1) % 4 == 0) printf(" ");	//place a space every 2 bytes
 			}
@@ -163,11 +164,11 @@ extern int main(void)
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
 	//let orig_array contain numbers from 11000 to 20999 distributed uniformly
-	for (j = 0; j < size; j++) {
+	for (i = 0; i < size; i++) {
 		//write a fresh random element to this position until it will be between 0 and 59999
-		while (orig_array[j] > 59999)
-			randombytes((unsigned char *)(orig_array+j), sizeof(ITYPE));	
-		orig_array[j] = (orig_array[j] % 10000) + 11000;
+		while (orig_array[i] > 59999)
+			randombytes((unsigned char *)(orig_array+i), sizeof(ITYPE));	
+		orig_array[i] = (orig_array[i] % 10000) + 11000;
 		}
 	
 	encode_uint16_uniform(orig_array, encoded_array, size, 11000, 20999);

@@ -12,7 +12,7 @@ extern int main(void)
 	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";	//a 256 bit key
 	unsigned char *iv = (unsigned char *)"01234567890123456";					//a 128 bit IV
 	
-	int32_t i, j;
+	int32_t i;
 	size_t size;									//current array size
 	#define ITYPE int32_t							//type for testing in this test unit
 	#define PRI PRIi32								//macro for printing it
@@ -81,11 +81,11 @@ extern int main(void)
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
 	//let orig_array contain numbers from -2000000000 to 1000000000 distributed uniformly
-	for (j = 0; j < size; j++) {
+	for (i = 0; i < size; i++) {
 		/*write a fresh random element to this position until it will be between -2000000000 and
 		1000000000*/
-		while ( (orig_array[j] < -2000000000) || (orig_array[j] > 1000000000) )
-			randombytes((unsigned char *)(orig_array+j), sizeof(ITYPE));
+		while ( (orig_array[i] < -2000000000) || (orig_array[i] > 1000000000) )
+			randombytes((unsigned char *)(orig_array+i), sizeof(ITYPE));
 		}
 	
 	encode_int32_uniform(orig_array, encoded_array, size, -2000000000, 1000000000);
