@@ -8,11 +8,11 @@ license: BSD 2-Clause
 
 extern int main(void)
 {
-	#if 0
+	
 	//Set up the key and IV. Do I need to say to not hard code these in a real application? :-)
 	unsigned char *key = (unsigned char *)"01234567890123456789012345678901";	//a 256 bit key
 	unsigned char *iv = (unsigned char *)"01234567890123456";					//a 128 bit IV
-	#endif
+	
 	int32_t i;
 	size_t size;									//current array size
 	#define ITYPE int64_t							//type for testing in this test unit
@@ -22,38 +22,44 @@ extern int main(void)
 	const size_t maxsize = 1048576/sizeof(ITYPE);	//maximum array size (1MB)
 	ITYPE min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
 	OTYPE encoded_array[maxsize];
-	#if 0
-	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
-	longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC mode we need
-	one extra block)*/
-	unsigned char ciphertext[2*256*sizeof(ITYPE)];
+	
+	/*Buffers for plaintext and ciphertext. Ensure the buffer is long enough for the ciphertext
+	which may be longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC
+	mode we need one extra block)*/
+	unsigned char plaintext[2*256*sizeof(ITYPE)] = {0}, ciphertext[2*256*sizeof(ITYPE)];
 	size_t decryptedtext_len, ciphertext_len;		//their lengths
-	#endif
+	
 	test_init();
 	//initialize mpz_t numbers
 	for (i = 0; i < maxsize; i++)
 		mpz_init(encoded_array[i]);
 	
 	
-	#if 0
+	
 	//random data encoding, encryption, decryption, decoding---------------------------------------
 	
 	size = 256;
 	//write a random numbers to original array
 	randombytes((unsigned char *)orig_array, BYTESIZE);
 	
-	//let orig_array contain numbers from -10000000000000 to 10000000000000
+	//let orig_array contain numbers from -5000000000000000000 to 5000000000000000000
 	for (i = 0; i < size; i++) {
-		/*write a fresh random element to this position until it will be between -10000000000000
-		and 10000000000000*/
-		while ( (orig_array[i] < -10000000000000) || (orig_array[i] > 10000000000000) )
+		/*write a fresh random element to this position until it will be between
+		-5000000000000000000 and 5000000000000000000*/
+		while ( (orig_array[i] < -5000000000000000000) || (orig_array[i] > 5000000000000000000) )
 			randombytes((unsigned char *)(orig_array+i), sizeof(ITYPE));
 		}
 	
 	get_int64_minmax(orig_array, size, &min, &max);
 	encode_int64_uniform(orig_array, encoded_array, size, min, max);
-	ciphertext_len = encrypt((unsigned char *)encoded_array, 2*BYTESIZE, key, iv, ciphertext);
-	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, (unsigned char *)encoded_array);
+	//export array to plaintext array to get rid of GNU MP's service data
+	for (i = 0; i < size; i++)
+		mpz_export(plaintext+i*16, NULL, -1, sizeof(int), 0, 0, encoded_array[i]);
+	ciphertext_len = encrypt(plaintext, 2*BYTESIZE, key, iv, ciphertext);
+	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, plaintext);
+	//import array from plaintext array to use our data again
+	for (i = 0; i < size; i++)
+		mpz_import(encoded_array[i], 16/sizeof(int), -1, sizeof(int), 0, 0, plaintext+i*16);
 	decode_int64_uniform(encoded_array, decoded_array, size, min, max);
 	
 	//compare result of decryption and original array
@@ -64,7 +70,6 @@ extern int main(void)
 		print_int64_array(decoded_array, 10);
 		test_error();
 		}
-	#endif
 	
 	
 	

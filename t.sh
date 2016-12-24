@@ -15,5 +15,5 @@ gcc tests/int_uniform/int64.c tests/t_common.c hdata/hd_int_uniform.c hdata/hd_c
 	-o build/int_uniform/int64 -O0 -g -lcrypto -lgmp -Wall -Wfatal-errors
 cd build/int_uniform &&
 ./uint64
-./int64
+#./int64
 cd ../..

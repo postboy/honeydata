@@ -188,7 +188,7 @@ extern int encode_int32_uniform
 			/*maybe parameters of such calls can be optimized for simplification of \
 			mpz_import()'s job. we can't use mpz_urandomb() here because without subtle seed \
 			handling it won't produce cryptographically secure results.*/ \
-			mpz_import(out_array[i], 16/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*16); \
+			mpz_import(out_array[i], 16/sizeof(int), -1, sizeof(int), 0, 0, rand_data+i*16); \
 		\
 		free(rand_data); \
 		return 0; \
@@ -246,7 +246,7 @@ extern int encode_int32_uniform
 		/*if we can place the current element in any group (including the last one) then do it*/ \
 		if ( (normalized < last_group_size) || (last_group_size == 0) ) { \
 			/*oelt += (out_array[i] % group_num) * group_size*/ \
-			mpz_import(out_array[i], 16/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*16); \
+			mpz_import(out_array[i], 16/sizeof(int), -1, sizeof(int), 0, 0, rand_data+i*16); \
 			mpz_tdiv_q(out_array[i], out_array[i], group_num); \
 			mpz_mul(out_array[i], out_array[i], group_size); \
 			mpz_add(out_array[i], out_array[i], oelt); \
@@ -254,7 +254,7 @@ extern int encode_int32_uniform
 		/*else place it in any group excluding the last one*/ \
 		else { \
 			/*oelt += ( out_array[i] % (group_num-1) ) * group_size*/ \
-			mpz_import(out_array[i], 16/sizeof(int), 1, sizeof(int), 0, 0, rand_data+i*16); \
+			mpz_import(out_array[i], 16/sizeof(int), -1, sizeof(int), 0, 0, rand_data+i*16); \
 			mpz_tdiv_q(out_array[i], out_array[i], tmp); \
 			mpz_mul(out_array[i], out_array[i], group_size); \
 			mpz_add(out_array[i], out_array[i], oelt); \
