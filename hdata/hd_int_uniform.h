@@ -39,14 +39,14 @@ extern int encode_int32_uniform(const int32_t *in_array, uint64_t *out_array,
 extern int decode_int32_uniform(const uint64_t *in_array, int32_t *out_array,
 	const size_t size, const int32_t min, const int32_t max);
 
-extern int encode_uint64_uniform(const uint64_t *in_array, mpz_t *out_array,
+extern int encode_uint64_uniform(const uint64_t *in_array, unsigned char *out_array,
 	const size_t size, const uint64_t min, const uint64_t max);
-extern int decode_uint64_uniform(const mpz_t *in_array, uint64_t *out_array,
+extern int decode_uint64_uniform(const unsigned char *in_array, uint64_t *out_array,
 	const size_t size, const uint64_t min, const uint64_t max);
 
-extern int encode_int64_uniform(const int64_t *in_array, mpz_t *out_array,
+extern int encode_int64_uniform(const int64_t *in_array, unsigned char *out_array,
 	const size_t size, const int64_t min, const int64_t max);
-extern int decode_int64_uniform(const mpz_t *in_array, int64_t *out_array,
+extern int decode_int64_uniform(const unsigned char *in_array, int64_t *out_array,
 	const size_t size, const int64_t min, const int64_t max);
 
 #endif

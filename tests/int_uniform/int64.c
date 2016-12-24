@@ -16,24 +16,21 @@ extern int main(void)
 	size_t size;									//current array size
 	#define ITYPE int64_t							//type for testing in this test unit
 	#define PRI PRIi64								//macro for printing it
-	#define OTYPE mpz_t								//type of container in this test unit
+	#define OTYPE unsigned char						//type of container in this test unit
 	#define BYTESIZE (size*sizeof(ITYPE))			//current input array size in bytes
 	const size_t maxsize = 1048576/sizeof(ITYPE);	//maximum array size (1MB)
 	uint64_t in_stats[256], out_stats[256];			//statistics on pseudorandom and output arrays
 	ITYPE min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
-	OTYPE encoded_array[maxsize];
-	FILE *fp;						//file variable
+	OTYPE encoded_array[16*maxsize];
+	FILE *fp;
 	
-	/*Buffers for plaintext and ciphertext. Ensure the buffer is long enough for the ciphertext
-	which may be longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC
-	mode we need one extra block)*/
-	unsigned char plaintext[2*maxsize*sizeof(ITYPE)], ciphertext[2*256*sizeof(ITYPE)];
+	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
+	longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC mode we need
+	one extra block)*/
+	unsigned char ciphertext[2*256*sizeof(ITYPE)];
 	size_t decryptedtext_len, ciphertext_len;		//their lengths
 	
 	test_init();
-	//initialize mpz_t numbers
-	for (i = 0; i < maxsize; i++)
-		mpz_init(encoded_array[i]);
 	
 	
 	
@@ -42,7 +39,6 @@ extern int main(void)
 	size = 256;
 	//write a random numbers to original array
 	randombytes((unsigned char *)orig_array, BYTESIZE);
-	memset(plaintext, 0, sizeof(plaintext));
 	
 	//let orig_array contain numbers from -5000000000000000000 to 5000000000000000000
 	for (i = 0; i < size; i++) {
@@ -54,14 +50,8 @@ extern int main(void)
 	
 	get_int64_minmax(orig_array, size, &min, &max);
 	encode_int64_uniform(orig_array, encoded_array, size, min, max);
-	//export array to plaintext array to get rid of GNU MP's service data
-	for (i = 0; i < size; i++)
-		mpz_export(plaintext+i*16, NULL, -1, sizeof(int), 0, 0, encoded_array[i]);
-	ciphertext_len = encrypt(plaintext, 2*BYTESIZE, key, iv, ciphertext);
-	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, plaintext);
-	//import array from plaintext array to use our data again
-	for (i = 0; i < size; i++)
-		mpz_import(encoded_array[i], 16/sizeof(int), -1, sizeof(int), 0, 0, plaintext+i*16);
+	ciphertext_len = encrypt(encoded_array, 2*BYTESIZE, key, iv, ciphertext);
+	decryptedtext_len = decrypt(ciphertext, ciphertext_len, key, iv, encoded_array);
 	decode_int64_uniform(encoded_array, decoded_array, size, min, max);
 	
 	//compare result of decryption and original array
@@ -100,9 +90,7 @@ extern int main(void)
 	
 	encode_int64_uniform(orig_array, encoded_array, size, -5999999999999999999, 5999999999999999999);
 	//get a statistics on an encoded array
-	for (i = 0; i < size; i++)
-		mpz_export(plaintext+i*16, NULL, -1, sizeof(int), 0, 0, encoded_array[i]);
-	stats_uint8_array((uint8_t *)plaintext, 2*BYTESIZE, out_stats);
+	stats_uint8_array((uint8_t *)encoded_array, 2*BYTESIZE, out_stats);
 	decode_int64_uniform(encoded_array, decoded_array, size, -5999999999999999999, 5999999999999999999);
 	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 		error("orig_array and decoded_array are not the same");
@@ -176,7 +164,7 @@ extern int main(void)
 	
 	printf("min = %"PRI", max = %"PRI":\n", min, max);
 	encode_int64_uniform(orig_array, encoded_array, size, min, max);
-	print_mpz_array(encoded_array, size);
+	print_16_bytes_array(encoded_array, size);
 	decode_int64_uniform(encoded_array, decoded_array, size, min, max);
 	//if original and decoded arrays are not equal then print a decoded array too
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
@@ -184,14 +172,14 @@ extern int main(void)
 	
 	printf("min = -21000000000000, max = -8000000000000:\n");
 	encode_int64_uniform(orig_array, encoded_array, size, -21000000000000, -8000000000000);
-	print_mpz_array(encoded_array, size);
+	print_16_bytes_array(encoded_array, size);
 	decode_int64_uniform(encoded_array, decoded_array, size, -21000000000000, -8000000000000);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_int64_array(decoded_array, size);
 	
 	printf("min = %"PRI", max = %"PRI":\n", INT64_MIN, INT64_MAX);
 	encode_int64_uniform(orig_array, encoded_array, size, INT64_MIN, INT64_MAX);
-	print_mpz_array(encoded_array, size);
+	print_16_bytes_array(encoded_array, size);
 	decode_int64_uniform(encoded_array, decoded_array, size, INT64_MIN, INT64_MAX);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_int64_array(decoded_array, size);
@@ -214,14 +202,14 @@ extern int main(void)
 	
 	printf("min = %"PRI", max = %"PRI":\n", min, max);
 	encode_int64_uniform(orig_array, encoded_array, size, min, max);
-	print_mpz_array(encoded_array, size);
+	print_16_bytes_array(encoded_array, size);
 	decode_int64_uniform(encoded_array, decoded_array, size, min, max);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_int64_array(decoded_array, size);
 	
 	printf("min = %"PRI", max = %"PRI":\n", INT64_MIN, INT64_MAX);
 	encode_int64_uniform(orig_array, encoded_array, size, INT64_MIN, INT64_MAX);
-	print_mpz_array(encoded_array, size);
+	print_16_bytes_array(encoded_array, size);
 	decode_int64_uniform(encoded_array, decoded_array, size, INT64_MIN, INT64_MAX);
 	if (memcmp(orig_array, decoded_array, BYTESIZE))
 		print_int64_array(decoded_array, size);
@@ -261,9 +249,6 @@ extern int main(void)
 	#undef OTYPE
 	#undef BYTESIZE
 	test_deinit();
-	//deinitialize mpz_t numbers
-	for (i = 0; i < maxsize; i++)
-		mpz_init(encoded_array[i]);
 	
 	return 0;
 }

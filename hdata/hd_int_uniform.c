@@ -128,8 +128,8 @@ extern int encode_int32_uniform
 
 //generic DTE function for encoding integer arrays in mpz_t arrays---------------------------------
 
-#define ENCODE_IN_MPZ_UNIFORM(itype) \
-(const itype *in_array, mpz_t *out_array, const size_t size, const itype min, const itype max) \
+#define ENCODE_IN_MPZ_UNIFORM(itype, TYPE_MIN, TYPE_MAX) \
+(const itype *in_array, unsigned char *out_array, const size_t size, const itype min, const itype max) \
 { \
 	/*check the arguments*/ \
 	if (in_array == NULL) { \
@@ -154,7 +154,7 @@ extern int encode_int32_uniform
 	/*size of full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
 	mpz_t group_size; \
 	/*total number of groups (from ISPACE+1 to OSPACE/2), so they will have indexes in interval \
-	[0; group_num-1]. original formula was	ceil(OSPACE / group_size), but this formula is \
+	[0; group_num-1]. original formula was ceil(OSPACE / group_size), but following formula is \
 	faster, more portable and reliable. see math.c for equivalence proof for smaller types.*/ \
 	mpz_t group_num, group_num_minus_1; \
 	/*temporary variable for different computations*/ \
@@ -163,34 +163,29 @@ extern int encode_int32_uniform
 	uint64_t last_group_size; \
 	/*normalized value of current element*/ \
 	uint64_t normalized; \
-	/*store for random bytes*/ \
-	unsigned char *rand_data; \
 	size_t i; \
 	\
-	/*write the random numbers to temporary array*/ \
-	if ( (rand_data = malloc(16*size)) == NULL ) { \
-		error("couldn't allocate memory for rand_data"); \
-		return 5; \
+	/*if every value is possible*/ \
+	if ( (min == TYPE_MIN) && (max == TYPE_MAX) ) { \
+		/*then just copy input array to output array to create a first part*/ \
+		memcpy(out_array, in_array, size*sizeof(itype)); \
+		/*follow it by random numbers to create a second part*/ \
+		randombytes( out_array + size*sizeof(itype), size*(16 - sizeof(itype)) ); \
+		return 0; \
 		} \
-	randombytes(rand_data, 16*size); \
+	\
+	/*write the random numbers to output array*/ \
+	randombytes(out_array, 16*size); \
 	\
 	/*if only one value is possible then use a random number for encoding each number*/ \
 	if (min == max) { \
-		/*first, we should check an input array*/ \
+		/*we're already done with random numbers, but we should check an input array*/ \
 		for (i = 0; i < size; i++) { \
 			if (in_array[i] != min) { \
 				error("wrong min or max value"); \
-				return 6; \
+				return 5; \
 				} \
 			} \
-		/*copy random numbers to output array*/ \
-		for (i = 0; i < size; i++) \
-			/*maybe parameters of such calls can be optimized for simplification of \
-			mpz_import()'s job. we can't use mpz_urandomb() here because without subtle seed \
-			handling it won't produce cryptographically secure results.*/ \
-			mpz_import(out_array[i], 16/sizeof(int), -1, sizeof(int), 0, 0, rand_data+16*i); \
-		\
-		free(rand_data); \
 		return 0; \
 		} \
 	\
@@ -226,15 +221,16 @@ extern int encode_int32_uniform
 	mpz_set(group_num_minus_1, group_num); \
 	mpz_add_ui(group_num, group_num, 1); \
 	\
+	\
 	/*else encode each number using random numbers from out_array for group selection*/ \
 	for (i = 0; i < size; i++) { \
 		if (in_array[i] < min) { \
 			error("wrong min value"); \
-			return 7; \
+			return 6; \
 			} \
 		else if (in_array[i] > max) { \
 			error("wrong max value"); \
-			return 8; \
+			return 7; \
 			} \
 		\
 		/*normalize current element and make type promotion: oelt = in_array[i] - min*/ \
@@ -245,7 +241,7 @@ extern int encode_int32_uniform
 		\
 		/*if we can place the current element in any group (including the last one) then do it:
 		oelt += (out_array[i] % group_num) * group_size*/ \
-		mpz_import(tmp, 16/sizeof(int), -1, sizeof(int), 0, 0, rand_data+16*i); \
+		mpz_import(tmp, 16/sizeof(int), -1, sizeof(int), 0, 0, out_array+16*i); \
 		if ( (normalized < last_group_size) || (last_group_size == 0) ) \
 			mpz_tdiv_q(tmp, tmp, group_num); \
 		/*else place it in any group excluding the last one:
@@ -253,20 +249,23 @@ extern int encode_int32_uniform
 		else \
 			mpz_tdiv_q(tmp, tmp, group_num_minus_1); \
 		mpz_mul(tmp, tmp, group_size); \
-		mpz_add(tmp, tmp, oelt); \
-		mpz_set(out_array[i], tmp); \
+		mpz_add(oelt, oelt, tmp); \
+		\
+		/*we must clear destination memory because garbage there may not be overwritten by next \
+		call: e.g., if current variable fits in 3 words then 4th word won't be overwritten*/ \
+		memset(out_array+16*i, 0, 16); \
+		mpz_export(out_array+16*i, NULL, -1, sizeof(int), 0, 0, oelt); \
 		} \
 	\
-	free(rand_data); \
 	mpz_clears(oelt, group_size, group_num, group_num_minus_1, tmp, NULL); \
 	return 0; \
 }
 
 extern int encode_uint64_uniform
-	ENCODE_IN_MPZ_UNIFORM(uint64_t)
+	ENCODE_IN_MPZ_UNIFORM(uint64_t, 0, UINT64_MAX)
 
 extern int encode_int64_uniform
-	ENCODE_IN_MPZ_UNIFORM(int64_t)
+	ENCODE_IN_MPZ_UNIFORM(int64_t, INT64_MIN, INT64_MAX)
 
 #undef ENCODE_IN_MPZ_UNIFORM
 
@@ -353,8 +352,8 @@ extern int decode_int32_uniform
 
 //generic DTE function for extracting integer arrays from mpz_t arrays-----------------------------
 
-#define DECODE_IN_MPZ_UNIFORM(itype) \
-(const mpz_t *in_array, itype *out_array, const size_t size, const itype min, const itype max) \
+#define DECODE_IN_MPZ_UNIFORM(itype, TYPE_MIN, TYPE_MAX) \
+(const unsigned char *in_array, itype *out_array, const size_t size, const itype min, const itype max) \
 { \
 	/*check the arguments*/ \
 	if (in_array == NULL) { \
@@ -384,6 +383,12 @@ extern int decode_int32_uniform
 	uint64_t normalized; \
 	size_t i; \
 	\
+	/*if every value is possible then just copy first part of input array to output array*/ \
+	if ( (min == TYPE_MIN) && (max == TYPE_MAX) ) { \
+		memcpy(out_array, in_array, size*sizeof(itype)); \
+		return 0; \
+		} \
+	\
 	/*if only one value is possible then fill output array with this value*/ \
 	if (min == max) { \
 		for (i = 0; i < size; i++) \
@@ -404,7 +409,7 @@ extern int decode_int32_uniform
 	for (i = 0; i < size; i++) { \
 		/*get its value in first group, denormalize it, do a type regression*/ \
 		/*out_array[i] = (in_array[i] % group_size) + min*/ \
-		mpz_set(ielt, in_array[i]); \
+		mpz_import(ielt, 16/sizeof(int), -1, sizeof(int), 0, 0, in_array+16*i); \
 		mpz_tdiv_r(ielt, ielt, group_size); \
 		/*save second half (i.e. its most significant 4 bytes) of ielt in tmp, first half (i.e. \
 		its least significant 4 bytes) in ielt*/ \
@@ -432,9 +437,9 @@ extern int decode_int32_uniform
 }
 
 extern int decode_uint64_uniform
-	DECODE_IN_MPZ_UNIFORM(uint64_t)
+	DECODE_IN_MPZ_UNIFORM(uint64_t, 0, UINT64_MAX)
 
 extern int decode_int64_uniform
-	DECODE_IN_MPZ_UNIFORM(int64_t)
+	DECODE_IN_MPZ_UNIFORM(int64_t, INT64_MIN, INT64_MAX)
 
 #undef DECODE_IN_MPZ_UNIFORM

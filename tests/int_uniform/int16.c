@@ -23,7 +23,7 @@ extern int main(void)
 	uint64_t in_stats[256] = {0}, out_stats[256] = {0}, long_stats[65536] = {0};
 	ITYPE min, max, orig_array[maxsize], decoded_array[maxsize];	//minimum and maximim in array
 	OTYPE encoded_array[maxsize];
-	FILE *fp;						//file variable
+	FILE *fp;
 	
 	/*Buffer for ciphertext. Ensure the buffer is long enough for the ciphertext which may be
 	longer than the plaintext, dependant on the algorithm and mode (for AES-256 in CBC mode we need
