@@ -210,7 +210,7 @@ extern int encode_int32_uniform
 	/*note: mpz_tdiv and mpz_fdiv function families will return the same results in	this \
 	algorithm, since n >= 0. it means that we can use fdiv here, if it will be beneficial for \
 	some reason. however, usage of tdiv should be more obvious for reader.*/ \
-	mpz_tdiv_q(tmp, tmp, group_size); \
+	mpz_tdiv_r(tmp, tmp, group_size); \
 	last_group_size = mpz_get_ui(tmp); \
 	\
 	/*group_num = OTYPE_MAX / group_size + 1, where OTYPE_MAX = OSPACE - 1 = \
@@ -220,7 +220,6 @@ extern int encode_int32_uniform
 	/*save this intermediate result for future computations*/ \
 	mpz_set(group_num_minus_1, group_num); \
 	mpz_add_ui(group_num, group_num, 1); \
-	\
 	\
 	/*else encode each number using random numbers from out_array for group selection*/ \
 	for (i = 0; i < size; i++) { \
@@ -243,11 +242,11 @@ extern int encode_int32_uniform
 		oelt += (out_array[i] % group_num) * group_size*/ \
 		mpz_import(tmp, 16/sizeof(int), -1, sizeof(int), 0, 0, out_array+16*i); \
 		if ( (normalized < last_group_size) || (last_group_size == 0) ) \
-			mpz_tdiv_q(tmp, tmp, group_num); \
+			mpz_tdiv_r(tmp, tmp, group_num); \
 		/*else place it in any group excluding the last one:
 		oelt += ( out_array[i] % (group_num-1) ) * group_size*/ \
 		else \
-			mpz_tdiv_q(tmp, tmp, group_num_minus_1); \
+			mpz_tdiv_r(tmp, tmp, group_num_minus_1); \
 		mpz_mul(tmp, tmp, group_size); \
 		mpz_add(oelt, oelt, tmp); \
 		\

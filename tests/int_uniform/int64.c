@@ -75,7 +75,7 @@ extern int main(void)
 	//get a statistics on a pseudorandom numbers
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	/*write a fresh random numbers to original array and get a statistics on them again for fair
-	comparsion with 2*BYTESIZE encoded bytes below*/
+	comparison with 2*BYTESIZE encoded bytes below*/
 	randombytes((unsigned char *)orig_array, BYTESIZE);
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
@@ -101,7 +101,7 @@ extern int main(void)
 	
 	//write statistics to file
 	//try to open file for writing
-	if ((fp = fopen("int64_encoding.ods", "w")) == NULL) {	
+	if ((fp = fopen("int64_encoding.ods", "w")) == NULL) {
 		error("can't open file 'int64_encoding.ods' for writing");
 		test_error();
 		}

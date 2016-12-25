@@ -47,7 +47,7 @@ extern int main(void)
 	
 	
 	
-	//comparsion test------------------------------------------------------------------------------
+	//comparison test------------------------------------------------------------------------------
 	
 	/*we tried to encode data such way that if (fl1 < fl2) then (int1 < int2), if (fl1 = fl2) then
 	(int1 = int2), if (fl1 > fl2) then (int1 > int2), i.e. each integer value will contain a number
