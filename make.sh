@@ -19,7 +19,7 @@ gcc tests/int_uniform/int64.c $int_u_files $int_opts -o build/int_uniform/int64 
 
 int_a_files="hdata/hd_int_arbitrary.c $int_u_files"
 
-gcc tests/int_uniform/uint8.c $int_a_files $int_opts -o build/int_uniform/uint8 &&
+gcc tests/int_arbitrary/uint8.c $int_a_files $int_opts -o build/int_arbitrary/uint8 &&
 
 fp_opts="-lm $int_opts"
 fp_u_files="hdata/hd_fp_uniform.c $int_a_files"
