@@ -1,5 +1,5 @@
 /*
-components for integers distributed uniformly
+components for uniformly distributed integers
 license: BSD 2-Clause
 */
 
@@ -21,19 +21,19 @@ license: BSD 2-Clause
 	/*check the arguments*/ \
 	if (in_array == NULL) { \
 		error("in_array = NULL"); \
-		return 1; \
+		return -1; \
 		} \
 	if (out_array == NULL) { \
 		error("out_array = NULL"); \
-		return 2; \
+		return -1; \
 		} \
 	if (size == 0) { \
 		error("size = 0"); \
-		return 3; \
+		return -1; \
 		} \
 	if (min > max) { \
 		error("min > max"); \
-		return 4; \
+		return -1; \
 		} \
 	\
 	/*current processing element after type promotion*/ \
@@ -69,7 +69,7 @@ license: BSD 2-Clause
 		for (i = 0; i < size; i++) { \
 			if (in_array[i] != min) { \
 				error("wrong min or max value"); \
-				return 5; \
+				return -1; \
 				} \
 			} \
 		return 0; \
@@ -84,11 +84,11 @@ license: BSD 2-Clause
 	for (i = 0; i < size; i++) { \
 		if (in_array[i] < min) { \
 			error("wrong min value"); \
-			return 6; \
+			return -1; \
 			} \
 		else if (in_array[i] > max) { \
 			error("wrong max value"); \
-			return 7; \
+			return -1; \
 			} \
 		/*note type promotion here: algorithm don't work right without it on e.g. int32 tests*/ \
 		oelt = in_array[i] - (otype)min; 		/*normalize current element and make type promotion*/ \
@@ -134,19 +134,19 @@ extern int encode_int32_uniform
 	/*check the arguments*/ \
 	if (in_array == NULL) { \
 		error("in_array = NULL"); \
-		return 1; \
+		return -1; \
 		} \
 	if (out_array == NULL) { \
 		error("out_array = NULL"); \
-		return 2; \
+		return -1; \
 		} \
 	if (size == 0) { \
 		error("size = 0"); \
-		return 3; \
+		return -1; \
 		} \
 	if (min > max) { \
 		error("min > max"); \
-		return 4; \
+		return -1; \
 		} \
 	\
 	/*current processing element after type promotion*/ \
@@ -183,7 +183,7 @@ extern int encode_int32_uniform
 		for (i = 0; i < size; i++) { \
 			if (in_array[i] != min) { \
 				error("wrong min or max value"); \
-				return 5; \
+				return -1; \
 				} \
 			} \
 		return 0; \
@@ -225,11 +225,11 @@ extern int encode_int32_uniform
 	for (i = 0; i < size; i++) { \
 		if (in_array[i] < min) { \
 			error("wrong min value"); \
-			return 6; \
+			return -1; \
 			} \
 		else if (in_array[i] > max) { \
 			error("wrong max value"); \
-			return 7; \
+			return -1; \
 			} \
 		\
 		/*normalize current element and make type promotion: oelt = in_array[i] - min*/ \
@@ -276,19 +276,19 @@ extern int encode_int64_uniform
 	/*check the arguments*/ \
 	if (in_array == NULL) { \
 		error("in_array = NULL"); \
-		return 1; \
+		return -1; \
 		} \
 	if (out_array == NULL) { \
 		error("out_array = NULL"); \
-		return 2; \
+		return -1; \
 		} \
 	if (size == 0) { \
 		error("size = 0"); \
-		return 3; \
+		return -1; \
 		} \
 	if (min > max) { \
 		error("min > max"); \
-		return 4; \
+		return -1; \
 		} \
 	\
 	/*size of full group in elements, from 1 to (itype_MAX-itype_MIN+1)*/ \
@@ -318,11 +318,11 @@ extern int encode_int64_uniform
 		/*if algorithm works right, this errors should never be thrown*/ \
 		if (out_array[i] < min) { \
 			error("algorithm error: wrong value < min"); \
-			return 5; \
+			return -1; \
 			} \
 		else if (out_array[i] > max) { \
 			error("algorithm error: wrong value > max"); \
-			return 6; \
+			return -1; \
 			} \
 		} \
 	\
@@ -357,19 +357,19 @@ extern int decode_int32_uniform
 	/*check the arguments*/ \
 	if (in_array == NULL) { \
 		error("in_array = NULL"); \
-		return 1; \
+		return -1; \
 		} \
 	if (out_array == NULL) { \
 		error("out_array = NULL"); \
-		return 2; \
+		return -1; \
 		} \
 	if (size == 0) { \
 		error("size = 0"); \
-		return 3; \
+		return -1; \
 		} \
 	if (min > max) { \
 		error("min > max"); \
-		return 4; \
+		return -1; \
 		} \
 	\
 	/*current processing element before type promotion*/ \
@@ -423,11 +423,11 @@ extern int decode_int32_uniform
 		/*if algorithm works right, this errors should never be thrown*/ \
 		if (out_array[i] < min) { \
 			error("algorithm error: wrong value < min"); \
-			return 5; \
+			return -1; \
 			} \
 		else if (out_array[i] > max) { \
 			error("algorithm error: wrong value > max"); \
-			return 6; \
+			return -1; \
 			} \
 		} \
 	\

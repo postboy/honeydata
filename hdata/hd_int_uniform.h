@@ -1,5 +1,5 @@
 /*
-components for integers distributed uniformly
+components for uniformly distributed integers
 license: BSD 2-Clause
 */
 

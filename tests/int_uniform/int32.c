@@ -80,7 +80,7 @@ extern int main(void)
 	randombytes((unsigned char *)orig_array, BYTESIZE);
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
-	//let orig_array contain numbers from -2000000000 to 1000000000 distributed uniformly
+	//let orig_array contain uniformly distributed numbers from -2000000000 to 1000000000
 	for (i = 0; i < size; i++) {
 		/*write a fresh random element to this position until it will be between -2000000000 and
 		1000000000*/

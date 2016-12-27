@@ -1,5 +1,5 @@
 /*
-components for floating-point numbers distributed uniformly
+components for uniformly distributed floating-point numbers
 license: BSD 2-Clause
 */
 
@@ -32,15 +32,15 @@ portable.*/
 	/*check the arguments*/ \
 	if (in_array == NULL) { \
 		error("in_array = NULL"); \
-		return 1; \
+		return -1; \
 		} \
 	if (out_array == NULL) { \
 		error("out_array = NULL"); \
-		return 2; \
+		return -1; \
 		} \
 	if (size == 0) { \
 		error("size = 0"); \
-		return 3; \
+		return -1; \
 		} \
 	\
 	/*current processing element before conversion. we use union notation here for access to \
@@ -91,15 +91,15 @@ extern int double_to_uint64_uniform
 	/*check the arguments*/ \
 	if (in_array == NULL) { \
 		error("in_array = NULL"); \
-		return 1; \
+		return -1; \
 		} \
 	if (out_array == NULL) { \
 		error("out_array = NULL"); \
-		return 2; \
+		return -1; \
 		} \
 	if (size == 0) { \
 		error("size = 0"); \
-		return 3; \
+		return -1; \
 		} \
 	\
 	/*current processing element after conversion. we use union notation here for access to \
@@ -142,7 +142,7 @@ extern int container_float_uniform(const float min, const float max)
 	/*check the arguments*/
 	if (min > max) {
 		error("min > max");
-		return 4;
+		return -1;
 		}
 	
 	/*components of minimum and maximum: sign, exponent and fraction*/
@@ -199,7 +199,7 @@ extern int container_float_uniform(const float min, const float max)
 			weight <<= 1;
 			/*check if overflow happened*/
 			if (weight == 0)
-				return TOO_LONG;
+				return -1;
 			}
 		
 		/*count all additional elements*/
@@ -242,7 +242,7 @@ extern int container_float_uniform(const float min, const float max)
 				weight <<= 1;
 			/*check if overflow happened*/
 			if (weight == 0)
-				return TOO_LONG;
+				return -1;
 			}
 		/*count additional negative elements*/
 		/*if maximum belongs to NaNs then last group will have smallest weight*/
@@ -261,7 +261,7 @@ extern int container_float_uniform(const float min, const float max)
 				weight <<= 1;
 			/*check if overflow happened*/
 			if (weight == 0)
-				return TOO_LONG;
+				return -1;
 			}
 		/*count additional positive elements*/
 		/*if maximum belongs to NaNs then last group will have smallest weight*/
@@ -278,11 +278,9 @@ extern int container_float_uniform(const float min, const float max)
 		}
 	
 	if (used_groups < 512)					/*2^9*/
-		return UINT32;
+		return 32;
 	else if (used_groups < 2199023255552)	/*2^41*/
-		return UINT64;
+		return 64;
 	else
-		return TOO_LONG;
-	
-	return 0;
+		return -1;
 }

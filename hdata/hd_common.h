@@ -54,7 +54,7 @@ extern int get_double_minmax(const double *array, const size_t size,
 extern int get_longd_minmax(const long double *array, const size_t size,
 	long double *min, long double *max);
 
-//random number generation
+//random data generation
 extern void randombytes(unsigned char *x, unsigned long long xlen);
 
 #endif

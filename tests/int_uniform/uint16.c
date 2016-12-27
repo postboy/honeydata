@@ -163,7 +163,7 @@ extern int main(void)
 	randombytes((unsigned char *)orig_array, BYTESIZE);
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
-	//let orig_array contain numbers from 11000 to 20999 distributed uniformly
+	//let orig_array contain uniformly distributed numbers from 11000 to 20999
 	for (i = 0; i < size; i++) {
 		//write a fresh random element to this position until it will be between 0 and 59999
 		while (orig_array[i] > 59999)

@@ -162,7 +162,7 @@ extern int main(void)
 	randombytes((unsigned char *)orig_array, BYTESIZE);
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
-	//let orig_array contain numbers from -100 to 19 distributed uniformly
+	//let orig_array contain uniformly distributed numbers from -100 to 19
 	for (i = 0; i < size; i++) {
 		//write a fresh random element to this position until it will be between -100 and 19
 		while ( (orig_array[i] < -100) || (orig_array[i] > 19) )
@@ -220,7 +220,7 @@ extern int main(void)
 		//write a random numbers to original array
 		randombytes((unsigned char *)orig_array, BYTESIZE);
 		
-		//let orig_array contain numbers from -100 to -1 distributed uniformly
+		//let orig_array contain uniformly distributed numbers from -100 to -1
 		for (j = 0; j < size; j++) {
 			while ( (orig_array[j] < -100) || (orig_array[j] > -1) )
 				randombytes((unsigned char *)(orig_array+j), sizeof(ITYPE));

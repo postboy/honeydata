@@ -1,5 +1,5 @@
 /*
-components for floating-point numbers distributed uniformly
+components for uniformly distributed floating-point numbers
 license: BSD 2-Clause
 */
 
@@ -7,6 +7,7 @@ license: BSD 2-Clause
 #define HD_INT_UNIFORM_H
 
 #include "hd_common.h"
+#include "hd_int_arbitrary.h"
 
 //functions for float type arrays
 /*convert fp number to integer and back such way that if (fp1 < fp2) then (int1 < int2), if
@@ -20,8 +21,6 @@ extern int double_to_uint64_uniform(const double *in_array, uint64_t *out_array,
 extern int uint64_to_double_uniform(const uint64_t *in_array, double *out_array, const size_t size);
 
 //check what container can be used for such array
-enum containers {UINT32, UINT64, TOO_LONG};
-
 extern int container_float_uniform(const float min, const float max);
 
 #endif

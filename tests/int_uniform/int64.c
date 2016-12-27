@@ -79,8 +79,8 @@ extern int main(void)
 	randombytes((unsigned char *)orig_array, BYTESIZE);
 	stats_uint8_array((uint8_t *)orig_array, BYTESIZE, in_stats);
 	
-	/*let orig_array contain numbers from -5999999999999999999 to 5999999999999999999 distributed
-	uniformly*/
+	/*let orig_array contain uniformly distributed numbers from -5999999999999999999 to
+	5999999999999999999*/
 	for (i = 0; i < size; i++) {
 		/*write a fresh random element to this position until it will be between
 		-5999999999999999999 and 5999999999999999999*/

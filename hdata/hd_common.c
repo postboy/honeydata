@@ -91,7 +91,7 @@ extern int get_longd_minmax
 
 #undef GET_ARRAY_MINMAX
 
-//random number generation-------------------------------------------------------------------------
+//random data generation---------------------------------------------------------------------------
 
 //Windows-only
 #ifdef WIN32
