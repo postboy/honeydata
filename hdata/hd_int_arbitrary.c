@@ -79,16 +79,21 @@ const uint8_t max, const uint64_t *cumuls) \
 	/*index and weight of current element*/
 	size_t index;
 	uint32_t weight;
-	/*temporary array*/
+	/*cumulative weights of previous element*/
+	uint64_t cumul_prev;
+	/*arrays for temporary and random data (actually this is the same array in memory)*/
 	uint8_t *temp_array;
+	uint16_t *rand_array;
 	/*return value*/
 	int rv;
 	size_t i;
 	
-	if ( (temp_array = malloc(size*sizeof(uint8_t))) == NULL ) {
+	if ( (temp_array = malloc(size*sizeof(uint16_t))) == NULL ) {
 		error("couldn't allocate memory for temp_array");
 		return -1;
 		}
+	randombytes( (unsigned char *)temp_array, size*sizeof(uint16_t) );
+	rand_array = (uint16_t *)temp_array;
 	
 	for (i = 0; i < size; i++) {
 		if (in_array[i] < min) { \
@@ -104,9 +109,11 @@ const uint8_t max, const uint64_t *cumuls) \
 		index = in_array[i] - min;
 		
 		if (index == 0)
-			weight = cumuls[index];
+			cumul_prev = 0;
 		else
-			weight = cumuls[index] - cumuls[index-1];
+			cumul_prev = cumuls[index-1];
+		/*weight is the difference between two consecutive cumulative weights*/
+		weight = cumuls[index] - cumul_prev;
 		
 		/*check if current value is impossible according to cumuls*/
 		if (weight == 0) { \
@@ -115,7 +122,11 @@ const uint8_t max, const uint64_t *cumuls) \
 			return -1; \
 			} \
 		
-		temp_array[i] = cumuls[index];
+		/*each temp value is pseudorandom value in [cumul_prev; cumuls[index]-1]*/
+		/*we're very neat here: first we read rand_array member, which is two times bigger then \
+		temp_array member, then we write temp_array member, possibly overwriting rand_array \
+		member, which we don't need anymore*/
+		temp_array[i] = (rand_array[i] % weight) + cumul_prev;
 		}
 	
 	/*finally encode uniformly distributed temporary values*/
@@ -130,6 +141,7 @@ extern int decode_uint8_uint16_arbitrary
 const uint8_t max, const uint64_t *cumuls) \
 { \
 	/*check the arguments*/ \
+	/*optimization note: some of this checks can safely be delegated to decode_uint8_uniform()*/ \
 	if (in_array == NULL) { \
 		error("in_array = NULL"); \
 		return -1; \
@@ -176,11 +188,12 @@ const uint8_t max, const uint64_t *cumuls) \
 	for (i = 0; i < size; i++) {
 		/*this functionality can be optimized a lot!*/
 		for (index = 0; index < (max - min + 1); index++) {
+			/*in this simple algorithm, (weight > 0) condition always holds, but normally we \
+			should check this*/
 			/*if (index == 0)
 				weight = cumuls[index];
 			else
 				weight = cumuls[index] - cumuls[index-1];*/
-			/*in this simple algorithm weight > 0 always holds, but normally we should check this*/
 			if ((temp_array[i] <= cumuls[index]) /*&& (weight > 0)*/)
 				break;
 			}
