@@ -9,7 +9,6 @@ license: BSD 2-Clause
 extern int main(void)
 {
 	#define ITYPE uint8_t							//type for testing in this test unit
-	#define OTYPE uint16_t							//type of container in this test unit
 	#define BYTESIZE (size*sizeof(ITYPE))			//current input array size in bytes
 
 	const ITYPE orig_array[] = {10, 10, 10, 12, 12, 10, 10, 10, 12, 12};
@@ -78,25 +77,16 @@ extern int main(void)
 		test_error();
 		}
 	
-	/*
 	weights[0] = 4294967295;
 	
-	if ((rv = encode_uint8_arbitrary(orig_array, &encoded_array, size, min, max, weights)) != 16) {
+	if ((rv = encode_uint8_arbitrary(orig_array, &encoded_array, size, min, max, weights)) != -1) {
 		error("unexpected output type");
 		printf("%d\n", rv);
 		test_error();
 		}
-	decode_uint8_arbitrary(encoded_array, decoded_array, size, min, max, weights);
 	
-	free(encoded_array);
-	
-	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
-		error("orig_array and decoded_array are not the same");
-		print_uint8_array(orig_array, size);
-		print_uint8_array(decoded_array, size);
-		test_error();
-		}
-	*/
+	#undef ITYPE
+	#undef BYTESIZE
 	
 	return 0;
 }

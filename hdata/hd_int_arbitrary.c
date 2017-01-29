@@ -6,7 +6,7 @@ license: BSD 2-Clause
 #include "hd_int_arbitrary.h"
 
 //convert weights to cumulative weights
-#define GET_CUMULS \
+#define GET_CUMULS() \
 do { \
 	/*get size of weights and cumuls arrays*/ \
 	wsize = max - min + 1; \
@@ -31,7 +31,7 @@ do { \
 } while(0)
 
 #define ENCODE_IN_TYPE_ARBITRARY(ctype_t, ctype, otype) \
-{ \
+do { \
 	/*index and weight of current element*/ \
 	size_t index; \
 	uint32_t weight; \
@@ -64,6 +64,7 @@ do { \
 			free(cumuls); \
 			free(temp_array); \
 			free(*out_array); \
+			*out_array = NULL; \
 			return -1; \
 			} \
 		else if (in_array[i] > max) { \
@@ -71,6 +72,7 @@ do { \
 			free(cumuls); \
 			free(temp_array); \
 			free(*out_array); \
+			*out_array = NULL; \
 			return -1; \
 			} \
 		index = in_array[i] - min; \
@@ -88,6 +90,7 @@ do { \
 			free(cumuls); \
 			free(temp_array); \
 			free(*out_array); \
+			*out_array = NULL; \
 			return -1; \
 			} \
 		\
@@ -105,11 +108,15 @@ do { \
 	free(temp_array); \
 	\
 	/*if error happened, then return -1, else return size of output type in bytes*/ \
-	if (rv) \
+	if (rv) { \
+		free(*out_array); \
+		*out_array = NULL; \
 		return -1; \
-	else \
+		} \
+	else { \
 		return sizeof(otype); \
-}
+		} \
+} while(0)
 
 extern int encode_uint8_arbitrary
 (const uint8_t *in_array, void **out_array, const size_t size, const uint8_t min, \
@@ -142,23 +149,26 @@ const uint8_t max, const uint32_t *weights) { \
 	uint64_t *cumuls; \
 	size_t i, wsize; \
 	
-	GET_CUMULS;
+	GET_CUMULS();
 	
 	//check maximum value after encoding (i.e., maximum cumulative weight value)
 	if (current < 256)				/*2^8*/
-		ENCODE_IN_TYPE_ARBITRARY(uint8_t, uint8, uint16_t)
+		ENCODE_IN_TYPE_ARBITRARY(uint8_t, uint8, uint16_t);
 	else if (current < 65536)		/*2^16*/
-		ENCODE_IN_TYPE_ARBITRARY(uint16_t, uint16, uint32_t)
+		ENCODE_IN_TYPE_ARBITRARY(uint16_t, uint16, uint32_t);
 	else if (current < 4294967296)	/*2^32*/
-		ENCODE_IN_TYPE_ARBITRARY(uint32_t, uint32, uint64_t)
-	else
+		ENCODE_IN_TYPE_ARBITRARY(uint32_t, uint32, uint64_t);
+	else {
+		error("too many values for any supported output type");
+		free(cumuls);
 		return -1;
+		}
 }
 
 #undef ENCODE_IN_TYPE_ARBITRARY
 
 #define DECODE_IN_TYPE_ARBITRARY(ctype_t, ctype) \
-{ \
+do { \
 	/*index and weight of current element*/ \
 	size_t index; \
 	/*uint32_t weight;*/ \
@@ -222,7 +232,7 @@ const uint8_t max, const uint32_t *weights) { \
 	free(cumuls); \
 	free(temp_array); \
 	return 0; \
-}
+} while (0)
 
 extern int decode_uint8_arbitrary
 (const void *in_array, uint8_t *out_array, const size_t size, const uint8_t min, \
@@ -257,17 +267,21 @@ const uint8_t max, const uint32_t *weights) \
 	uint64_t *cumuls;
 	size_t i, wsize;
 	
-	GET_CUMULS;
+	GET_CUMULS();
 	
 	//check maximum value after encoding (i.e., maximum cumulative weight value)
 	if (current < 256)				/*2^8*/
-		DECODE_IN_TYPE_ARBITRARY(uint8_t, uint8)
+		DECODE_IN_TYPE_ARBITRARY(uint8_t, uint8);
 	else if (current < 65536)		/*2^16*/
-		DECODE_IN_TYPE_ARBITRARY(uint16_t, uint16)
+		DECODE_IN_TYPE_ARBITRARY(uint16_t, uint16);
 	else if (current < 4294967296)	/*2^32*/
-		DECODE_IN_TYPE_ARBITRARY(uint32_t, uint32)
-	else
+		DECODE_IN_TYPE_ARBITRARY(uint32_t, uint32);
+	else {
+		error("too many values for any supported output type");
+		free(cumuls);
 		return -1;
+		}
 }
 
 #undef DECODE_IN_TYPE_ARBITRARY
+#undef GET_CUMULS
