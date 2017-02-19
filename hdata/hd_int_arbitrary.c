@@ -118,9 +118,10 @@ do { \
 		} \
 } while(0)
 
-extern int encode_uint8_arbitrary
-(const uint8_t *in_array, void **out_array, const size_t size, const uint8_t min, \
-const uint8_t max, const uint32_t *weights) { \
+#define ENCODE_ARBITRARY(itype) \
+(const itype *in_array, void **out_array, const size_t size, \
+const itype min, const itype max, const uint32_t *weights) \
+{ \
 	/*check the arguments*/ \
 	if (in_array == NULL) { \
 		error("in_array = NULL"); \
@@ -142,29 +143,54 @@ const uint8_t max, const uint32_t *weights) { \
 		error("weights = NULL"); \
 		return -1; \
 		} \
-	
+	\
 	/*current and previous weights*/ \
 	uint64_t current, prev; \
 	/*cumulative weights*/ \
 	uint64_t *cumuls; \
 	size_t i, wsize; \
-	
-	GET_CUMULS();
-	
-	//check maximum value after encoding (i.e., maximum cumulative weight value)
-	if (current < 256)				/*2^8*/
-		ENCODE_IN_TYPE_ARBITRARY(uint8_t, uint8, uint16_t);
-	else if (current < 65536)		/*2^16*/
-		ENCODE_IN_TYPE_ARBITRARY(uint16_t, uint16, uint32_t);
-	else if (current < 4294967296)	/*2^32*/
-		ENCODE_IN_TYPE_ARBITRARY(uint32_t, uint32, uint64_t);
-	else {
-		error("too many values for any supported output type");
-		free(cumuls);
-		return -1;
-		}
+	\
+	GET_CUMULS(); \
+	\
+	/*check maximum value after encoding (i.e., maximum cumulative weight value)*/ \
+	if (current < 256)				/*2^8*/ \
+		ENCODE_IN_TYPE_ARBITRARY(uint8_t, uint8, uint16_t); \
+	else if (current < 65536)		/*2^16*/ \
+		ENCODE_IN_TYPE_ARBITRARY(uint16_t, uint16, uint32_t); \
+	else if (current < 4294967296)	/*2^32*/ \
+		ENCODE_IN_TYPE_ARBITRARY(uint32_t, uint32, uint64_t); \
+	else { \
+		error("too many values for any supported output type"); \
+		free(cumuls); \
+		return -1; \
+		} \
 }
 
+extern int encode_uint8_arbitrary
+	ENCODE_ARBITRARY(uint8_t)
+
+extern int encode_int8_arbitrary
+	ENCODE_ARBITRARY(int8_t)
+
+extern int encode_uint16_arbitrary
+	ENCODE_ARBITRARY(uint16_t)
+
+extern int encode_int16_arbitrary
+	ENCODE_ARBITRARY(int16_t)
+
+extern int encode_uint32_arbitrary
+	ENCODE_ARBITRARY(uint32_t)
+
+extern int encode_int32_arbitrary
+	ENCODE_ARBITRARY(int32_t)
+
+extern int encode_uint64_arbitrary
+	ENCODE_ARBITRARY(uint64_t)
+
+extern int encode_int64_arbitrary
+	ENCODE_ARBITRARY(int64_t)
+
+#undef ENCODE_ARBITRARY
 #undef ENCODE_IN_TYPE_ARBITRARY
 
 #define DECODE_IN_TYPE_ARBITRARY(ctype_t, ctype) \
@@ -234,12 +260,12 @@ do { \
 	return 0; \
 } while (0)
 
-extern int decode_uint8_arbitrary
-(const void *in_array, uint8_t *out_array, const size_t size, const uint8_t min, \
-const uint8_t max, const uint32_t *weights) \
+#define DECODE_ARBITRARY(itype) \
+(const void *in_array, itype *out_array, const size_t size, const itype min, \
+const itype max, const uint32_t *weights) \
 { \
 	/*check the arguments*/ \
-	/*optimization note: some of this checks can safely be delegated to decode_uint8_uniform()*/ \
+	/*optimization note: some of this checks can safely be delegated to decode_itype_uniform()*/ \
 	if (in_array == NULL) { \
 		error("in_array = NULL"); \
 		return -1; \
@@ -260,28 +286,53 @@ const uint8_t max, const uint32_t *weights) \
 		error("weights = NULL"); \
 		return -1; \
 		} \
-	
-	//current and previous weights
-	uint64_t current, prev;
-	//cumulative weights
-	uint64_t *cumuls;
-	size_t i, wsize;
-	
-	GET_CUMULS();
-	
-	//check maximum value after encoding (i.e., maximum cumulative weight value)
-	if (current < 256)				/*2^8*/
-		DECODE_IN_TYPE_ARBITRARY(uint8_t, uint8);
-	else if (current < 65536)		/*2^16*/
-		DECODE_IN_TYPE_ARBITRARY(uint16_t, uint16);
-	else if (current < 4294967296)	/*2^32*/
-		DECODE_IN_TYPE_ARBITRARY(uint32_t, uint32);
-	else {
-		error("too many values for any supported output type");
-		free(cumuls);
-		return -1;
-		}
+	\
+	/*current and previous weights*/ \
+	uint64_t current, prev; \
+	/*cumulative weights*/ \
+	uint64_t *cumuls; \
+	size_t i, wsize; \
+	\
+	GET_CUMULS(); \
+	\
+	/*check maximum value after encoding (i.e., maximum cumulative weight value)*/ \
+	if (current < 256)				/*2^8*/ \
+		DECODE_IN_TYPE_ARBITRARY(uint8_t, uint8); \
+	else if (current < 65536)		/*2^16*/ \
+		DECODE_IN_TYPE_ARBITRARY(uint16_t, uint16); \
+	else if (current < 4294967296)	/*2^32*/ \
+		DECODE_IN_TYPE_ARBITRARY(uint32_t, uint32); \
+	else { \
+		error("too many values for any supported output type"); \
+		free(cumuls); \
+		return -1; \
+		} \
 }
 
+extern int decode_uint8_arbitrary
+	DECODE_ARBITRARY(uint8_t)
+
+extern int decode_int8_arbitrary
+	DECODE_ARBITRARY(int8_t)
+
+extern int decode_uint16_arbitrary
+	DECODE_ARBITRARY(uint16_t)
+
+extern int decode_int16_arbitrary
+	DECODE_ARBITRARY(int16_t)
+
+extern int decode_uint32_arbitrary
+	DECODE_ARBITRARY(uint32_t)
+
+extern int decode_int32_arbitrary
+	DECODE_ARBITRARY(int32_t)
+
+extern int decode_uint64_arbitrary
+	DECODE_ARBITRARY(uint64_t)
+
+extern int decode_int64_arbitrary
+	DECODE_ARBITRARY(int64_t)
+
+#undef DECODE_ARBITRARY
 #undef DECODE_IN_TYPE_ARBITRARY
 #undef GET_CUMULS

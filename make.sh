@@ -20,6 +20,13 @@ gcc tests/int_uniform/int64.c $int_u_files $int_opts -o build/int_uniform/int64 
 int_a_files="hdata/hd_int_arbitrary.c $int_u_files"
 
 gcc tests/int_arbitrary/uint8.c $int_a_files $int_opts -o build/int_arbitrary/uint8 &&
+gcc tests/int_arbitrary/int8.c $int_a_files $int_opts -o build/int_arbitrary/int8 &&
+gcc tests/int_arbitrary/uint16.c $int_a_files $int_opts -o build/int_arbitrary/uint16 &&
+gcc tests/int_arbitrary/int16.c $int_a_files $int_opts -o build/int_arbitrary/int16 &&
+gcc tests/int_arbitrary/uint32.c $int_a_files $int_opts -o build/int_arbitrary/uint32 &&
+gcc tests/int_arbitrary/int32.c $int_a_files $int_opts -o build/int_arbitrary/int32 &&
+gcc tests/int_arbitrary/uint64.c $int_a_files $int_opts -o build/int_arbitrary/uint64 &&
+gcc tests/int_arbitrary/int64.c $int_a_files $int_opts -o build/int_arbitrary/int64 &&
 
 fp_opts="-lm $int_opts"
 fp_u_files="hdata/hd_fp_uniform.c $int_a_files"

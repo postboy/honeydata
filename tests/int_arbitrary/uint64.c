@@ -8,10 +8,13 @@ license: BSD 2-Clause
 
 extern int main(void)
 {
-	#define ITYPE uint8_t							//type for testing in this test unit
+	#define ITYPE uint64_t							//type for testing in this test unit
 	#define BYTESIZE (size*sizeof(ITYPE))			//current input array size in bytes
 
-	const ITYPE orig_array[] = {210, 210, 210, 212, 212, 210, 210, 210, 212, 212};
+	const ITYPE orig_array[] = {18446744073709551610U, 18446744073709551610U,
+		18446744073709551610U, 18446744073709551612U, 18446744073709551612U, 18446744073709551610U,
+		18446744073709551610U, 18446744073709551610U, 18446744073709551612U,
+		18446744073709551612U};
 	const size_t size = 10;
 	ITYPE decoded_array[size], min, max;
 	void *encoded_array;
@@ -21,65 +24,65 @@ extern int main(void)
 	
 	//fixed general cases--------------------------------------------------------------------------
 
-	get_uint8_minmax(orig_array, size, &min, &max);
+	get_uint64_minmax(orig_array, size, &min, &max);
 	
-	if ((rv = encode_uint8_arbitrary(orig_array, &encoded_array, size, min, max, weights)) != 2) {
+	if ((rv = encode_uint64_arbitrary(orig_array, &encoded_array, size, min, max, weights)) != 2) {
 		error("unexpected output type");
 		printf("%d\n", rv);
 		test_error();
 		}
-	decode_uint8_arbitrary(encoded_array, decoded_array, size, min, max, weights);
+	decode_uint64_arbitrary(encoded_array, decoded_array, size, min, max, weights);
 	
 	free(encoded_array);
 	
 	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 		error("orig_array and decoded_array are not the same");
-		print_uint8_array(orig_array, size);
-		print_uint8_array(decoded_array, size);
+		print_uint64_array(orig_array, size);
+		print_uint64_array(decoded_array, size);
 		test_error();
 		}
 	
 	
 	weights[0] = 256;
 	
-	if ((rv = encode_uint8_arbitrary(orig_array, &encoded_array, size, min, max, weights)) != 4) {
+	if ((rv = encode_uint64_arbitrary(orig_array, &encoded_array, size, min, max, weights)) != 4) {
 		error("unexpected output type");
 		printf("%d\n", rv);
 		test_error();
 		}
-	decode_uint8_arbitrary(encoded_array, decoded_array, size, min, max, weights);
+	decode_uint64_arbitrary(encoded_array, decoded_array, size, min, max, weights);
 	
 	free(encoded_array);
 	
 	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 		error("orig_array and decoded_array are not the same");
-		print_uint8_array(orig_array, size);
-		print_uint8_array(decoded_array, size);
+		print_uint64_array(orig_array, size);
+		print_uint64_array(decoded_array, size);
 		test_error();
 		}
 	
 	
 	weights[0] = 65536;
 	
-	if ((rv = encode_uint8_arbitrary(orig_array, &encoded_array, size, min, max, weights)) != 8) {
+	if ((rv = encode_uint64_arbitrary(orig_array, &encoded_array, size, min, max, weights)) != 8) {
 		error("unexpected output type");
 		printf("%d\n", rv);
 		test_error();
 		}
-	decode_uint8_arbitrary(encoded_array, decoded_array, size, min, max, weights);
+	decode_uint64_arbitrary(encoded_array, decoded_array, size, min, max, weights);
 	
 	free(encoded_array);
 	
 	if (memcmp(orig_array, decoded_array, BYTESIZE)) {
 		error("orig_array and decoded_array are not the same");
-		print_uint8_array(orig_array, size);
-		print_uint8_array(decoded_array, size);
+		print_uint64_array(orig_array, size);
+		print_uint64_array(decoded_array, size);
 		test_error();
 		}
 	
 	weights[0] = 4294967295;
 	
-	if ((rv = encode_uint8_arbitrary(orig_array, &encoded_array, size, min, max, weights)) != -1) {
+	if ((rv = encode_uint64_arbitrary(orig_array, &encoded_array, size, min, max, weights)) != -1) {
 		error("unexpected output type");
 		printf("%d\n", rv);
 		test_error();
