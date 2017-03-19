@@ -265,7 +265,7 @@ do { \
 const itype max, const uint32_t *weights) \
 { \
 	/*check the arguments*/ \
-	/*optimization note: some of this checks can safely be delegated to decode_itype_uniform()*/ \
+	/*optimization note: some of this checks can safely be delegated to decode_ctype_uniform()*/ \
 	if (in_array == NULL) { \
 		error("in_array = NULL"); \
 		return -1; \
