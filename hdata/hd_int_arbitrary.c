@@ -18,8 +18,8 @@ do { \
 	arrays (i.e., size_t type can't hold their size). to catch this situation, we make \
 	computations in biggest type available, then convert it to size_t. however, overflow can \
 	occur even in biggest type, so we should catch for this situation too.*/ \
-	/*optimization note: we can skip such check(s) if overflow(s) in question isn't possible, for \
-	example when we're handling (u)int8_t arrays*/ \
+	/*optimization note: we can skip such check(s) if overflow(s) in question aren't possible, \
+	for example when we're handling (u)int8_t arrays*/ \
 	if ( (wsize != wsize_check) || ((max == UINT64_MAX) && (min == 0)) ) { \
 		error("can't handle such big supplementary arrays"); \
 		return -1; \
