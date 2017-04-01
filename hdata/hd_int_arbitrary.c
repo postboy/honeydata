@@ -5,7 +5,7 @@ license: BSD 2-Clause
 
 #include "hd_int_arbitrary.h"
 
-//check if we can handle such array and convert weights to cumulative weights
+//first check if we can handle such array, then convert weights to cumulative weights
 /*optimization note: cumulative weights can be saved after computation in encoding stage and
 just loaded (rather then re-computed) in decoding stage*/
 #define CHECK_ARRAYS_GET_CUMULS() \
@@ -18,8 +18,8 @@ do { \
 	arrays (i.e., size_t type can't hold their size). to catch this situation, we make \
 	computations in biggest type available, then convert it to size_t. however, overflow can \
 	occur even in biggest type, so we should catch for this situation too.*/ \
-	/*optimization note: we can skip such check if size_t overflow isn't possible, for example \
-	when we're handling (u)int8_t arrays*/ \
+	/*optimization note: we can skip such check(s) if overflow(s) in question isn't possible, for \
+	example when we're handling (u)int8_t arrays*/ \
 	if ( (wsize != wsize_check) || ((max == UINT64_MAX) && (min == 0)) ) { \
 		error("can't handle such big supplementary arrays"); \
 		return -1; \
