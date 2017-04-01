@@ -5,11 +5,25 @@ license: BSD 2-Clause
 
 #include "hd_int_arbitrary.h"
 
-//convert weights to cumulative weights
-#define GET_CUMULS() \
+//check if we can handle such array and convert weights to cumulative weights
+/*optimization note: cumulative weights can be saved after computation in encoding stage and
+just loaded (rather then re-computed) in decoding stage*/
+#define CHECK_ARRAYS_GET_CUMULS() \
 do { \
 	/*get size of weights and cumuls arrays*/ \
-	wsize = max - min + 1; \
+	wsize_check = max - min + 1; \
+	wsize = wsize_check; \
+	\
+	/*make a check for an overflow. it occurs if user wants to use too big weights and cumuls \
+	arrays (i.e., size_t type can't hold their size). to catch this situation, we make \
+	computations in biggest type available, then convert it to size_t. however, overflow can \
+	occur even in biggest type, so we should catch for this situation too.*/ \
+	/*optimization note: we can skip such check if size_t overflow isn't possible, for example \
+	when we're handling (u)int8_t arrays*/ \
+	if ( (wsize != wsize_check) || ((max == UINT64_MAX) && (min == 0)) ) { \
+		error("can't handle such big supplementary arrays"); \
+		return -1; \
+	} \
 	\
 	if ( (cumuls = malloc(wsize*sizeof(uint64_t))) == NULL ) { \
 		error("couldn't allocate memory for cumuls"); \
@@ -149,8 +163,9 @@ const itype min, const itype max, const uint32_t *weights) \
 	/*cumulative weights*/ \
 	uint64_t *cumuls; \
 	size_t i, wsize; \
+	uint64_t wsize_check; \
 	\
-	GET_CUMULS(); \
+	CHECK_ARRAYS_GET_CUMULS(); \
 	\
 	/*check maximum value after encoding (i.e., maximum cumulative weight value)*/ \
 	if (current < 256)				/*2^8*/ \
@@ -219,9 +234,9 @@ do { \
 		} \
 	\
 	for (i = 0; i < size; i++) { \
-		/*this functionality can be optimized a lot!*/ \
+		/*optimization note: binary search or some other clever algorithm would be much faster*/ \
 		for (index = 0; index < (max - min + 1); index++) { \
-			/*in this simple algorithm, (weight > 0) condition always holds, but normally we \
+			/*in this simple algorithm, (weight > 0) condition always holds, but generally we \
 			should check this*/ \
 			/*if (index == 0) \
 				weight = cumuls[index]; \
@@ -292,8 +307,9 @@ const itype max, const uint32_t *weights) \
 	/*cumulative weights*/ \
 	uint64_t *cumuls; \
 	size_t i, wsize; \
+	uint64_t wsize_check; \
 	\
-	GET_CUMULS(); \
+	CHECK_ARRAYS_GET_CUMULS(); \
 	\
 	/*check maximum value after encoding (i.e., maximum cumulative weight value)*/ \
 	if (current < 256)				/*2^8*/ \
@@ -335,4 +351,4 @@ extern int decode_int64_arbitrary
 
 #undef DECODE_ARBITRARY
 #undef DECODE_IN_TYPE_ARBITRARY
-#undef GET_CUMULS
+#undef CHECK_ARRAYS_GET_CUMULS
